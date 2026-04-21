@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New User - Horologue Admin</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <!-- Admin Navbar -->
+    <%- include('../partials/admin-navbar') %>
+    
+    <!-- Admin Sidebar -->
+    <%- include('../partials/admin-sidebar', { currentPage: 'users' }) %>
+    
+    <!-- Main Content -->
+    <div class="admin-main-content">
+        <div class="add-user-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="header-left">
+                    <a href="/admin/users" class="btn btn-outline-secondary me-3">
+                        <i class="fas fa-arrow-left"></i> Back to Users
+                    </a>
+                    <h2>Add New User</h2>
+                </div>
+            </div>
+            
+            <!-- Add User Form -->
+            <div class="form-card">
+                <form id="addUserForm" onsubmit="handleAddUser(event)">
+                    <div class="row">
+                        <!-- Personal Information -->
+                        <div class="col-lg-6">
+                            <div class="form-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-user"></i> Personal Information
+                                </h4>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="firstName" class="form-label">First Name *</label>
+                                        <input type="text" class="form-control" id="firstName" name="firstName" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lastName" class="form-label">Last Name *</label>
+                                        <input type="text" class="form-control" id="lastName" name="lastName" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number *</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="gender" class="form-label">Gender</label>
+                                    <select class="form-select" id="gender" name="gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Account Information -->
+                        <div class="col-lg-6">
+                            <div class="form-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-key"></i> Account Information
+                                </h4>
+                                
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password *</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="password" name="password" required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                                            <i class="fas fa-eye" id="passwordIcon"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">Password must be at least 8 characters long</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirm Password *</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword')">
+                                            <i class="fas fa-eye" id="confirmPasswordIcon"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Account Status *</label>
+                                    <select class="form-select" id="status" name="status" required>
+                                        <option value="active">Active</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="blocked">Blocked</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="role" class="form-label">User Role *</label>
+                                    <select class="form-select" id="role" name="role" required>
+                                        <option value="user">Regular User</option>
+                                        <option value="premium">Premium User</option>
+                                        <option value="admin">Administrator</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="emailVerified" name="emailVerified">
+                                        <label class="form-check-label" for="emailVerified">
+                                            Email Verified
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="sendWelcomeEmail" name="sendWelcomeEmail" checked>
+                                        <label class="form-check-label" for="sendWelcomeEmail">
+                                            Send Welcome Email
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Address Information -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="form-section">
+                                <h4 class="section-title">
+                                    <i class="fas fa-map-marker-alt"></i> Address Information (Optional)
+                                </h4>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="address" class="form-label">Street Address</label>
+                                        <input type="text" class="form-control" id="address" name="address">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="city" class="form-label">City</label>
+                                        <input type="text" class="form-control" id="city" name="city">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="state" class="form-label">State/Province</label>
+                                        <input type="text" class="form-control" id="state" name="state">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="zipCode" class="form-label">ZIP/Postal Code</label>
+                                        <input type="text" class="form-control" id="zipCode" name="zipCode">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="country" class="form-label">Country</label>
+                                        <select class="form-select" id="country" name="country">
+                                            <option value="">Select Country</option>
+                                            <option value="US">United States</option>
+                                            <option value="CA">Canada</option>
+                                            <option value="UK">United Kingdom</option>
+                                            <option value="AU">Australia</option>
+                                            <option value="IN">India</option>
+                                            <option value="DE">Germany</option>
+                                            <option value="FR">France</option>
+                                            <option value="JP">Japan</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                            <i class="fas fa-undo"></i> Reset Form
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .admin-main-content {
+            margin-left: 250px;
+            margin-top: 70px;
+            padding: 2rem;
+            min-height: calc(100vh - 70px);
+        }
+
+        .add-user-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            color: #212529;
+            font-weight: 600;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: #495057;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: #007bff;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .form-check-label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .input-group .btn {
+            border-left: none;
+        }
+
+        .form-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .admin-main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .header-left {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+
+    <script>
+        // Toggle password visibility
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const icon = document.getElementById(fieldId + 'Icon');
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                field.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            Swal.fire({
+                title: 'Reset Form',
+                text: 'Are you sure you want to reset all fields?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#007bff',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, Reset'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('addUserForm').reset();
+                    Swal.fire('Reset!', 'Form has been reset.', 'success');
+                }
+            });
+        }
+
+        // Handle form submission
+        function handleAddUser(event) {
+            event.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(event.target);
+            const userData = Object.fromEntries(formData.entries());
+            
+            // Basic validation
+            if (userData.password !== userData.confirmPassword) {
+                Swal.fire('Error', 'Passwords do not match!', 'error');
+                return;
+            }
+            
+            if (userData.password.length < 8) {
+                Swal.fire('Error', 'Password must be at least 8 characters long!', 'error');
+                return;
+            }
+            
+            // Show loading
+            Swal.fire({
+                title: 'Creating User...',
+                text: 'Please wait while we create the user account.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Simulate API call (replace with actual API call)
+            setTimeout(() => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: `User ${userData.firstName} ${userData.lastName} has been created successfully.`,
+                    icon: 'success',
+                    confirmButtonText: 'Go to Users List'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/admin/users';
+                    }
+                });
+            }, 2000);
+        }
+
+        // Form validation on input
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('addUserForm');
+            const inputs = form.querySelectorAll('input[required], select[required]');
+            
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value.trim() === '') {
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
+                });
+            });
+            
+            // Password confirmation validation
+            const confirmPassword = document.getElementById('confirmPassword');
+            const password = document.getElementById('password');
+            
+            confirmPassword.addEventListener('input', function() {
+                if (this.value !== password.value) {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            });
+        });
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

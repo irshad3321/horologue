@@ -18,9 +18,9 @@ export const generateAndSaveOTP = async (email, purpose) => {
     
     if (!emailResult.success) {
         console.error(`Failed to send OTP to ${email}:`, emailResult.error);
-        // For development, still show OTP in console if email fails
-        console.log(`OTP for ${email}: ${otp}`);
     }
+    
+    return otp;
     
     return otp;
 };

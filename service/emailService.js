@@ -30,7 +30,7 @@ export const sendOTPEmail = async (email, otp, purpose) => {
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
                     <div style="background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                         <div style="text-align: center; margin-bottom: 30px;">
-                            <h1 style="color: #333; margin: 0; font-size: 28px;">🕰️ Horologue</h1>
+                            <h1 style="color: #333; margin: 0; font-size: 28px;">Horologue</h1>
                             <p style="color: #666; margin: 10px 0 0 0;">Premium Watch Collection</p>
                         </div>
                         <h2 style="color: #333; text-align: center; margin-bottom: 20px;">Verify Your Email Address</h2>
@@ -64,7 +64,7 @@ export const sendOTPEmail = async (email, otp, purpose) => {
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
                     <div style="background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                         <div style="text-align: center; margin-bottom: 30px;">
-                            <h1 style="color: #333; margin: 0; font-size: 28px;">🕰️ Horologue</h1>
+                            <h1 style="color: #333; margin: 0; font-size: 28px;">Horologue</h1>
                             <p style="color: #666; margin: 10px 0 0 0;">Premium Watch Collection</p>
                         </div>
                         <h2 style="color: #333; text-align: center; margin-bottom: 20px;">Reset Your Password</h2>
@@ -98,7 +98,7 @@ export const sendOTPEmail = async (email, otp, purpose) => {
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
                     <div style="background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                         <div style="text-align: center; margin-bottom: 30px;">
-                            <h1 style="color: #333; margin: 0; font-size: 28px;">🕰️ Horologue</h1>
+                            <h1 style="color: #333; margin: 0; font-size: 28px;">Horologue</h1>
                             <p style="color: #666; margin: 10px 0 0 0;">Admin Portal</p>
                         </div>
                         <h2 style="color: #333; text-align: center; margin-bottom: 20px;">Admin Password Reset</h2>
@@ -132,7 +132,7 @@ export const sendOTPEmail = async (email, otp, purpose) => {
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
                     <div style="background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                         <div style="text-align: center; margin-bottom: 30px;">
-                            <h1 style="color: #333; margin: 0; font-size: 28px;">🕰️ Horologue</h1>
+                            <h1 style="color: #333; margin: 0; font-size: 28px;">Horologue</h1>
                             <p style="color: #666; margin: 10px 0 0 0;">Premium Watch Collection</p>
                         </div>
                         <h2 style="color: #333; text-align: center; margin-bottom: 20px;">Verify New Email Address</h2>
@@ -176,7 +176,18 @@ export const sendOTPEmail = async (email, otp, purpose) => {
         return { success: true, messageId: result.messageId };
 
     } catch (error) {
-        console.error('Email sending error:', error);
+        console.error('Email sending error:', error.message);
+        return { success: false, error: error.message };
+    }
+};
+
+// Test email configuration
+export const testEmailConnection = async () => {
+    try {
+        const transporter = createTransporter();
+        await transporter.verify();
+        return { success: true, message: 'Email server connection verified' };
+    } catch (error) {
         return { success: false, error: error.message };
     }
 };
