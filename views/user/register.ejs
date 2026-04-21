@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register - Horologue</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background-color: #e8ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .card {
+      display: flex;
+      background: #fff;
+      border-radius: 24px;
+      overflow: hidden;
+      width: 860px;
+      min-height: 620px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    }
+
+    /* LEFT PANEL */
+    .left {
+      width: 45%;
+      background: #f5f5f5;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 20px;
+    }
+
+    .logo svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .left img {
+      width: 100%;
+      flex: 1;
+      object-fit: cover;
+      border-radius: 16px;
+    }
+
+    /* RIGHT PANEL */
+    .right {
+      width: 55%;
+      padding: 48px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .right h2 {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: #111;
+      margin-bottom: 24px;
+    }
+
+    /* Tab Toggle */
+    .tabs {
+      display: flex;
+      background: #f0f0f0;
+      border-radius: 50px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+
+    .tabs a {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      color: #888;
+      transition: all 0.2s;
+    }
+
+    .tabs a.active {
+      background: #111;
+      color: #fff;
+    }
+
+    /* Alert Messages */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .alert-error {
+      background-color: #fee;
+      color: #c53030;
+      border: 1px solid #feb2b2;
+    }
+
+    .alert-success {
+      background-color: #f0fff4;
+      color: #2f855a;
+      border: 1px solid #9ae6b4;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 6px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      padding: 12px 18px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 50px;
+      font-size: 14px;
+      color: #333;
+      outline: none;
+      background: #fff;
+      transition: border 0.2s;
+    }
+
+    .input-wrap input:focus {
+      border-color: #aaa;
+    }
+
+    .input-wrap input::placeholder { color: #bbb; }
+
+    .eye-btn {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #aaa;
+    }
+
+    .btn-register {
+      width: 100%;
+      padding: 14px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn-register:hover { background: #333; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: #bbb;
+      font-size: 13px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e8e8e8;
+    }
+
+    .social {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .social a {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1.5px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: border 0.2s;
+    }
+
+    .social a:hover { border-color: #aaa; }
+
+    .social img { width: 20px; height: 20px; object-fit: contain; }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <!-- Left -->
+    <div class="left">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        Horologue
+      </div>
+      <img src="https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=400&h=600&fit=crop" alt="Premium Watch" />
+    </div>
+
+    <!-- Right -->
+    <div class="right">
+      <h2>Welcome to Horologue</h2>
+
+      <div class="tabs">
+        <a href="/login">Login</a>
+        <a href="/register" class="active">Register</a>
+      </div>
+
+      <!-- Error and Success Messages -->
+      <% if (error) { %>
+        <div class="alert alert-error">
+          <%= error %>
+        </div>
+      <% } %>
+      
+      <% if (success) { %>
+        <div class="alert alert-success">
+          <%= success %>
+        </div>
+      <% } %>
+
+      <form action="/register" method="POST" autocomplete="off">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First name</label>
+            <div class="input-wrap">
+              <input type="text" name="firstName" placeholder="Enter your name" autocomplete="off" value="<%= formData && formData.firstName ? formData.firstName : '' %>" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Last name</label>
+            <div class="input-wrap">
+              <input type="text" name="lastName" placeholder="Enter your name" autocomplete="off" value="<%= formData && formData.lastName ? formData.lastName : '' %>" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <div class="input-wrap">
+            <input type="email" name="email" placeholder="Enter your Email Address" autocomplete="off" value="<%= formData && formData.email ? formData.email : '' %>" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Phone number</label>
+          <div class="input-wrap">
+            <input type="tel" name="phone" placeholder="Enter your Phone number" autocomplete="off" value="<%= formData && formData.phone ? formData.phone : '' %>" />
+          </div>
+        </div>
+
+        <!-- <div class="form-group">
+          <label>Referral Code (optional)</label>
+          <div class="input-wrap">
+            <input type="text" name="referralCode" placeholder="Enter referral Code" autocomplete="off" />
+          </div>
+        </div> -->
+
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <input type="password" name="password" id="password" placeholder="Enter your Password" autocomplete="new-password" />
+            <button type="button" class="eye-btn" onclick="togglePassword('password')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <div class="input-wrap">
+            <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm your Password" autocomplete="new-password" />
+            <button type="button" class="eye-btn" onclick="togglePassword('confirmPassword')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-register">Register</button>
+      </form>
+
+      <div class="divider">OR</div>
+
+      <div class="social">
+        <a href="/auth/google" title="Register with Google" style="width: auto; padding: 12px 24px; border-radius: 50px; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: #333;">
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" />
+          Register with Google
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function togglePassword(fieldId) {
+      const input = document.getElementById(fieldId);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users Management - Admin Panel</title>
+    
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .admin-main-content {
+            margin-left: 250px;
+            margin-top: 70px;
+            padding: 2rem;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Page Header - Match Dashboard Style */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            margin: 0;
+        }
+
+        .users-count-badge {
+            background: #007bff;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Users Card - Full Width */
+        .users-card {
+            background: white;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+            margin: 0;
+            width: 100%;
+        }
+
+        .card-header {
+            padding: 20px 2rem;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #495057;
+            margin: 0;
+        }
+
+        .users-count {
+            background: #007bff;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Search and Filter Bar - Full Width */
+        .filter-bar {
+            padding: 20px 2rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .search-btn {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background: #0056b3;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            table-layout: fixed;
+        }
+
+        .users-table th:nth-child(1) { width: 25%; } /* User */
+        .users-table th:nth-child(2) { width: 25%; } /* Email */
+        .users-table th:nth-child(3) { width: 15%; } /* Phone */
+        .users-table th:nth-child(4) { width: 15%; } /* Joined Date */
+        .users-table th:nth-child(5) { width: 20%; } /* Status */
+
+        .users-table th {
+            background: #f8f9fa;
+            padding: 15px 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #dee2e6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .users-table td {
+            padding: 18px 1rem;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .users-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .users-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* User Info */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        .user-details h4 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .user-details p {
+            margin: 0;
+            font-size: 13px;
+            color: #6c757d;
+            font-weight: 500;
+            padding: 2px 8px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .admin-badge {
+            background: #ffc107;
+            color: #856404;
+        }
+
+        .user-email {
+            color: #495057;
+            font-size: 14px;
+            font-weight: 500;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-phone {
+            color: #6c757d;
+            font-size: 14px;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-date {
+            color: #6c757d;
+            font-size: 14px;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .status-active {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-active:hover {
+            background: #218838;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .status-blocked {
+            background: #dc3545;
+            color: white;
+        }
+
+        .status-blocked:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        /* No Users State */
+        .no-users {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .no-users-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #e9ecef;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #adb5bd;
+        }
+
+        .no-users h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .no-users p {
+            font-size: 16px;
+            color: #6c757d;
+        }
+
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 1rem;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            background: white;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .pagination-btn.active {
+            background: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+
+        .pagination-btn:disabled {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn svg {
+            vertical-align: middle;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .admin-main-content {
+                margin-left: 0;
+                padding: 1rem 0;
+            }
+
+            .dashboard-container {
+                padding: 0 1rem;
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 12px 0.5rem;
+                font-size: 12px;
+            }
+
+            .users-table th:nth-child(1) { width: 30%; } /* User */
+            .users-table th:nth-child(2) { width: 30%; } /* Email */
+            .users-table th:nth-child(3) { width: 15%; } /* Phone */
+            .users-table th:nth-child(4) { width: 15%; } /* Joined Date */
+            .users-table th:nth-child(5) { width: 10%; } /* Status */
+
+            .user-info {
+                gap: 8px;
+            }
+
+            .user-avatar {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+
+            .user-details h4 {
+                font-size: 12px;
+            }
+
+            .user-details p {
+                font-size: 10px;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px 1rem;
+            }
+
+            .card-header {
+                padding: 15px 1rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom SweetAlert Styling */
+        .swal2-popup {
+            border-radius: 15px !important;
+        }
+
+        .swal2-confirm {
+            background: #007bff !important;
+            border-radius: 6px !important;
+        }
+
+        .swal2-cancel {
+            background: #6c757d !important;
+            border-radius: 6px !important;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/toast') %>
+    <%- include('../partials/admin-navbar') %>
+    
+    <div class="container">
+        <%- include('../partials/admin-sidebar') %>
+        
+        <div class="admin-main-content">
+            <div class="dashboard-container">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Users Management</h1>
+                        <p class="page-subtitle">Manage and monitor all registered users</p>
+                    </div>
+                    <div class="users-count-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <%= typeof totalUsers !== 'undefined' ? totalUsers : (users ? users.length : 0) %> Total Users
+                    </div>
+                </div>
+
+            <!-- Users Card -->
+            <div class="users-card">
+                <div class="card-header">
+                    <h2 class="card-title">All Users</h2>
+                </div>
+
+                <!-- Search and Filter Bar -->
+                <div class="filter-bar">
+                    <form method="GET" action="/admin/users" class="filter-form">
+                        <div class="search-box">
+                            <input type="text" class="search-input" name="search" placeholder="Search users by name or email..." value="<%= typeof search !== 'undefined' ? search : '' %>">
+                            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                        </div>
+                        <select class="filter-select" name="status">
+                            <option value="all" <%= typeof status !== 'undefined' && status === 'all' ? 'selected' : '' %>>All Status</option>
+                            <option value="active" <%= typeof status !== 'undefined' && status === 'active' ? 'selected' : '' %>>Active Only</option>
+                            <option value="blocked" <%= typeof status !== 'undefined' && status === 'blocked' ? 'selected' : '' %>>Blocked Only</option>
+                            <option value="admin" <%= typeof status !== 'undefined' && status === 'admin' ? 'selected' : '' %>>Admins Only</option>
+                        </select>
+                        <button type="submit" class="search-btn">Search</button>
+                    </form>
+                </div>
+
+                <div class="table-container">
+                    <!-- Users Table -->
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Joined Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Dynamic User Data -->
+                            <% if (users && users.length > 0) { %>
+                                <% users.forEach(function(user) { %>
+                                    <tr class="user-row">
+                                        <td>
+                                            <div class="user-info">
+                                                <div class="user-avatar">
+                                                    <%= user.firstName.charAt(0).toUpperCase() %><%= user.lastName.charAt(0).toUpperCase() %>
+                                                </div>
+                                                <div class="user-details">
+                                                    <h4><%= user.firstName %> <%= user.lastName %></h4>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="user-email"><%= user.email %></td>
+                                        <td class="user-phone"><%= user.phone || 'Not provided' %></td>
+                                        <td class="user-date"><%= new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></td>
+                                        <td>
+                                            <button 
+                                                class="status-badge <%= user.isBlocked ? 'status-blocked' : 'status-active' %>"
+                                                data-user-id="<%= user._id %>"
+                                                data-is-blocked="<%= user.isBlocked %>"
+                                                data-user-name="<%= user.firstName %> <%= user.lastName %>"
+                                                onclick="toggleUserStatus(this.dataset.userId, this.dataset.isBlocked === 'true', this.dataset.userName)"
+                                            >
+                                                <%= user.isBlocked ? 'Blocked' : 'Active' %>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="no-users">
+                                            <div class="no-users-icon">
+                                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                                    <circle cx="12" cy="7" r="4"/>
+                                                </svg>
+                                            </div>
+                                            <h3>No users found</h3>
+                                            <p>There are no users registered yet.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <% if (typeof totalUsers !== 'undefined' && totalUsers > 0) { %>
+                    <div class="pagination-container">
+                        <div class="pagination-info">
+                            Showing <%= startUser %> to <%= endUser %> of <%= totalUsers %> users
+                        </div>
+                        
+                        <% if (totalPages > 1) { %>
+                            <div class="pagination">
+                                <!-- Previous Button -->
+                                <% if (hasPrevPage) { %>
+                                    <a href="/admin/users?page=<%= prevPage %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" class="pagination-btn">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="15,18 9,12 15,6"></polyline>
+                                        </svg>
+                                        Previous
+                                    </a>
+                                <% } %>
+                                
+                                <!-- Page Numbers -->
+                                <% 
+                                    var startPage = Math.max(1, currentPageNum - 2);
+                                    var endPage = Math.min(totalPages, currentPageNum + 2);
+                                %>
+                                
+                                <% if (startPage > 1) { %>
+                                    <a href="/admin/users?page=1&search=<%= encodeURIComponent(search) %>&status=<%= status %>" class="pagination-btn">1</a>
+                                    <% if (startPage > 2) { %>
+                                        <span class="pagination-btn" style="border: none; background: none;">...</span>
+                                    <% } %>
+                                <% } %>
+                                
+                                <% for (var i = startPage; i <= endPage; i++) { %>
+                                    <a href="/admin/users?page=<%= i %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" 
+                                       class="pagination-btn <%= i === currentPageNum ? 'active' : '' %>">
+                                        <%= i %>
+                                    </a>
+                                <% } %>
+                                
+                                <% if (endPage < totalPages) { %>
+                                    <% if (endPage < totalPages - 1) { %>
+                                        <span class="pagination-btn" style="border: none; background: none;">...</span>
+                                    <% } %>
+                                    <a href="/admin/users?page=<%= totalPages %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" class="pagination-btn"><%= totalPages %></a>
+                                <% } %>
+                                
+                                <!-- Next Button -->
+                                <% if (hasNextPage) { %>
+                                    <a href="/admin/users?page=<%= nextPage %>&search=<%= encodeURIComponent(search) %>&status=<%= status %>" class="pagination-btn">
+                                        Next
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="9,18 15,12 9,6"></polyline>
+                                        </svg>
+                                    </a>
+                                <% } %>
+                            </div>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/admin-users.js"></script>
+</body>
+</html>

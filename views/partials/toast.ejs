@@ -1,0 +1,280 @@
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+/* Toast Styles */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border-left: 4px solid;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  max-width: 400px;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast.success {
+  border-left-color: #28a745;
+  background: linear-gradient(135deg, #f8fff9, #ffffff);
+}
+
+.toast.error {
+  border-left-color: #dc3545;
+  background: linear-gradient(135deg, #fff8f8, #ffffff);
+}
+
+.toast.warning {
+  border-left-color: #ffc107;
+  background: linear-gradient(135deg, #fffdf7, #ffffff);
+}
+
+.toast.info {
+  border-left-color: #17a2b8;
+  background: linear-gradient(135deg, #f7fdff, #ffffff);
+}
+
+.toast-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast.success .toast-icon {
+  background: #28a745;
+  color: white;
+}
+
+.toast.error .toast-icon {
+  background: #dc3545;
+  color: white;
+}
+
+.toast.warning .toast-icon {
+  background: #ffc107;
+  color: white;
+}
+
+.toast.info .toast-icon {
+  background: #17a2b8;
+  color: white;
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 2px;
+  color: #333;
+}
+
+.toast-message {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.toast-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #666;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .toast-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+  }
+  
+  .toast {
+    min-width: auto;
+    max-width: none;
+  }
+}
+</style>
+
+<script>
+// Toast Notification System
+class ToastManager {
+  constructor() {
+    this.container = document.getElementById('toast-container');
+    this.toasts = [];
+  }
+
+  show(message, type = 'info', title = '', duration = 5000) {
+    const toast = this.createToast(message, type, title);
+    this.container.appendChild(toast);
+    this.toasts.push(toast);
+
+    // Show toast with animation
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 100);
+
+    // Auto remove after duration
+    if (duration > 0) {
+      setTimeout(() => {
+        this.removeToast(toast);
+      }, duration);
+    }
+
+    return toast;
+  }
+
+  createToast(message, type, title) {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    const icons = {
+      success: '✓',
+      error: '✕',
+      warning: '⚠',
+      info: 'ℹ'
+    };
+
+    const titles = {
+      success: title || 'Success',
+      error: title || 'Error',
+      warning: title || 'Warning',
+      info: title || 'Info'
+    };
+
+    toast.innerHTML = `
+      <div class="toast-icon">${icons[type]}</div>
+      <div class="toast-content">
+        <div class="toast-title">${titles[type]}</div>
+        <div class="toast-message">${message}</div>
+      </div>
+      <button class="toast-close" onclick="toastManager.removeToast(this.parentElement)">×</button>
+    `;
+
+    return toast;
+  }
+
+  removeToast(toast) {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (toast.parentElement) {
+        toast.parentElement.removeChild(toast);
+      }
+      const index = this.toasts.indexOf(toast);
+      if (index > -1) {
+        this.toasts.splice(index, 1);
+      }
+    }, 300);
+  }
+
+  success(message, title = '') {
+    return this.show(message, 'success', title);
+  }
+
+  error(message, title = '') {
+    return this.show(message, 'error', title);
+  }
+
+  warning(message, title = '') {
+    return this.show(message, 'warning', title);
+  }
+
+  info(message, title = '') {
+    return this.show(message, 'info', title);
+  }
+}
+
+// Initialize global toast manager
+const toastManager = new ToastManager();
+
+// SweetAlert2 Configuration
+const Swal = window.Swal.mixin({
+  customClass: {
+    confirmButton: 'swal-btn swal-btn-confirm',
+    cancelButton: 'swal-btn swal-btn-cancel'
+  },
+  buttonsStyling: false
+});
+
+// Custom SweetAlert styles
+const style = document.createElement('style');
+style.textContent = `
+  .swal-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    outline: none;
+  }
+  
+  .swal-btn-confirm {
+    background: #28a745;
+    color: white;
+  }
+  
+  .swal-btn-confirm:hover {
+    background: #218838;
+    transform: translateY(-1px);
+  }
+  
+  .swal-btn-cancel {
+    background: #6c757d;
+    color: white;
+  }
+  
+  .swal-btn-cancel:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+  }
+`;
+document.head.appendChild(style);
+</script>

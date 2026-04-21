@@ -1,0 +1,88 @@
+<!-- Admin Navigation Bar -->
+<nav class="admin-navbar">
+    <div class="admin-nav-container">
+        <!-- Brand Logo -->
+        <div class="admin-brand">
+            <h2>Horologue</h2>
+        </div>
+        
+        <!-- Admin Profile Section -->
+        <div class="admin-profile">
+            <span class="admin-name">ADMIN</span>
+            <div class="admin-avatar">
+                <i class="fas fa-user-shield"></i>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<style>
+.admin-navbar {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    padding: 0 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 70px;
+}
+
+.admin-nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.admin-brand h2 {
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.admin-profile {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.admin-name {
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.admin-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-navbar {
+        padding: 0 1rem;
+    }
+    
+    .admin-brand h2 {
+        font-size: 1.5rem;
+    }
+    
+    .admin-name {
+        display: none;
+    }
+}
+</style>

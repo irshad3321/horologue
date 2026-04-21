@@ -1,0 +1,174 @@
+<!-- Admin Sidebar -->
+<div class="admin-sidebar">
+    <div class="sidebar-menu">
+        <!-- Dashboard -->
+        <a href="/admin/dashboard" class="sidebar-item <%= currentPage === 'dashboard' ? 'active' : '' %>">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </a>
+        
+        <!-- Products -->
+        <a href="/admin/products" class="sidebar-item <%= currentPage === 'products' ? 'active' : '' %>">
+            <i class="fas fa-box"></i>
+            <span>Products</span>
+        </a>
+        
+        <!-- Order Lists -->
+        <a href="/admin/orders" class="sidebar-item <%= currentPage === 'orders' ? 'active' : '' %>">
+            <i class="fas fa-list-alt"></i>
+            <span>Order Lists</span>
+        </a>
+        
+        <!-- Users -->
+        <a href="/admin/users" class="sidebar-item <%= currentPage === 'users' ? 'active' : '' %>">
+            <i class="fas fa-users"></i>
+            <span>Users</span>
+        </a>
+        
+        <!-- Sales Report -->
+        <a href="/admin/sales-report" class="sidebar-item <%= currentPage === 'sales-report' ? 'active' : '' %>">
+            <i class="fas fa-chart-line"></i>
+            <span>Sales Report</span>
+        </a>
+        
+        <!-- Coupons -->
+        <a href="/admin/coupons" class="sidebar-item <%= currentPage === 'coupons' ? 'active' : '' %>">
+            <i class="fas fa-tags"></i>
+            <span>Coupons</span>
+        </a>
+        
+        <!-- Category -->
+        <a href="/admin/category" class="sidebar-item <%= currentPage === 'category' ? 'active' : '' %>">
+            <i class="fas fa-th-large"></i>
+            <span>Category</span>
+        </a>
+        
+        <!-- Banners -->
+        <a href="/admin/banners" class="sidebar-item <%= currentPage === 'banners' ? 'active' : '' %>">
+            <i class="fas fa-image"></i>
+            <span>Banners</span>
+        </a>
+    </div>
+    
+    <!-- Logout -->
+    <div class="sidebar-footer">
+        <a href="#" class="sidebar-item logout-btn" onclick="adminLogout()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+</div>
+
+<style>
+.admin-sidebar {
+    position: fixed;
+    left: 0;
+    top: 70px;
+    width: 250px;
+    height: calc(100vh - 70px);
+    background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    border-right: 1px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    z-index: 999;
+    overflow-y: auto;
+}
+
+.sidebar-menu {
+    flex: 1;
+    padding: 1rem 0;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    color: #495057;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    font-weight: 500;
+}
+
+.sidebar-item:hover {
+    background: rgba(0, 123, 255, 0.1);
+    color: #007bff;
+    border-left-color: #007bff;
+}
+
+.sidebar-item.active {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border-left-color: #0056b3;
+}
+
+.sidebar-item i {
+    width: 20px;
+    margin-right: 1rem;
+    font-size: 1.1rem;
+}
+
+.sidebar-item span {
+    font-size: 0.9rem;
+}
+
+.sidebar-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 0;
+}
+
+.logout-btn {
+    color: #dc3545 !important;
+}
+
+.logout-btn:hover {
+    background: rgba(220, 53, 69, 0.1) !important;
+    border-left-color: #dc3545 !important;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 200px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .admin-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .sidebar-item {
+        padding: 0.8rem 1rem;
+    }
+    
+    .sidebar-item span {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-sidebar {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+function adminLogout() {
+    Swal.fire({
+        title: 'Logout Confirmation',
+        text: 'Are you sure you want to logout?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Logout',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '/admin/logout';
+        }
+    });
+}
+</script>

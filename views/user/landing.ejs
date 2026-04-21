@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Horologue - The Art of Precision</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      padding-top: 70px;
+    }
+
+    /* Hero Section */
+    .hero {
+      background: #fff;
+      padding: 140px 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 30% 20%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 80%, rgba(118, 75, 162, 0.05) 0%, transparent 50%);
+      animation: pulse 8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    @keyframes slideInLeft {
+      0% { opacity: 0; transform: translateX(-80px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes slideInRight {
+      0% { opacity: 0; transform: translateX(80px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(40px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes floatImage {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(2deg); }
+    }
+
+    .hero-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 100px;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-content {
+      animation: slideInLeft 1.2s ease-out;
+    }
+
+    .hero-content h1 {
+      font-size: 72px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 32px;
+      color: #111;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      letter-spacing: -2px;
+    }
+
+    .hero-content .highlight {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-content p {
+      font-size: 24px;
+      color: #666;
+      margin-bottom: 48px;
+      line-height: 1.7;
+      animation: fadeInUp 1.2s ease-out 0.4s both;
+      font-weight: 300;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 24px;
+      animation: fadeInUp 1.2s ease-out 0.8s both;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      padding: 20px 40px;
+      border: none;
+      border-radius: 60px;
+      font-size: 18px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.6s;
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: #111;
+      padding: 20px 40px;
+      border: 2px solid #111;
+      border-radius: 60px;
+      font-size: 18px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .btn-secondary:hover {
+      background: #111;
+      color: #fff;
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+
+    .hero-image {
+      text-align: center;
+      position: relative;
+      animation: slideInRight 1.2s ease-out;
+    }
+
+    .hero-image::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: -20px;
+      right: -20px;
+      bottom: -20px;
+      background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), transparent, rgba(118, 75, 162, 0.1));
+      border-radius: 40px;
+      z-index: -1;
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    .hero-image img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 40px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.15);
+      animation: floatImage 8s ease-in-out infinite;
+      transition: transform 0.4s;
+    }
+
+    .hero-image:hover img {
+      transform: scale(1.08) rotate(2deg);
+    }
+
+    /* Floating decorative elements */
+    .floating-decoration {
+      position: absolute;
+      opacity: 0.1;
+      animation: floatImage 12s ease-in-out infinite;
+      font-size: 60px;
+      z-index: 1;
+      color: #667eea;
+    }
+
+    .floating-decoration:nth-child(1) {
+      top: 15%;
+      left: 8%;
+      animation-delay: 0s;
+    }
+
+    .floating-decoration:nth-child(2) {
+      top: 65%;
+      right: 8%;
+      animation-delay: 4s;
+    }
+
+    .floating-decoration:nth-child(3) {
+      bottom: 15%;
+      left: 15%;
+      animation-delay: 8s;
+    }
+
+    /* Products Section */
+    .products {
+      padding: 80px 0;
+      background: #f8f9fa;
+    }
+
+    .products-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 30px;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .section-header h2 {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: #111;
+      letter-spacing: -1px;
+    }
+
+    .section-header p {
+      font-size: 18px;
+      color: #666;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Manual Carousel Styles */
+    .carousel-container {
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #fff;
+      padding: 40px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    }
+
+    .carousel-wrapper {
+      display: flex;
+      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .carousel-slide {
+      min-width: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 30px;
+    }
+
+    .carousel-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 40px;
+    }
+
+    .carousel-nav {
+      display: flex;
+      gap: 16px;
+    }
+
+    .carousel-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      font-size: 20px;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .carousel-btn:hover {
+      transform: scale(1.1) translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .carousel-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .explore-more-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 50px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .explore-more-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Carousel indicators */
+    .carousel-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    .indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(102, 126, 234, 0.3);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .indicator.active {
+      background: #667eea;
+      transform: scale(1.2);
+    }
+
+    .product-card {
+      text-align: center;
+      padding: 24px;
+      border-radius: 16px;
+      transition: transform 0.3s, box-shadow 0.3s;
+      background: #fff;
+      border: 1px solid #f0f0f0;
+    }
+
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+    }
+
+    .product-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .product-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #111;
+    }
+
+    .product-card p {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 14px;
+    }
+
+    .product-price {
+      font-size: 20px;
+      font-weight: 800;
+      color: #111;
+      margin-bottom: 16px;
+    }
+
+    .btn-add-cart {
+      background: #111;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-add-cart:hover {
+      background: #333;
+      transform: translateY(-2px);
+    }
+
+    /* Quote Section */
+    .quote-section {
+      background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=1200&h=600&fit=crop') center/cover;
+      color: #fff;
+      padding: 120px 0;
+      text-align: center;
+    }
+
+    .quote-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    .quote-section h2 {
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 32px;
+    }
+
+    .quote-section p {
+      font-size: 20px;
+      margin-bottom: 40px;
+      opacity: 0.95;
+      line-height: 1.6;
+    }
+
+    /* Craftsmanship Section */
+    .craftsmanship {
+      padding: 120px 0;
+      background: #fff;
+    }
+
+    .craftsmanship-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 100px;
+      align-items: center;
+    }
+
+    .craftsmanship-content h2 {
+      font-size: 48px;
+      font-weight: 800;
+      margin-bottom: 40px;
+      color: #111;
+      line-height: 1.2;
+      letter-spacing: -1px;
+    }
+
+    .craftsmanship-content p {
+      font-size: 20px;
+      color: #666;
+      margin-bottom: 32px;
+      line-height: 1.7;
+    }
+
+    .craftsmanship-image img {
+      width: 100%;
+      height: auto;
+      border-radius: 24px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+    }
+
+    @media (max-width: 768px) {
+      .hero-container,
+      .craftsmanship-container {
+        grid-template-columns: 1fr;
+        gap: 60px;
+      }
+
+      .carousel-slide {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .hero-content h1 {
+        font-size: 48px;
+      }
+
+      .quote-section h2 {
+        font-size: 36px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .carousel-slide {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <%- include('../partials/navbar-landing') %>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="floating-decoration">⌚</div>
+    <div class="floating-decoration">💎</div>
+    <div class="floating-decoration">⚙️</div>
+    <div class="hero-container">
+      <div class="hero-content">
+        <h1>The Art of <span class="highlight">Precision</span></h1>
+        <p>Discover the world's finest luxury timepieces from renowned Swiss and international watchmakers. Each watch represents the pinnacle of horological excellence.</p>
+        <div class="hero-buttons">
+          <a href="/collection" class="btn-primary">
+            Shop Watches
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a href="/about" class="btn-secondary">
+            Our Story
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=600&h=700&fit=crop" alt="Premium Luxury Watch Collection" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Products Section -->
+  <section class="products">
+    <div class="products-container">
+      <div class="section-header">
+        <h2>Featured Timepieces</h2>
+        <p>Explore our handpicked selection of luxury watches from the world's most prestigious brands</p>
+      </div>
+      <div class="carousel-container">
+        <div class="carousel-wrapper" id="carousel">
+          <div class="carousel-slide">
+            <div class="product-card">
+              <img src="https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=300&h=200&fit=crop" alt="Vacheron Constantin Premium Watch" />
+              <h3>VACHERON CONSTANTIN</h3>
+              <p>Patrimony Collection - Swiss Made</p>
+              <div class="product-price">$45,000</div>
+              <a href="/product/vacheron-constantin" class="btn-add-cart">View Details</a>
+            </div>
+            <div class="product-card">
+              <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=200&fit=crop" alt="Jaquet Droz Luxury Timepiece" />
+              <h3>JAQUET DROZ</h3>
+              <p>Grande Seconde - Automatic Movement</p>
+              <div class="product-price">$28,500</div>
+              <a href="/product/jaquet-droz" class="btn-add-cart">View Details</a>
+            </div>
+            <div class="product-card">
+              <img src="https://images.unsplash.com/photo-1548181048-dcea1c2d4c3d?w=300&h=200&fit=crop" alt="Breitling Professional Watch" />
+              <h3>BREITLING</h3>
+              <p>Navitimer Collection - Chronograph</p>
+              <div class="product-price">$8,200</div>
+              <a href="/product/breitling" class="btn-add-cart">View Details</a>
+            </div>
+            <div class="product-card">
+              <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=300&h=200&fit=crop" alt="Patek Philippe Premium Watch" />
+              <h3>PATEK PHILIPPE</h3>
+              <p>Calatrava Series - 18K Gold</p>
+              <div class="product-price">$32,800</div>
+              <a href="/product/patek-philippe" class="btn-add-cart">View Details</a>
+            </div>
+          </div>
+          <div class="carousel-slide">
+            <div class="product-card">
+              <img src="https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?w=300&h=200&fit=crop" alt="Rolex Submariner Watch" />
+              <h3>ROLEX</h3>
+              <p>Submariner - Diving Watch</p>
+              <div class="product-price">$15,400</div>
+              <a href="/product/rolex" class="btn-add-cart">View Details</a>
+            </div>
+            <div class="product-card">
+              <img src="https://images.unsplash.com/photo-1548181048-dcea1c2d4c3d?w=300&h=200&fit=crop" alt="Omega Speedmaster Watch" />
+              <h3>OMEGA</h3>
+              <p>Speedmaster - Moonwatch</p>
+              <div class="product-price">$6,800</div>
+              <a href="/product/omega" class="btn-add-cart">View Details</a>
+            </div>
+            <div class="product-card">
+              <img src="https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=300&h=200&fit=crop" alt="Cartier Tank Watch" />
+              <h3>CARTIER</h3>
+              <p>Tank Collection - Dress Watch</p>
+              <div class="product-price">$18,900</div>
+              <a href="/product/cartier" class="btn-add-cart">View Details</a>
+            </div>
+            <div class="product-card">
+              <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=200&fit=crop" alt="Audemars Piguet Watch" />
+              <h3>AUDEMARS PIGUET</h3>
+              <p>Royal Oak - Sport Luxury</p>
+              <div class="product-price">$52,000</div>
+              <a href="/product/audemars-piguet" class="btn-add-cart">View Details</a>
+            </div>
+          </div>
+        </div>
+        <div class="carousel-indicators">
+          <div class="indicator active" data-slide="0"></div>
+          <div class="indicator" data-slide="1"></div>
+        </div>
+        <div class="carousel-controls">
+          <div class="carousel-nav">
+            <button class="carousel-btn" id="prevBtn">‹</button>
+            <button class="carousel-btn" id="nextBtn">›</button>
+          </div>
+          <a href="/collection" class="explore-more-btn">
+            Explore More
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quote Section -->
+  <section class="quote-section">
+    <div class="quote-container">
+      <h2>"Every Timepiece Tells a Story of Excellence"</h2>
+      <p>From Swiss workshops to your wrist - experience the legacy of the world's finest watchmakers. Our collection features only authentic, certified luxury timepieces with full manufacturer warranties.</p>
+      <a href="/collection" class="btn-primary">Explore Collection</a>
+    </div>
+  </section>
+
+  <!-- Craftsmanship Section -->
+  <section class="craftsmanship">
+    <div class="craftsmanship-container">
+      <div class="craftsmanship-image">
+        <img src="https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=600&h=400&fit=crop" alt="Master Watchmaker Crafting Precision Timepiece" />
+      </div>
+      <div class="craftsmanship-content">
+        <h2>THE PURSUIT OF ABSOLUTE PERFECTION</h2>
+        <p>Our master watchmakers dedicate their lives to perfecting every component, every movement, and every detail of these luxury timepieces. Each premium watch undergoes rigorous testing and quality control to ensure it meets our exacting standards for excellence.</p>
+        <p>From the initial design concept to the final assembly, we maintain the highest levels of Swiss craftsmanship and attention to detail that has defined luxury watchmaking for centuries. Every watch is a masterpiece of precision engineering.</p>
+      </div>
+    </div>
+  </section>
+
+  <%- include('../partials/footer') %>
+
+  <script>
+    // Manual Carousel functionality
+    let currentSlide = 0;
+    const carousel = document.getElementById('carousel');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const indicators = document.querySelectorAll('.indicator');
+    const totalSlides = 2;
+
+    function updateCarousel() {
+      carousel.style.transform = `translateX(-${currentSlide * 100}%)`;
+      prevBtn.disabled = currentSlide === 0;
+      nextBtn.disabled = currentSlide === totalSlides - 1;
+      
+      // Update indicators
+      indicators.forEach((indicator, index) => {
+        indicator.classList.toggle('active', index === currentSlide);
+      });
+    }
+
+    prevBtn.addEventListener('click', () => {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateCarousel();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateCarousel();
+      }
+    });
+
+    // Indicator clicks
+    indicators.forEach((indicator, index) => {
+      indicator.addEventListener('click', () => {
+        currentSlide = index;
+        updateCarousel();
+      });
+    });
+
+    // Initialize carousel
+    updateCarousel();
+  </script>
+</body>
+</html>
