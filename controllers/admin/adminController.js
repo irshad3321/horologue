@@ -1,6 +1,6 @@
 import User from "../../models/User.js";
 import { findUserByEmail, validatePassword } from "../../service/userService.js";
-import { generateAndSaveOTP, verifyOTP } from "../../service/otpService.js";
+import { generateAndSaveOTP, verifyOTP, getLatestOTPCreationTime } from "../../service/otpService.js";
 import OTP from "../../models/OTP.js";
 
 export const adminLogin = async (req, res) => {
@@ -122,17 +122,28 @@ export const adminVerifyOTPForgot = async(req, res) => {
             return res.render('admin/verify-otp-forgot', {
                 error: 'Session expired. Please try forgot password again.',
                 success: null,
-                email: ''
+                email: '',
+                otpCreatedAt: null
             });
         }
         
         // Verify OTP
         const otpVerification = await verifyOTP(email, otp, 'admin-forgot-password');
         if (!otpVerification.isValid) {
+            const otpCreatedAt = await getLatestOTPCreationTime(email, 'admin-forgot-password');
+            
+            // Store current timer states to preserve them
+            const currentTime = Date.now();
+            if (!req.session.adminResetResendTimerStart) {
+                req.session.adminResetResendTimerStart = currentTime;
+            }
+            
             return res.render('admin/verify-otp-forgot', {
                 error: otpVerification.message,
                 success: null,
-                email
+                email,
+                otpCreatedAt,
+                resendTimerStart: req.session.adminResetResendTimerStart
             });
         }
         
@@ -145,10 +156,13 @@ export const adminVerifyOTPForgot = async(req, res) => {
         
     } catch (error) {
         console.error('Admin OTP verification error:', error)
+        const otpCreatedAt = await getLatestOTPCreationTime(req.session.resetEmail || '', 'admin-forgot-password');
         res.render('admin/verify-otp-forgot', {
             error: 'Something went wrong. Please try again.',
             success: null,
-            email: req.session.resetEmail || ''
+            email: req.session.resetEmail || '',
+            otpCreatedAt,
+            resendTimerStart: req.session.adminResetResendTimerStart
         });
     }
 };
@@ -266,7 +280,7 @@ export const adminLogout = (req, res) => {
 export const getUsers = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 10; // Users per page
+        const limit = 4
         const skip = (page - 1) * limit;
         const search = req.query.search || '';
         const status = req.query.status || 'all';

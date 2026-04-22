@@ -96,7 +96,92 @@ function toggleUserStatus(userId, isCurrentlyBlocked, userName) {
     });
 }
 
-// Search and Filter Functionality - Removed (now handled by backend)
+// Debounced Search Functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // No frontend filtering needed - all handled by backend
+    const searchInput = document.querySelector('.search-input');
+    const statusSelect = document.querySelector('select[name="status"]');
+    const searchForm = document.querySelector('.filter-form');
+    
+    let searchTimeout;
+    const DEBOUNCE_DELAY = 500; // 500ms delay
+    
+    // Debounce function
+    function debounce(func, delay) {
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(searchTimeout);
+                func(...args);
+            };
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(later, delay);
+        };
+    }
+    
+    // Function to perform search
+    function performSearch() {
+        const searchValue = searchInput.value.trim();
+        const statusValue = statusSelect.value;
+        
+        // Build URL with current search parameters
+        const url = new URL('/admin/users', window.location.origin);
+        
+        if (searchValue) {
+            url.searchParams.set('search', searchValue);
+        }
+        
+        if (statusValue && statusValue !== 'all') {
+            url.searchParams.set('status', statusValue);
+        }
+        
+        // Reset to page 1 when searching
+        url.searchParams.set('page', '1');
+        
+        // Navigate to the new URL
+        window.location.href = url.toString();
+    }
+    
+    // Create debounced search function
+    const debouncedSearch = debounce(performSearch, DEBOUNCE_DELAY);
+    
+    // Add event listeners
+    if (searchInput) {
+        // Handle input with debouncing
+        searchInput.addEventListener('input', function() {
+            // Visual feedback during typing
+            this.classList.add('searching');
+            
+            // Clear previous timeout and set new one
+            debouncedSearch();
+            
+            // Remove visual feedback after delay
+            setTimeout(() => {
+                this.classList.remove('searching');
+            }, DEBOUNCE_DELAY + 100);
+        });
+        
+        // Handle Enter key press for immediate search
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(searchTimeout);
+                performSearch();
+            }
+        });
+    }
+    
+    // Handle status filter change (immediate search)
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            performSearch();
+        });
+    }
+    
+    // Prevent form submission (we handle it with JavaScript)
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            clearTimeout(searchTimeout);
+            performSearch();
+        });
+    }
 });

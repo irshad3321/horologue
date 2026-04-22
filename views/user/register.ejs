@@ -215,18 +215,19 @@
     }
 
     .social a {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      border: 1.5px solid #e0e0e0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 50px;
       text-decoration: none;
-      transition: border 0.2s;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    .social a:hover { border-color: #aaa; }
+    .social a:hover { 
+      border-color: #aaa; 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      transform: translateY(-1px);
+    }
 
     .social img { width: 20px; height: 20px; object-fit: contain; }
   </style>

@@ -124,6 +124,7 @@
             position: relative;
         }
 
+        /* Search Input Styles */
         .search-input {
             width: 100%;
             padding: 10px 40px 10px 15px;
@@ -137,6 +138,10 @@
             outline: none;
             border-color: #007bff;
             box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .search-input.searching {
+            border-color: #28a745;
         }
 
         .search-icon {
@@ -557,7 +562,7 @@
                 <div class="filter-bar">
                     <form method="GET" action="/admin/users" class="filter-form">
                         <div class="search-box">
-                            <input type="text" class="search-input" name="search" placeholder="Search users by name or email..." value="<%= typeof search !== 'undefined' ? search : '' %>">
+                            <input type="text" class="search-input" name="search" placeholder="Search users by name or email..." value="<%= typeof search !== 'undefined' ? search : '' %>" autocomplete="off">
                             <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"/>
                                 <path d="m21 21-4.35-4.35"/>

@@ -1,5 +1,5 @@
 import { validateRegistration, findUserByEmail, createUser, validateLogin, validatePassword } from "../../service/userService.js";
-import { generateAndSaveOTP, verifyOTP } from "../../service/otpService.js";
+import { generateAndSaveOTP, verifyOTP, getLatestOTPCreationTime } from "../../service/otpService.js";
 import OTP from "../../models/OTP.js";
 
 // Show pages
@@ -8,22 +8,45 @@ export const showRegister = (req, res) => {
 };
 
 export const showLogin = (req, res) => {
-    res.render('user/login', { error: null, success: null });
+    let error = null;
+    
+    // Handle Google OAuth errors
+    if (req.query.error === 'google_auth_failed') {
+        error = 'Google authentication failed. Please try again.';
+    } else if (req.query.error === 'auth_error') {
+        error = 'Authentication error occurred. Please try again.';
+    } else if (req.query.error === 'google_not_configured') {
+        error = 'Google authentication is not available at the moment.';
+    } else if (req.query.error === 'account_blocked') {
+        error = 'Your account has been blocked. Please contact support.';
+    }
+    
+    res.render('user/login', { error, success: null });
 };
 
-export const showVerifyOTPRegistration = (req, res) => {
+export const showVerifyOTPRegistration = async (req, res) => {
+    const email = req.session.tempEmail || '';
+    const otpCreatedAt = email ? await getLatestOTPCreationTime(email, 'signup') : null;
+    
     res.render('user/verify-otp-registration', {
         error: null,
         success: null,
-        email: req.session.tempEmail || ''
+        email,
+        otpCreatedAt,
+        resendTimerStart: req.session.resendTimerStart
     });
 };
 
-export const showVerifyOTPForgot = (req, res) => {
+export const showVerifyOTPForgot = async (req, res) => {
+    const email = req.session.resetEmail || '';
+    const otpCreatedAt = email ? await getLatestOTPCreationTime(email, 'forgot-password') : null;
+    
     res.render('user/verify-otp-forgot', {
         error: null,
         success: null,
-        email: req.session.resetEmail || ''
+        email,
+        otpCreatedAt,
+        resendTimerStart: req.session.resetResendTimerStart
     });
 };
 
@@ -68,10 +91,13 @@ export const registerUser = async (req, res) => {
         
         await generateAndSaveOTP(trimmedData.email, 'signup');
         
+        const otpCreatedAt = await getLatestOTPCreationTime(trimmedData.email, 'signup');
+        
         res.render('user/verify-otp-registration', {
             error: null,
             success: 'OTP sent to your email address',
-            email: trimmedData.email
+            email: trimmedData.email,
+            otpCreatedAt
         });
         
     } catch (error) {
@@ -94,17 +120,28 @@ export const verifyOTPRegistrationController = async (req, res) => {
             return res.render('user/verify-otp-registration', {
                 error: 'Session expired. Please register again.',
                 success: null,
-                email: ''
+                email: '',
+                otpCreatedAt: null
             });
         }
         
         // Verify OTP
         const otpVerification = await verifyOTP(email, otp, 'signup');
         if (!otpVerification.isValid) {
+            const otpCreatedAt = await getLatestOTPCreationTime(email, 'signup');
+            
+            // Store current timer states to preserve them
+            const currentTime = Date.now();
+            if (!req.session.resendTimerStart) {
+                req.session.resendTimerStart = currentTime;
+            }
+            
             return res.render('user/verify-otp-registration', {
                 error: otpVerification.message,
                 success: null,
-                email
+                email,
+                otpCreatedAt,
+                resendTimerStart: req.session.resendTimerStart
             });
         }
         
@@ -130,15 +167,19 @@ export const verifyOTPRegistrationController = async (req, res) => {
         // Clear temp session data
         delete req.session.tempUserData;
         delete req.session.tempEmail;
+        delete req.session.resendTimerStart;
         
         res.redirect('/home');
         
     } catch (error) {
         console.error('OTP verification error:', error);
+        const otpCreatedAt = await getLatestOTPCreationTime(req.session.tempEmail || '', 'signup');
         res.render('user/verify-otp-registration', {
             error: 'Something went wrong. Please try again.',
             success: null,
-            email: req.session.tempEmail || ''
+            email: req.session.tempEmail || '',
+            otpCreatedAt,
+            resendTimerStart: req.session.resendTimerStart
         });
     }
 };
@@ -153,17 +194,28 @@ export const verifyOTPForgotController = async (req, res) => {
             return res.render('user/verify-otp-forgot', {
                 error: 'Session expired. Please try forgot password again.',
                 success: null,
-                email: ''
+                email: '',
+                otpCreatedAt: null
             });
         }
         
         // Verify OTP
         const otpVerification = await verifyOTP(email, otp, 'forgot-password');
         if (!otpVerification.isValid) {
+            const otpCreatedAt = await getLatestOTPCreationTime(email, 'forgot-password');
+            
+            // Store current timer states to preserve them
+            const currentTime = Date.now();
+            if (!req.session.resetResendTimerStart) {
+                req.session.resetResendTimerStart = currentTime;
+            }
+            
             return res.render('user/verify-otp-forgot', {
                 error: otpVerification.message,
                 success: null,
-                email
+                email,
+                otpCreatedAt,
+                resendTimerStart: req.session.resetResendTimerStart
             });
         }
         
@@ -176,10 +228,13 @@ export const verifyOTPForgotController = async (req, res) => {
         
     } catch (error) {
         console.error('OTP verification error:', error);
+        const otpCreatedAt = await getLatestOTPCreationTime(req.session.resetEmail || '', 'forgot-password');
         res.render('user/verify-otp-forgot', {
             error: 'Something went wrong. Please try again.',
             success: null,
-            email: req.session.resetEmail || ''
+            email: req.session.resetEmail || '',
+            otpCreatedAt,
+            resendTimerStart: req.session.resetResendTimerStart
         });
     }
 };
@@ -326,13 +381,32 @@ export const resetPasswordController = async (req, res) => {
 
 // Logout user
 export const logoutUser = (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            console.error('Logout error:', err);
-            return res.redirect('/home');
-        }
-        res.redirect('/');
-    });
+    // Handle passport logout first
+    if (req.logout) {
+        req.logout((err) => {
+            if (err) {
+                console.error('Passport logout error:', err);
+            }
+            
+            // Destroy session after passport logout
+            req.session.destroy((err) => {
+                if (err) {
+                    console.error('Session destroy error:', err);
+                    return res.redirect('/home');
+                }
+                res.redirect('/');
+            });
+        });
+    } else {
+        // No passport logout needed, just destroy session
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Session destroy error:', err);
+                return res.redirect('/home');
+            }
+            res.redirect('/');
+        });
+    }
 };
 // Resend OTP for Registration
 export const resendOTPRegistrationController = async (req, res) => {
@@ -428,4 +502,60 @@ export const resendOTPForgotController = async (req, res) => {
             message: 'Failed to resend code. Please try again.'
         });
     }
+};
+// Google OAuth Controllers
+import passport from '../../config/passport.js';
+
+// Google OAuth initiation
+export const googleAuth = (req, res, next) => {
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        return res.redirect('/login?error=google_not_configured');
+    }
+    
+    passport.authenticate('google', { 
+        scope: ['profile', 'email'] 
+    })(req, res, next);
+};
+
+// Google OAuth callback handler
+export const googleCallback = (req, res, next) => {
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        return res.redirect('/login?error=google_not_configured');
+    }
+    
+    passport.authenticate('google', { 
+        failureRedirect: '/login?error=google_auth_failed' 
+    })(req, res, (err) => {
+        if (err) {
+            console.error('Google OAuth callback error:', err);
+            return res.redirect('/login?error=auth_error');
+        }
+        
+        // Check if authentication failed (user blocked or other issues)
+        if (!req.user) {
+            return res.redirect('/login?error=account_blocked');
+        }
+        
+        try {
+            // Successful authentication - sync with session
+            req.session.userId = req.user._id;
+            req.session.user = {
+                id: req.user._id,
+                firstName: req.user.firstName,
+                lastName: req.user.lastName,
+                email: req.user.email,
+                isAdmin: req.user.isAdmin
+            };
+            
+            // Redirect based on user type
+            if (req.user.isAdmin) {
+                res.redirect('/admin/dashboard');
+            } else {
+                res.redirect('/home');
+            }
+        } catch (error) {
+            console.error('Session sync error:', error);
+            res.redirect('/login?error=auth_error');
+        }
+    });
 };

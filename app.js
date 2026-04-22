@@ -5,10 +5,13 @@ import dotenv from 'dotenv';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
 
-import connectDB from './config/database.js';
-
-// Load environment variables
+// Load environment variables FIRST
 dotenv.config();
+
+import connectDB from './config/database.js';
+import passport from './config/passport.js';
+import userRoutes from './routes/userRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 // Connect to database
 connectDB();
@@ -44,21 +47,32 @@ app.use(session({
   }
 }));
 
-
-
-// Import routes
-import userRoutes from './routes/userRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
-import { show404 } from './controllers/pageController.js';
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Use routes
 app.use('/', userRoutes);
 app.use('/admin', adminRoutes);
 
-// 404 handler - must be last
-app.use('*', show404);
+// 404 handler - manual middleware
+app.use((req, res, next) => {
+  res.status(404).render('error/404', {
+    url: req.originalUrl,
+    method: req.method
+  });
+});
 
-const PORT = process.env.PORT || 3000;
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).render('error/404', {
+    url: req.originalUrl,
+    method: req.method
+  });
+});
+
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

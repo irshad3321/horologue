@@ -8,6 +8,8 @@ import {
     adminResetPassword, 
     adminResendOTPForgot 
 } from '../controllers/admin/adminController.js'
+import { getLatestOTPCreationTime } from '../service/otpService.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -36,11 +38,16 @@ router.get('/forgot-password', (req, res) => {
 router.post('/forgot-password', adminForgotPassword)
 
 // Admin verify OTP page
-router.get('/verify-otp-forgot', (req, res) => {
+router.get('/verify-otp-forgot', async (req, res) => {
+    const email = req.session.resetEmail || '';
+    const otpCreatedAt = email ? await getLatestOTPCreationTime(email, 'admin-forgot-password') : null;
+    
     res.render('admin/verify-otp-forgot', { 
         error: null, 
         success: null,
-        email: req.session.resetEmail || ''
+        email,
+        otpCreatedAt,
+        resendTimerStart: req.session.adminResetResendTimerStart
     })
 })
 
@@ -68,6 +75,8 @@ router.get('/dashboard', isAdmin, (req, res) => {
 
 // Admin users page (protected)
 router.get('/users', isAdmin, getUsers);
+
+
 
 // Admin logout
 router.get('/logout', adminLogout);

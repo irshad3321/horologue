@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Timer Test</title>
+</head>
+<body>
+    <h1>Resend Timer Test</h1>
+    <a href="#" id="resendLink">Resend Code</a>
+    
+    <script>
+        let resendCooldown = 60;
+        let canResend = false;
+        let resendTimer = null;
+        
+        function updateResendLink() {
+            const resendLink = document.getElementById('resendLink');
+            if (canResend) {
+                resendLink.textContent = 'Resend Code';
+                resendLink.style.opacity = '1';
+                resendLink.style.cursor = 'pointer';
+                console.log('Resend link: CLICKABLE');
+            } else {
+                resendLink.textContent = `Resend Code (${resendCooldown}s)`;
+                resendLink.style.opacity = '0.5';
+                resendLink.style.cursor = 'not-allowed';
+                console.log('Resend link: COUNTDOWN -', resendCooldown, 'seconds');
+            }
+        }
+        
+        function startResendCooldown() {
+            if (resendTimer) return;
+            if (canResend) return;
+            if (resendCooldown <= 0) return;
+            
+            console.log('Starting resend cooldown timer with', resendCooldown, 'seconds remaining');
+            
+            resendTimer = setInterval(() => {
+                resendCooldown--;
+                console.log('Resend countdown:', resendCooldown);
+                updateResendLink();
+                
+                if (resendCooldown <= 0) {
+                    clearInterval(resendTimer);
+                    resendTimer = null;
+                    canResend = true;
+                    resendCooldown = 60;
+                    updateResendLink();
+                    console.log('Resend cooldown completed - button now clickable');
+                }
+            }, 1000);
+        }
+        
+        // Initialize
+        updateResendLink();
+        if (!canResend && resendCooldown > 0) {
+            startResendCooldown();
+        }
+    </script>
+</body>
+</html>

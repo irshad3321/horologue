@@ -21,8 +21,22 @@ export const generateAndSaveOTP = async (email, purpose) => {
     }
     
     return otp;
-    
-    return otp;
+};
+
+// Get latest OTP creation time for timer calculation
+export const getLatestOTPCreationTime = async (email, purpose) => {
+    try {
+        const latestOTP = await OTP.findOne({
+            email,
+            purpose,
+            isUsed: false
+        }).sort({ createdAt: -1 });
+        
+        return latestOTP ? latestOTP.createdAt : null;
+    } catch (error) {
+        console.error('Error getting OTP creation time:', error);
+        return null;
+    }
 };
 
 // Verify OTP
@@ -32,16 +46,26 @@ export const verifyOTP = async (email, otp, purpose) => {
         return otpValidation;
     }
     
+    // Find the latest OTP for this email and purpose
     const otpRecord = await OTP.findOne({
         email,
-        otp,
-        purpose,
-        isUsed: false,
-        expiresAt: { $gt: new Date() }
-    });
+        purpose
+    }).sort({ createdAt: -1 });
     
     if (!otpRecord) {
-        return { isValid: false, message: 'Invalid or expired OTP' };
+        return { isValid: false, message: 'No OTP found for this email' };
+    }
+    
+    if (otpRecord.isUsed) {
+        return { isValid: false, message: 'OTP already used' };
+    }
+    
+    if (otpRecord.expiresAt <= new Date()) {
+        return { isValid: false, message: 'OTP expired' };
+    }
+    
+    if (otpRecord.otp !== otp) {
+        return { isValid: false, message: 'Invalid OTP' };
     }
     
     // Mark OTP as used

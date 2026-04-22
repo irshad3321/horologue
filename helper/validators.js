@@ -75,3 +75,4 @@ export const validateOTP = (otp) => {
     message: otpRegex.test(otp) ? '' : 'OTP must be 6 digits'
   };
 };
+

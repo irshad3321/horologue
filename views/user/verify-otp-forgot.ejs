@@ -228,8 +228,28 @@
   </div>
 
   <script>
+    // Debug: Log the values passed from server
+    console.log('OTP Created At:', '<%= typeof otpCreatedAt !== "undefined" ? otpCreatedAt : "undefined" %>');
+    console.log('Resend Timer Start:', '<%= typeof resendTimerStart !== "undefined" ? resendTimerStart : "undefined" %>');
+    
     let resendCooldown = 60; // 1 minute cooldown
-    let canResend = false;
+    let canResend = false; // Always start with false for 60-second cooldown
+    let resendTimer = null; // Store timer reference
+    
+    // Calculate initial resend timer state based on session data
+    <% if (typeof resendTimerStart !== 'undefined' && resendTimerStart) { %>
+      const resendStartTime = <%= resendTimerStart %>;
+      const currentTime = Date.now();
+      const elapsedResendTime = Math.floor((currentTime - resendStartTime) / 1000);
+      resendCooldown = Math.max(0, 60 - elapsedResendTime);
+      canResend = resendCooldown <= 0;
+      console.log('Resend timer calculated - Elapsed:', elapsedResendTime, 'Remaining:', resendCooldown, 'Can resend:', canResend);
+    <% } else { %>
+      // First time loading, start with 60-second cooldown
+      canResend = false;
+      resendCooldown = 60;
+      console.log('First time loading, starting 60-second resend cooldown');
+    <% } %>
     
     // Initialize resend link state
     function updateResendLink() {
@@ -238,25 +258,35 @@
         resendLink.textContent = 'Resend Code';
         resendLink.style.opacity = '1';
         resendLink.style.cursor = 'pointer';
+        console.log('Resend link: CLICKABLE');
       } else {
         resendLink.textContent = `Resend Code (${resendCooldown}s)`;
         resendLink.style.opacity = '0.5';
         resendLink.style.cursor = 'not-allowed';
+        console.log('Resend link: COUNTDOWN -', resendCooldown, 'seconds');
       }
     }
     
     // Start cooldown timer
     function startResendCooldown() {
-      canResend = false;
-      const timer = setInterval(() => {
+      if (resendTimer) return; // Don't start if already running
+      if (canResend) return; // Don't start if can already resend
+      if (resendCooldown <= 0) return; // Don't start if no time left
+      
+      console.log('Starting resend cooldown timer with', resendCooldown, 'seconds remaining');
+      
+      resendTimer = setInterval(() => {
         resendCooldown--;
+        console.log('Resend countdown:', resendCooldown);
         updateResendLink();
         
         if (resendCooldown <= 0) {
-          clearInterval(timer);
+          clearInterval(resendTimer);
+          resendTimer = null;
           canResend = true;
-          resendCooldown = 60;
+          resendCooldown = 60; // Reset for next time
           updateResendLink();
+          console.log('Resend cooldown completed - button now clickable');
         }
       }, 1000);
     }
@@ -279,6 +309,9 @@
         
         if (result.success) {
           toastManager.success(result.message, 'OTP Sent');
+          // Reset resend timer after successful resend
+          canResend = false;
+          resendCooldown = 60;
           startResendCooldown();
         } else {
           toastManager.error(result.message, 'Resend Failed');
@@ -289,8 +322,13 @@
       }
     });
     
-    // Start initial cooldown
-    startResendCooldown();
+    // Initialize resend link state and start countdown immediately
+    updateResendLink();
+    
+    // Start the countdown timer immediately if needed
+    if (!canResend && resendCooldown > 0) {
+      startResendCooldown();
+    }
 
     // Combine OTP inputs into single field before submission
     document.querySelector('form').addEventListener('submit', function(e) {
@@ -323,21 +361,59 @@
       });
     });
 
-    // Countdown timer
-    let timeLeft = 300; // 5 minutes
+    // Countdown timer - calculate remaining time based on OTP creation
+    let timeLeft = 300; // Default 5 minutes
     const countdown = document.getElementById('countdown');
     
-    const timer = setInterval(() => {
-      const minutes = Math.floor(timeLeft / 60);
-      const seconds = timeLeft % 60;
-      countdown.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      
-      if (timeLeft <= 0) {
-        clearInterval(timer);
-        countdown.textContent = 'Expired';
+    // Try to get actual remaining time from server if available
+    <% if (typeof otpCreatedAt !== 'undefined' && otpCreatedAt) { %>
+      try {
+        const otpCreatedTime = new Date('<%= otpCreatedAt %>').getTime();
+        const currentTime = Date.now();
+        const elapsedTime = Math.floor((currentTime - otpCreatedTime) / 1000);
+        timeLeft = Math.max(0, 300 - elapsedTime); // 5 minutes minus elapsed time
+        console.log('OTP timer calculated - Created:', new Date('<%= otpCreatedAt %>'), 'Elapsed:', elapsedTime, 'Remaining:', timeLeft);
+      } catch (error) {
+        console.error('Error calculating OTP time:', error);
+        timeLeft = 300; // Fallback to 5 minutes
       }
-      timeLeft--;
-    }, 1000);
+    <% } else { %>
+      console.log('No OTP creation time available, using default 5 minutes');
+    <% } %>
+    
+    // Start the expiration countdown
+    function startExpirationTimer() {
+      const expirationTimer = setInterval(() => {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        countdown.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+          clearInterval(expirationTimer);
+          countdown.textContent = 'Expired';
+          console.log('OTP expired');
+        }
+        timeLeft--;
+      }, 1000);
+    }
+    
+    // Start the expiration timer
+    startExpirationTimer();
+
+    // Auto-hide error messages after 3 seconds
+    setTimeout(function() {
+        const errorMessages = document.querySelectorAll('.alert-error');
+        
+        errorMessages.forEach(function(errorMsg) {
+            if (errorMsg && errorMsg.textContent.trim()) {
+                errorMsg.style.transition = 'opacity 0.5s ease-out';
+                errorMsg.style.opacity = '0';
+                setTimeout(function() {
+                    errorMsg.style.display = 'none';
+                }, 500);
+            }
+        });
+    }, 3000); // Hide after 3 seconds
   </script>
 </body>
 </html>
