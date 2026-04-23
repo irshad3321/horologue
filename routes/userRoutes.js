@@ -16,7 +16,10 @@ import {
     forgotPasswordController,
     resetPasswordController,
     googleAuth,
-    googleCallback,
+    googleCallback
+} from '../controllers/user/authController.js';
+
+import {
     updateProfile,
     sendEmailChangeOTP,
     verifyEmailChangeOTP,
@@ -27,7 +30,15 @@ import {
     sendChangePasswordOTP,
     verifyChangePasswordOTP,
     resendChangePasswordOTP
-} from '../controllers/user/authController.js';
+} from '../controllers/user/profileController.js';
+
+import {
+    getAddresses,
+    addAddress,
+    editAddress,
+    removeAddress,
+    setDefault
+} from '../controllers/user/addressController.js';
 
 import {
     showHome,
@@ -84,6 +95,13 @@ router.post('/change-password', isAuthenticated, changePassword);
 router.post('/send-change-password-otp', isAuthenticated, sendChangePasswordOTP);
 router.post('/verify-change-password-otp', isAuthenticated, verifyChangePasswordOTP);
 router.post('/resend-change-password-otp', isAuthenticated, resendChangePasswordOTP);
+
+// Address routes
+router.get('/api/addresses', isAuthenticated, getAddresses);
+router.post('/api/addresses', isAuthenticated, addAddress);
+router.put('/api/addresses/:id', isAuthenticated, editAddress);
+router.delete('/api/addresses/:id', isAuthenticated, removeAddress);
+router.patch('/api/addresses/:id/default', isAuthenticated, setDefault);
 
 // Google OAuth routes
 router.get('/auth/google', googleAuth);

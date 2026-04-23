@@ -1,5 +1,6 @@
 // Add import at the top
 import { getUserById } from '../service/userService.js';
+import { getUserAddresses } from '../service/addressService.js';
 
 // Show home page
 export const showHome = (req, res) => {
@@ -71,8 +72,12 @@ export const showAddresses = async (req, res) => {
         req.session.user = user;
     }
     
+    // Get user addresses
+    const addresses = await getUserAddresses(req.session.userId);
+    
     res.render('user/addresses', {
         user: req.session.user,
+        addresses: addresses,
         currentPage: 'addresses'
     });
 };

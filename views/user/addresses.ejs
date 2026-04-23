@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Addresses - Horologue</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -567,76 +568,64 @@
         </div>
 
         <!-- Address List -->
-        <div class="address-list">
-          <!-- Sample Address Card 1 -->
-          <div class="address-card default">
-            <div class="address-type home">HOME</div>
-            <div class="address-details">
-              <div class="address-name">avirag</div>
-              <p class="phone-number">Phone: 7728262512</p>
-              <p>thrisure ayiannur po</p>
-              <p>thrissur, Kerala - 678291</p>
-              <p class="address-type-label">Type: Home</p>
-            </div>
-            <div class="address-actions">
-              <button class="action-btn edit-btn" onclick="openEditAddressModal(1, 'avirag', '7728262512', 'thrisure ayiannur po', '', 'thrissur', 'Kerala', '678291', 'home')">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        <div class="address-list" id="addressList">
+          <% if (typeof addresses !== 'undefined' && addresses && addresses.length > 0) { %>
+            <% addresses.forEach(function(address) { %>
+              <div class="address-card <%= address.isDefault ? 'default' : '' %>" data-address-id="<%= address._id %>">
+                <div class="address-type <%= address.addressType %>"><%= address.addressType.toUpperCase() %></div>
+                <div class="address-details">
+                  <div class="address-name"><%= address.fullName %></div>
+                  <p class="phone-number">Phone: <%= address.phoneNumber %></p>
+                  <p><%= address.addressLine1 %></p>
+                  <% if (address.addressLine2) { %>
+                    <p><%= address.addressLine2 %></p>
+                  <% } %>
+                  <p><%= address.city %>, <%= address.state %> - <%= address.pincode %></p>
+                  <p class="address-type-label">Type: <%= address.addressType.charAt(0).toUpperCase() + address.addressType.slice(1) %></p>
+                  <% if (address.isDefault) { %>
+                    <p class="address-type-label" style="color: #28a745; font-weight: 600;">✓ Default Address</p>
+                  <% } %>
+                </div>
+                <div class="address-actions">
+                  <% if (!address.isDefault) { %>
+                    <button class="action-btn" style="background: #17a2b8; color: #fff;" onclick="setDefaultAddress('<%= address._id %>')">
+                      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                      </svg>
+                      Set Default
+                    </button>
+                  <% } %>
+                  <button class="action-btn edit-btn" onclick="openEditAddressModal('<%= address._id %>', '<%= address.fullName %>', '<%= address.phoneNumber %>', '<%= address.addressLine1 %>', '<%= address.addressLine2 || '' %>', '<%= address.city %>', '<%= address.state %>', '<%= address.pincode %>', '<%= address.addressType %>')">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Edit
+                  </button>
+                  <button class="action-btn delete-btn" onclick="deleteAddress('<%= address._id %>', '<%= address.fullName %>')">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <!-- Empty State -->
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
-                Edit
-              </button>
-              <button class="action-btn delete-btn" onclick="deleteAddress(1, 'avirag')">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-                Delete
-              </button>
+              </div>
+              <h3>No addresses saved yet</h3>
+              <p>Add your first address to get started with faster checkout</p>
+              <button class="add-address-btn" onclick="openAddAddressModal()">Add Your First Address</button>
             </div>
-          </div>
-
-          <!-- Sample Address Card 2 -->
-          <div class="address-card">
-            <div class="address-type work">WORK</div>
-            <div class="address-details">
-              <div class="address-name">John Doe</div>
-              <p class="phone-number">Phone: 9876543210</p>
-              <p>456 Business Ave, Suite 200</p>
-              <p>New York, NY - 10002</p>
-              <p class="address-type-label">Type: Work</p>
-            </div>
-            <div class="address-actions">
-              <button class="action-btn edit-btn" onclick="openEditAddressModal(2, 'John Doe', '9876543210', '456 Business Ave, Suite 200', '', 'New York', 'NY', '10002', 'work')">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-                Edit
-              </button>
-              <button class="action-btn delete-btn" onclick="deleteAddress(2, 'John Doe')">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-                Delete
-              </button>
-            </div>
-          </div>
+          <% } %>
         </div>
-
-        <!-- Empty State (uncomment to show when no addresses) -->
-        <!--
-        <div class="empty-state">
-          <div class="empty-icon">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-          </div>
-          <h3>No addresses saved yet</h3>
-          <p>Add your first address to get started with faster checkout</p>
-          <a href="/addresses/add" class="add-address-btn">Add Your First Address</a>
-        </div>
-        -->
       </div>
     </div>
   </div>
@@ -836,7 +825,7 @@
     });
 
     // Submit address form
-    function submitAddress(event) {
+    async function submitAddress(event) {
       event.preventDefault();
       
       const formData = new FormData(event.target);
@@ -844,83 +833,264 @@
       
       // Validate phone number
       if (addressData.phoneNumber.length !== 10) {
-        alert('Please enter a valid 10-digit phone number');
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Phone Number',
+          text: 'Please enter a valid 10-digit phone number'
+        });
         return;
       }
       
       // Validate pincode
       if (addressData.pincode.length !== 6) {
-        alert('Please enter a valid 6-digit pincode');
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Pincode',
+          text: 'Please enter a valid 6-digit pincode'
+        });
         return;
       }
       
-      // Here you would typically send the data to your server
-      console.log('Address data:', addressData);
+      // Show loading
+      Swal.fire({
+        title: 'Adding Address...',
+        text: 'Please wait while we save your address',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       
-      // For now, just show success message and close modal
-      alert('Address added successfully!');
-      closeAddAddressModal();
-      
-      // You can add AJAX call here to save the address
-      // fetch('/addresses/add', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(addressData)
-      // }).then(response => response.json())
-      //   .then(data => {
-      //     if (data.success) {
-      //       closeAddAddressModal();
-      //       location.reload(); // Refresh to show new address
-      //     }
-      //   });
+      try {
+        const response = await fetch('/api/addresses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(addressData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Address Added!',
+            text: 'Your address has been saved successfully',
+            timer: 2000,
+            showConfirmButton: false
+          }).then(() => {
+            closeAddAddressModal();
+            location.reload(); // Refresh to show new address
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: result.message || 'Failed to add address'
+          });
+        }
+      } catch (error) {
+        console.error('Add address error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Something went wrong. Please try again.'
+        });
+      }
     }
 
     // Submit edit address form
-    function submitEditAddress(event) {
+    async function submitEditAddress(event) {
       event.preventDefault();
       
       const formData = new FormData(event.target);
       const addressData = Object.fromEntries(formData);
+      const addressId = addressData.addressId;
+      
+      // Remove addressId from the data object
+      delete addressData.addressId;
       
       // Validate phone number
       if (addressData.phoneNumber.length !== 10) {
-        alert('Please enter a valid 10-digit phone number');
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Phone Number',
+          text: 'Please enter a valid 10-digit phone number'
+        });
         return;
       }
       
       // Validate pincode
       if (addressData.pincode.length !== 6) {
-        alert('Please enter a valid 6-digit pincode');
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Pincode',
+          text: 'Please enter a valid 6-digit pincode'
+        });
         return;
       }
       
-      // Here you would typically send the data to your server
-      console.log('Updated address data:', addressData);
+      // Show loading
+      Swal.fire({
+        title: 'Updating Address...',
+        text: 'Please wait while we update your address',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       
-      // For now, just show success message and close modal
-      alert('Address updated successfully!');
-      closeEditAddressModal();
-      
-      // You can add AJAX call here to update the address
-      // fetch(`/addresses/edit/${addressData.addressId}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(addressData)
-      // }).then(response => response.json())
-      //   .then(data => {
-      //     if (data.success) {
-      //       closeEditAddressModal();
-      //       location.reload(); // Refresh to show updated address
-      //     }
-      //   });
+      try {
+        const response = await fetch(`/api/addresses/${addressId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(addressData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Address Updated!',
+            text: 'Your address has been updated successfully',
+            timer: 2000,
+            showConfirmButton: false
+          }).then(() => {
+            closeEditAddressModal();
+            location.reload(); // Refresh to show updated address
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: result.message || 'Failed to update address'
+          });
+        }
+      } catch (error) {
+        console.error('Update address error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Something went wrong. Please try again.'
+        });
+      }
     }
 
     // Delete address confirmation
-    function deleteAddress(addressId, addressName) {
-      if (confirm(`Are you sure you want to delete the address for ${addressName}?`)) {
-        // Add delete functionality here
-        console.log('Delete address:', addressId);
-        // You can add AJAX call here to delete the address
+    async function deleteAddress(addressId, addressName) {
+      const result = await Swal.fire({
+        title: 'Delete Address?',
+        text: `Are you sure you want to delete the address for ${addressName}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+      });
+
+      if (result.isConfirmed) {
+        // Show loading
+        Swal.fire({
+          title: 'Deleting Address...',
+          text: 'Please wait while we delete your address',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        try {
+          const response = await fetch(`/api/addresses/${addressId}`, {
+            method: 'DELETE'
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Address Deleted!',
+              text: 'Your address has been deleted successfully',
+              timer: 2000,
+              showConfirmButton: false
+            }).then(() => {
+              location.reload(); // Refresh to remove deleted address
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: result.message || 'Failed to delete address'
+            });
+          }
+        } catch (error) {
+          console.error('Delete address error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Something went wrong. Please try again.'
+          });
+        }
+      }
+    }
+
+    // Set default address
+    async function setDefaultAddress(addressId) {
+      const result = await Swal.fire({
+        title: 'Set as Default?',
+        text: 'Do you want to set this as your default address?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, set as default',
+        cancelButtonText: 'Cancel'
+      });
+
+      if (result.isConfirmed) {
+        // Show loading
+        Swal.fire({
+          title: 'Setting Default...',
+          text: 'Please wait while we update your default address',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        try {
+          const response = await fetch(`/api/addresses/${addressId}/default`, {
+            method: 'PATCH'
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Default Address Set!',
+              text: 'Your default address has been updated successfully',
+              timer: 2000,
+              showConfirmButton: false
+            }).then(() => {
+              location.reload(); // Refresh to show updated default
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: result.message || 'Failed to set default address'
+            });
+          }
+        } catch (error) {
+          console.error('Set default address error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Something went wrong. Please try again.'
+          });
+        }
       }
     }
   </script>
