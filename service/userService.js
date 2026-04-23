@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 import { validateEmail, validatePassword, validateName, validatePhone } from "../helper/validators.js";
-
+// import User from '../models/User.js';
 export { validatePassword };
 
 export const validateRegistration = (userData) => {
@@ -80,4 +80,74 @@ export const validateLogin = async (email, password) => {
     }
 
     return { isValid: true, user };
+};
+export const getUserById=async(userId)=>{
+    try{
+        const user=await User.findById(userId)
+        return user
+    }catch(error){
+        return null
+    }
+};
+export const updateUser=async(userId,firstName,lastName,phone)=>{
+
+    try{
+        const user=await User.findByIdAndUpdate(userId,
+            {firstName,lastName,phone},
+            {returnDocument: 'after'}
+        )
+        return user
+    }catch(error){
+        return null
+    }
+
+}
+export const updateUserEmail=async(userId,email)=>{
+    try {
+        const user=await User.findByIdAndUpdate(userId,
+            {email},
+            {returnDocument: 'after'}
+        )
+        return user
+    }catch(error){
+        return null
+    }
+}
+export const checkEmailExists=async(email,userId)=>{
+    try {
+        const user=await User.findOne({
+            email:email,
+            _id:{$ne:userId}
+        })
+        return user?true:false
+    }catch(error){
+        return false;
+    }
+}
+
+// Update user avatar
+export const updateUserAvatar = async (userId, avatarUrl) => {
+    try {
+        console.log('Updating user avatar in database:', userId, avatarUrl);
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { profileImage: avatarUrl },
+            { returnDocument: 'after' }
+        );
+        console.log('User updated:', user ? 'Success' : 'Failed');
+        return user;
+    } catch (error) {
+        console.error('Error updating user avatar:', error);
+        return null;
+    }
+};
+
+// Get user avatar URL
+export const getUserAvatar = async (userId) => {
+    try {
+        const user = await User.findById(userId).select('profileImage');
+        return user ? user.profileImage : null;
+    } catch (error) {
+        return null;
+    }
 };

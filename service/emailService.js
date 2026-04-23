@@ -155,6 +155,20 @@ export const sendOTPEmail = async (email, otp, purpose) => {
                 </div>`;
                 break;
 
+            case 'change-password':
+                subject = 'Change Password Verification - Horologue';
+                htmlContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2>Change Password Verification</h2>
+                    <p>You requested to change your password. Please use the verification code below:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <span style="font-size: 32px; font-weight: bold; color: #6f42c1; letter-spacing: 5px;">${otp}</span>
+                    </div>
+                    <p>This code will expire in 5 minutes.</p>
+                    <p>If you didn't request this change, please contact support.</p>
+                </div>`;
+                break;
+
             default:
                 subject = 'Verification Code - Horologue';
                 htmlContent = `
@@ -184,10 +198,13 @@ export const sendOTPEmail = async (email, otp, purpose) => {
 // Test email configuration
 export const testEmailConnection = async () => {
     try {
+        console.log('Testing email connection...');
         const transporter = createTransporter();
         await transporter.verify();
+        console.log('Email connection verified successfully');
         return { success: true, message: 'Email server connection verified' };
     } catch (error) {
+        console.error('Email connection test failed:', error);
         return { success: false, error: error.message };
     }
 };

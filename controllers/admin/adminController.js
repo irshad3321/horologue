@@ -13,7 +13,6 @@ export const adminLogin = async (req, res) => {
                 success: null
             });
         }
-        
         if (!email.includes('@')) {
             return res.render('admin/login', {
                 error: 'Please enter a valid email',

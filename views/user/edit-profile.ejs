@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Edit Profile - Horologue</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -233,6 +234,25 @@
       display: none;
     }
 
+    .delete-picture-btn {
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .delete-picture-btn:hover {
+      background: #c82333;
+    }
+
     .personal-info-section {
       margin-bottom: 40px;
     }
@@ -275,6 +295,24 @@
       outline: none;
       border-color: #4285f4;
       box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+    }
+
+    .form-group .error-message {
+      color: #dc3545;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .form-group.error input,
+    .form-group.error select,
+    .form-group.error textarea {
+      border-color: #dc3545;
+      background: #fff5f5;
+    }
+
+    .form-group.error .error-message {
+      display: block;
     }
 
     .form-row {
@@ -460,6 +498,49 @@
       color: #666;
     }
 
+    .popup-form-group .error-message {
+      color: #dc3545;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .popup-form-group.error input {
+      border-color: #dc3545;
+      background: #fff5f5;
+    }
+
+    .popup-form-group.error .error-message {
+      display: block;
+    }
+
+    .resend-section {
+      text-align: center;
+      margin: 15px 0;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .resend-btn {
+      background: none;
+      border: none;
+      color: #4285f4;
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+    }
+
+    .resend-btn:hover {
+      color: #3367d6;
+    }
+
+    .resend-btn:disabled {
+      color: #adb5bd;
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+
     .popup-actions {
       display: flex;
       gap: 15px;
@@ -513,13 +594,14 @@
     }
 
     .verification-info {
-      background: #e8f5e8;
-      border: 1px solid #c8e6c9;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
       border-radius: 8px;
       padding: 15px;
       margin-bottom: 20px;
-      color: #2e7d32;
+      color: #495057;
       font-size: 14px;
+      text-align: center;
     }
   </style>
 </head>
@@ -534,78 +616,7 @@
     </div>
 
     <div class="main-content">
-      <!-- Sidebar -->
-      <div class="profile-sidebar">
-        <div class="profile-avatar">
-          <div class="avatar-circle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </div>
-          <div class="profile-name">User</div>
-        </div>
-
-        <ul class="profile-menu">
-          <li>
-            <a href="/profile">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              Account Overview
-            </a>
-          </li>
-          <li>
-            <a href="/orders">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-              </svg>
-              My Orders
-            </a>
-          </li>
-          <li>
-            <a href="/addresses">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
-              Manage Addresses
-            </a>
-          </li>
-          <li>
-            <a href="/wallet">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="1" y="3" width="15" height="13" rx="2" ry="2"/>
-                <path d="M16 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4"/>
-                <circle cx="9" cy="9" r="2"/>
-              </svg>
-              Wallet
-            </a>
-          </li>
-          <li>
-            <a href="/password">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <circle cx="12" cy="16" r="1"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-              Password
-            </a>
-          </li>
-          <li>
-            <a href="/wishlist">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              Wishlist
-            </a>
-          </li>
-        </ul>
-
-        <button class="logout-btn">LOGOUT</button>
-      </div>
+      <%- include('../partials/profile-sidebar', { user: user, currentPage: 'edit-profile' }) %>
 
       <!-- Edit Form -->
       <div class="edit-form">
@@ -618,9 +629,17 @@
           <div class="profile-picture-section">
             <h3>Profile Picture</h3>
             <div class="picture-upload">
-              <div class="picture-avatar">
-                <span id="avatarLetter">I</span>
-                <img id="avatarPreview" style="display: none;" alt="Profile Picture">
+              <div class="picture-avatar profile-picture-circle">
+                <% if (typeof user !== 'undefined' && user && user.profileImage) { %>
+                  <img id="avatarPreview" src="<%= user.profileImage %>" alt="Profile Picture" style="display: block;">
+                  <span id="avatarLetter" style="display: none;"><%= user.firstName.charAt(0).toUpperCase() %></span>
+                <% } else if (typeof user !== 'undefined' && user) { %>
+                  <span id="avatarLetter"><%= user.firstName.charAt(0).toUpperCase() %></span>
+                  <img id="avatarPreview" style="display: none;" alt="Profile Picture">
+                <% } else { %>
+                  <span id="avatarLetter">U</span>
+                  <img id="avatarPreview" style="display: none;" alt="Profile Picture">
+                <% } %>
               </div>
               <button type="button" class="change-picture-btn" onclick="document.getElementById('avatarInput').click()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -630,6 +649,17 @@
                 Change Picture
                 <input type="file" id="avatarInput" accept="image/*">
               </button>
+              <% if (typeof user !== 'undefined' && user && user.profileImage) { %>
+              <button type="button" class="delete-picture-btn" onclick="deleteAvatarFromEditProfile()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3,6 5,6 21,6"/>
+                  <path d="M19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
+                  <line x1="10" y1="11" x2="10" y2="17"/>
+                  <line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
+                Remove Picture
+              </button>
+              <% } %>
             </div>
           </div>
 
@@ -638,14 +668,21 @@
             <h3 class="section-title">Personal Information</h3>
             
             <div class="form-group">
-              <label for="fullName">Full Name</label>
-              <input type="text" id="fullName" name="fullName" placeholder="irshad ch" />
+              <label for="firstName">First Name</label>
+              <input type="text" id="firstName" name="firstName" value="<%= user ? user.firstName : '' %>" placeholder="Enter your first name" />
+              <div class="error-message" id="firstNameError" style="display: none;"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="lastName">Last Name</label>
+              <input type="text" id="lastName" name="lastName" value="<%= user ? user.lastName : '' %>" placeholder="Enter your last name" />
+              <div class="error-message" id="lastNameError" style="display: none;"></div>
             </div>
 
             <div class="form-group">
               <label for="email">Email Address</label>
               <div class="email-field">
-                <input type="email" id="email" name="email" value="irshach321@gmail.com" readonly />
+                <input type="email" id="email" name="email" value="<%= user ? user.email : '' %>" readonly />
                 <button type="button" class="change-email-btn" onclick="openEmailChangePopup()">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -658,7 +695,8 @@
 
             <div class="form-group">
               <label for="phone">Phone Number</label>
-              <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" />
+              <input type="tel" id="phone" name="phone" value="<%= user ? user.phone || '' : '' %>" placeholder="Enter your phone number" />
+              <div class="error-message" id="phoneError" style="display: none;"></div>
             </div>
           </div>
 
@@ -696,12 +734,13 @@
       <div id="emailStep" class="email-step">
         <div class="popup-form-group">
           <label for="currentEmail">Current Email Address</label>
-          <input type="email" id="currentEmail" value="irshach321@gmail.com" disabled />
+          <input type="email" id="currentEmail" value="<%= user ? user.email : '' %>" disabled />
         </div>
 
         <div class="popup-form-group">
           <label for="newEmail">New Email Address</label>
           <input type="email" id="newEmail" placeholder="Enter your new email address" />
+          <div class="error-message" id="newEmailError" style="display: none;"></div>
         </div>
 
         <div class="popup-actions">
@@ -719,13 +758,20 @@
       <!-- Step 2: Verify Code -->
       <div id="verificationStep" class="verification-step">
         <div class="verification-info">
-          <strong>Verification code sent!</strong><br>
-          We've sent a verification code to your new email address. Please check your inbox and enter the code below.
+          <strong>OTP sent successfully!</strong><br>
+          Please check your inbox and enter the code below.
         </div>
 
         <div class="popup-form-group">
           <label for="verificationCode">Verification Code</label>
           <input type="text" id="verificationCode" placeholder="Enter 6-digit verification code" maxlength="6" />
+          <div class="error-message" id="verificationCodeError" style="display: none;"></div>
+        </div>
+
+        <div class="resend-section">
+          <span>Didn't receive the code? </span>
+          <button type="button" class="resend-btn" id="resendBtn" onclick="resendVerificationCode()">Resend OTP</button>
+          <span id="resendTimer" style="display: none;"></span>
         </div>
 
         <div class="popup-actions">
@@ -749,44 +795,324 @@
     document.getElementById('avatarInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-          alert('File size must be less than 5MB');
-          return;
-        }
-
-        if (!file.type.startsWith('image/')) {
-          alert('Please select a valid image file');
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const avatarPreview = document.getElementById('avatarPreview');
-          const avatarLetter = document.getElementById('avatarLetter');
-          
-          avatarPreview.src = e.target.result;
-          avatarPreview.style.display = 'block';
-          avatarLetter.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
+        uploadAvatarFromEditProfile(file);
       }
     });
 
+    // Upload avatar function for edit profile page
+    async function uploadAvatarFromEditProfile(file) {
+      console.log('Starting avatar upload from edit profile:', file);
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid File',
+          text: 'Please select an image file'
+        });
+        return;
+      }
+
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire({
+          icon: 'error',
+          title: 'File Too Large',
+          text: 'Image size must be less than 5MB'
+        });
+        return;
+      }
+
+      // Show confirmation dialog first
+      const confirmResult = await Swal.fire({
+        title: 'Change Profile Picture?',
+        text: 'Do you want to update your profile picture?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#4285f4',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, change it',
+        cancelButtonText: 'Cancel'
+      });
+
+      if (!confirmResult.isConfirmed) {
+        // Reset the file input
+        document.getElementById('avatarInput').value = '';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      // Show loading
+      Swal.fire({
+        title: 'Uploading...',
+        text: 'Please wait while we upload your avatar',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      try {
+        const response = await fetch('/upload-avatar', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+        console.log('Upload result:', result);
+
+        if (result.success) {
+          // Update local preview in edit profile (blue circle)
+          const avatarPreview = document.getElementById('avatarPreview');
+          const avatarLetter = document.getElementById('avatarLetter');
+          
+          if (avatarPreview && avatarLetter) {
+            avatarPreview.src = result.avatarUrl;
+            avatarPreview.style.display = 'block';
+            avatarLetter.style.display = 'none';
+            console.log('Updated edit profile avatar preview');
+          }
+
+          // Show delete button dynamically
+          showDeleteButton();
+
+          // Update sidebar avatar immediately
+          if (window.updateSidebarAvatar) {
+            window.updateSidebarAvatar(result.avatarUrl);
+            console.log('Updated sidebar avatar');
+          } else {
+            console.log('updateSidebarAvatar function not found');
+          }
+          
+          // Show success confirmation
+          Swal.fire({
+            icon: 'success',
+            title: 'Picture Updated!',
+            text: 'Your profile picture has been changed successfully',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Upload Failed',
+            text: result.message || 'Failed to upload avatar'
+          });
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error uploading avatar. Please try again.'
+        });
+      }
+    }
+
+    // Delete avatar function for edit profile page
+    async function deleteAvatarFromEditProfile() {
+      // Show confirmation dialog
+      const confirmResult = await Swal.fire({
+        title: 'Remove Profile Picture?',
+        text: 'Are you sure you want to remove your profile picture?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, remove it',
+        cancelButtonText: 'Cancel'
+      });
+
+      if (!confirmResult.isConfirmed) {
+        return;
+      }
+
+      // Show loading
+      Swal.fire({
+        title: 'Removing...',
+        text: 'Please wait while we remove your avatar',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      try {
+        const response = await fetch('/delete-avatar', {
+          method: 'DELETE'
+        });
+
+        const result = await response.json();
+        console.log('Delete result:', result);
+
+        if (result.success) {
+          // Update local preview in edit profile
+          const avatarPreview = document.getElementById('avatarPreview');
+          const avatarLetter = document.getElementById('avatarLetter');
+          
+          if (avatarPreview && avatarLetter) {
+            avatarPreview.style.display = 'none';
+            avatarLetter.style.display = 'block';
+            console.log('Updated edit profile avatar preview to letter');
+          }
+
+          // Update sidebar avatar immediately
+          if (window.updateSidebarAvatar) {
+            window.updateSidebarAvatar(null);
+            console.log('Updated sidebar avatar to initials');
+          }
+          
+          // Hide delete button dynamically
+          hideDeleteButton();
+          
+          // Show success message
+          Swal.fire({
+            icon: 'success',
+            title: 'Picture Removed!',
+            text: 'Your profile picture has been removed successfully',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Delete Failed',
+            text: result.message || 'Failed to delete avatar'
+          });
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error deleting avatar. Please try again.'
+        });
+      }
+    }
+
+    // Helper functions for delete button visibility
+    function showDeleteButton() {
+      let deleteBtn = document.querySelector('.delete-picture-btn');
+      if (!deleteBtn) {
+        // Create delete button if it doesn't exist
+        const changeBtn = document.querySelector('.change-picture-btn');
+        if (changeBtn) {
+          deleteBtn = document.createElement('button');
+          deleteBtn.type = 'button';
+          deleteBtn.className = 'delete-picture-btn';
+          deleteBtn.onclick = deleteAvatarFromEditProfile;
+          deleteBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3,6 5,6 21,6"/>
+              <path d="M19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
+              <line x1="10" y1="11" x2="10" y2="17"/>
+              <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+            Remove Picture
+          `;
+          changeBtn.parentNode.appendChild(deleteBtn);
+        }
+      } else {
+        deleteBtn.style.display = 'flex';
+      }
+    }
+
+    function hideDeleteButton() {
+      const deleteBtn = document.querySelector('.delete-picture-btn');
+      if (deleteBtn) {
+        deleteBtn.style.display = 'none';
+      }
+    }
+
     // Form submission
-    document.getElementById('editProfileForm').addEventListener('submit', function(e) {
+    document.getElementById('editProfileForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+      console.log('Form submission started');
       
       const saveBtn = document.querySelector('.btn-save');
       const originalText = saveBtn.innerHTML;
       saveBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Saving...';
       saveBtn.disabled = true;
       
-      setTimeout(() => {
+      // Clear previous errors
+      clearFieldError('firstName');
+      clearFieldError('lastName');
+      clearFieldError('phone');
+      
+      // Get form data
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      
+      let hasErrors = false;
+      
+      // Validate required fields
+      if (!firstName) {
+        showFieldError('firstName', 'First name is required');
+        hasErrors = true;
+      }
+      
+      if (!lastName) {
+        showFieldError('lastName', 'Last name is required');
+        hasErrors = true;
+      }
+      
+      // Validate phone number if provided
+      if (phone && !/^\d{10}$/.test(phone)) {
+        showFieldError('phone', 'Phone number must be 10 digits');
+        hasErrors = true;
+      }
+      
+      if (hasErrors) {
         saveBtn.innerHTML = originalText;
         saveBtn.disabled = false;
-        alert('Profile updated successfully!');
-        window.location.href = '/profile';
-      }, 1500);
+        return;
+      }
+      
+      try {
+        console.log('Sending profile update request');
+        // Send data to backend
+        const response = await fetch('/update-profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            firstName: firstName,
+            lastName: lastName,
+            phone: phone
+          })
+        });
+        
+        console.log('Response received:', response.status);
+        const result = await response.json();
+        console.log('Result:', result);
+        
+        if (result.success) {
+          // Show success alert and redirect
+          Swal.fire({
+            icon: 'success',
+            title: 'Profile Saved!',
+            text: 'Your profile information has been updated successfully',
+            confirmButtonText: 'Continue',
+            confirmButtonColor: '#4285f4'
+          }).then(() => {
+            window.location.href = '/profile';
+          });
+        } else {
+          // Show error in first name field as general error
+          showFieldError('firstName', result.message || 'Failed to update profile');
+        }
+      } catch (error) {
+        console.error('Profile update error:', error);
+        showFieldError('firstName', 'Error updating profile. Please try again.');
+      } finally {
+        // Always reset the button
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+      }
     });
 
     // Logout button
@@ -803,102 +1129,292 @@
       document.getElementById('verificationStep').classList.remove('active');
       document.getElementById('newEmail').value = '';
       document.getElementById('verificationCode').value = '';
+      
+      // Clear any previous errors
+      clearFieldError('newEmail');
+      clearFieldError('verificationCode');
+      
+      // Clear any existing timer
+      if (resendInterval) {
+        clearInterval(resendInterval);
+      }
+      
+      // Reset resend button state
+      const resendBtn = document.getElementById('resendBtn');
+      const resendTimerSpan = document.getElementById('resendTimer');
+      resendBtn.style.display = 'inline';
+      resendBtn.disabled = false;
+      resendBtn.innerHTML = 'Resend OTP';
+      resendTimerSpan.style.display = 'none';
     }
 
     function closeEmailChangePopup() {
       document.getElementById('emailChangePopup').classList.remove('active');
+      
+      // Clear any existing timer
+      if (resendInterval) {
+        clearInterval(resendInterval);
+      }
     }
 
-    function sendVerificationCode() {
+    async function sendVerificationCode() {
       const newEmail = document.getElementById('newEmail').value.trim();
       
+      // Clear previous errors
+      clearFieldError('newEmail');
+      
       if (!newEmail) {
-        alert('Please enter a new email address');
+        showFieldError('newEmail', 'Please enter a new email address');
         return;
       }
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(newEmail)) {
-        alert('Please enter a valid email address');
+        showFieldError('newEmail', 'Please enter a valid email address');
         return;
       }
 
-      if (newEmail === document.getElementById('currentEmail').value) {
-        alert('New email must be different from current email');
+      if (newEmail === document.getElementById('email').value) {
+        showFieldError('newEmail', 'New email must be different from current email');
         return;
       }
 
-      // Simulate sending verification code
       const sendBtn = event.target;
       const originalText = sendBtn.innerHTML;
       sendBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Sending...';
       sendBtn.disabled = true;
 
-      setTimeout(() => {
-        sendBtn.innerHTML = originalText;
-        sendBtn.disabled = false;
+      try {
+        const response = await fetch('/send-email-change-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            newEmail: newEmail
+          })
+        });
         
-        // Show verification step
-        document.getElementById('emailStep').style.display = 'none';
-        document.getElementById('verificationStep').classList.add('active');
-      }, 2000);
+        const result = await response.json();
+        
+        if (result.success) {
+          // Show verification step
+          document.getElementById('emailStep').style.display = 'none';
+          document.getElementById('verificationStep').classList.add('active');
+          
+          // Start resend timer
+          startResendTimer();
+        } else {
+          showFieldError('newEmail', result.message || 'Failed to send verification code');
+        }
+      } catch (error) {
+        showFieldError('newEmail', 'Error sending verification code. Please try again.');
+      }
+
+      sendBtn.innerHTML = originalText;
+      sendBtn.disabled = false;
     }
 
     function backToEmailStep() {
       document.getElementById('emailStep').style.display = 'block';
       document.getElementById('verificationStep').classList.remove('active');
+      
+      // Clear verification code errors
+      clearFieldError('verificationCode');
+      document.getElementById('verificationCode').value = '';
     }
 
-    function resendVerificationCode() {
-      const resendBtn = event.target;
+    async function resendVerificationCode() {
+      const resendBtn = document.getElementById('resendBtn');
+      
+      if (resendBtn.disabled) {
+        return;
+      }
+      
       const originalText = resendBtn.innerHTML;
       resendBtn.innerHTML = 'Sending...';
       resendBtn.disabled = true;
 
-      setTimeout(() => {
+      try {
+        const response = await fetch('/resend-email-change-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Start resend timer again
+          startResendTimer();
+        } else {
+          showFieldError('verificationCode', result.message || 'Failed to resend verification code');
+          resendBtn.innerHTML = originalText;
+          resendBtn.disabled = false;
+        }
+      } catch (error) {
+        showFieldError('verificationCode', 'Error resending verification code. Please try again.');
         resendBtn.innerHTML = originalText;
         resendBtn.disabled = false;
-        alert('Verification code resent successfully!');
-      }, 2000);
+      }
     }
 
-    function verifyEmailChange() {
+    async function verifyEmailChange() {
       const verificationCode = document.getElementById('verificationCode').value.trim();
       
+      // Clear previous errors
+      clearFieldError('verificationCode');
+      
       if (!verificationCode) {
-        alert('Please enter the verification code');
+        showFieldError('verificationCode', 'Please enter the verification code');
         return;
       }
 
       if (verificationCode.length !== 6) {
-        alert('Verification code must be 6 digits');
+        showFieldError('verificationCode', 'Verification code must be 6 digits');
         return;
       }
 
-      // Simulate verification
+      if (!/^\d{6}$/.test(verificationCode)) {
+        showFieldError('verificationCode', 'Verification code must contain only numbers');
+        return;
+      }
+
       const verifyBtn = event.target;
       const originalText = verifyBtn.innerHTML;
       verifyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Verifying...';
       verifyBtn.disabled = true;
 
-      setTimeout(() => {
-        verifyBtn.innerHTML = originalText;
-        verifyBtn.disabled = false;
+      try {
+        const response = await fetch('/verify-email-change-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            otp: verificationCode
+          })
+        });
         
-        // Update email in the form
-        const newEmail = document.getElementById('newEmail').value;
-        document.getElementById('email').value = newEmail;
-        document.getElementById('currentEmail').value = newEmail;
+        const result = await response.json();
         
-        closeEmailChangePopup();
-        alert('Email address changed successfully!');
-      }, 2000);
+        if (result.success) {
+          closeEmailChangePopup();
+          // Refresh page to show updated email
+          window.location.reload();
+        } else {
+          showFieldError('verificationCode', result.message || 'Invalid verification code');
+        }
+      } catch (error) {
+        showFieldError('verificationCode', 'Error verifying code. Please try again.');
+      }
+
+      verifyBtn.innerHTML = originalText;
+      verifyBtn.disabled = false;
     }
 
-    // Close popup when clicking outside
-    document.getElementById('emailChangePopup').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeEmailChangePopup();
+    // Close popup when clicking outside - REMOVED to prevent accidental closing
+    // document.getElementById('emailChangePopup').addEventListener('click', function(e) {
+    //   if (e.target === this) {
+    //     closeEmailChangePopup();
+    //   }
+    // });
+
+    // Resend timer functionality
+    let resendTimer = 60;
+    let resendInterval;
+
+    function startResendTimer() {
+      const resendBtn = document.getElementById('resendBtn');
+      const resendTimerSpan = document.getElementById('resendTimer');
+      
+      resendBtn.style.display = 'none';
+      resendTimerSpan.style.display = 'inline';
+      resendTimer = 60;
+      
+      resendInterval = setInterval(() => {
+        resendTimerSpan.textContent = `Resend in ${resendTimer}s`;
+        resendTimer--;
+        
+        if (resendTimer < 0) {
+          clearInterval(resendInterval);
+          resendBtn.style.display = 'inline';
+          resendBtn.disabled = false;
+          resendBtn.innerHTML = 'Resend OTP';
+          resendTimerSpan.style.display = 'none';
+        }
+      }, 1000);
+    }
+
+    // Field error handling functions
+    function showFieldError(fieldId, message) {
+      const field = document.getElementById(fieldId);
+      const formGroup = field.closest('.popup-form-group') || field.closest('.form-group');
+      
+      // Try to find error div by ID first (for popup fields), then by class
+      let errorDiv = document.getElementById(fieldId + 'Error');
+      if (!errorDiv) {
+        errorDiv = formGroup.querySelector('.error-message');
+      }
+      
+      formGroup.classList.add('error');
+      if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block'; // Override inline style
+      }
+    }
+
+    function clearFieldError(fieldId) {
+      const field = document.getElementById(fieldId);
+      const formGroup = field.closest('.popup-form-group') || field.closest('.form-group');
+      
+      // Try to find error div by ID first (for popup fields), then by class
+      let errorDiv = document.getElementById(fieldId + 'Error');
+      if (!errorDiv) {
+        errorDiv = formGroup.querySelector('.error-message');
+      }
+      
+      formGroup.classList.remove('error');
+      if (errorDiv) {
+        errorDiv.textContent = '';
+        errorDiv.style.display = 'none';
+      }
+    }
+
+    // Add input validation for verification code (numbers only)
+    document.getElementById('verificationCode').addEventListener('input', function(e) {
+      this.value = this.value.replace(/[^0-9]/g, '');
+      if (this.value.length > 0) {
+        clearFieldError('verificationCode');
+      }
+    });
+
+    // Add input validation for new email
+    document.getElementById('newEmail').addEventListener('input', function(e) {
+      if (this.value.length > 0) {
+        clearFieldError('newEmail');
+      }
+    });
+
+    // Add input validation for main form fields
+    document.getElementById('firstName').addEventListener('input', function(e) {
+      if (this.value.trim().length > 0) {
+        clearFieldError('firstName');
+      }
+    });
+
+    document.getElementById('lastName').addEventListener('input', function(e) {
+      if (this.value.trim().length > 0) {
+        clearFieldError('lastName');
+      }
+    });
+
+    document.getElementById('phone').addEventListener('input', function(e) {
+      // Allow only numbers
+      this.value = this.value.replace(/[^0-9]/g, '');
+      if (this.value.length > 0) {
+        clearFieldError('phone');
       }
     });
   </script>

@@ -16,17 +16,30 @@ import {
     forgotPasswordController,
     resetPasswordController,
     googleAuth,
-    googleCallback
+    googleCallback,
+    updateProfile,
+    sendEmailChangeOTP,
+    verifyEmailChangeOTP,
+    resendEmailChangeOTP,
+    uploadAvatar,
+    deleteAvatar,
+    changePassword,
+    sendChangePasswordOTP,
+    verifyChangePasswordOTP,
+    resendChangePasswordOTP
 } from '../controllers/user/authController.js';
 
 import {
     showHome,
     showProfile,
     showEditProfile,
-    showLanding
+    showLanding,
+    showAddresses,
+    showChangePassword
 } from '../controllers/pageController.js';
 
 import { syncUserSession, isAuthenticated, isNotAuthenticated } from '../middlewares/sessionAuth.js';
+import upload, { handleMulterError } from '../config/multer.js';
 
 const router = express.Router();
 
@@ -38,23 +51,39 @@ router.get('/', showLanding);
 router.get('/home', isAuthenticated, showHome);
 router.get('/profile', isAuthenticated, showProfile);
 router.get('/edit-profile', isAuthenticated, showEditProfile);
+router.get('/addresses', isAuthenticated, showAddresses);
+router.get('/password', isAuthenticated, showChangePassword);
 
 // Authentication routes
-router.get('/register', isNotAuthenticated, showRegister);
+router.get('/register', isNotAuthenticated,showRegister);
 router.post('/register', registerUser);
-router.get('/login', isNotAuthenticated, showLogin);
-router.post('/login', loginUser);
-router.get('/logout', logoutUser);
-router.get('/verify-otp-registration', showVerifyOTPRegistration);
-router.post('/verify-otp-registration', verifyOTPRegistrationController);
-router.post('/resend-otp-registration', resendOTPRegistrationController);
-router.get('/verify-otp-forgot', showVerifyOTPForgot);
-router.post('/verify-otp-forgot', verifyOTPForgotController);
-router.post('/resend-otp-forgot', resendOTPForgotController);
-router.get('/forgot-password', showForgotPassword);
-router.post('/forgot-password', forgotPasswordController);
-router.get('/reset-password', showResetPassword);
-router.post('/reset-password', resetPasswordController);
+router.get('/login', isNotAuthenticated,showLogin);
+router.post('/login', loginUser)
+router.get('/logout', logoutUser)
+router.get('/verify-otp-registration',showVerifyOTPRegistration)
+router.post('/verify-otp-registration',verifyOTPRegistrationController)
+router.post('/resend-otp-registration',resendOTPRegistrationController)
+router.get('/verify-otp-forgot',showVerifyOTPForgot)
+router.post('/verify-otp-forgot',verifyOTPForgotController)
+router.post('/resend-otp-forgot',resendOTPForgotController)
+router.get('/forgot-password', showForgotPassword)
+router.post('/forgot-password',forgotPasswordController)
+router.get('/reset-password',showResetPassword)
+router.post('/reset-password',resetPasswordController)
+router.post('/update-profile',isAuthenticated, updateProfile)
+router.post('/send-email-change-otp',isAuthenticated, sendEmailChangeOTP)
+router.post('/verify-email-change-otp',isAuthenticated, verifyEmailChangeOTP)
+router.post('/resend-email-change-otp',isAuthenticated, resendEmailChangeOTP)
+
+// Avatar routes
+router.post('/upload-avatar', isAuthenticated, upload.single('avatar'), uploadAvatar);
+router.delete('/delete-avatar', isAuthenticated, deleteAvatar);
+
+// Change password routes
+router.post('/change-password', isAuthenticated, changePassword);
+router.post('/send-change-password-otp', isAuthenticated, sendChangePasswordOTP);
+router.post('/verify-change-password-otp', isAuthenticated, verifyChangePasswordOTP);
+router.post('/resend-change-password-otp', isAuthenticated, resendChangePasswordOTP);
 
 // Google OAuth routes
 router.get('/auth/google', googleAuth);

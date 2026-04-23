@@ -1,0 +1,167 @@
+<!-- Profile Sidebar -->
+<div class="profile-sidebar">
+  <div class="profile-avatar">
+    <div class="avatar-circle" data-user-name="<% if (typeof user !== 'undefined' && user) { %><%= user.firstName %> <%= user.lastName %><% } else { %>User<% } %>">
+      <% if (typeof user !== 'undefined' && user && user.profileImage) { %>
+        <img src="<%= user.profileImage %>" alt="Profile Picture" class="avatar-img" id="sidebarAvatarImg">
+      <% } else if (typeof user !== 'undefined' && user) { %>
+        <div class="avatar-placeholder" id="sidebarAvatarPlaceholder">
+          <%= user.firstName.charAt(0).toUpperCase() %><%= user.lastName.charAt(0).toUpperCase() %>
+        </div>
+      <% } else { %>
+        <div class="avatar-placeholder" id="sidebarAvatarPlaceholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+      <% } %>
+    </div>
+    <div class="profile-name">
+      <% if (typeof user !== 'undefined' && user) { %>
+        <%= user.firstName %> <%= user.lastName %>
+      <% } else { %>
+        User
+      <% } %>
+    </div>
+  </div>
+
+  <ul class="profile-menu">
+    <li>
+      <a href="/profile" class="<%= typeof currentPage !== 'undefined' && currentPage === 'profile' ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Account Overview
+      </a>
+    </li>
+    <li>
+      <a href="/orders" class="<%= typeof currentPage !== 'undefined' && currentPage === 'orders' ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+        </svg>
+        My Orders
+      </a>
+    </li>
+    <li>
+      <a href="/addresses" class="<%= typeof currentPage !== 'undefined' && currentPage === 'addresses' ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        Manage Addresses
+      </a>
+    </li>
+    <li>
+      <a href="/wallet" class="<%= typeof currentPage !== 'undefined' && currentPage === 'wallet' ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="3" width="15" height="13" rx="2" ry="2"/>
+          <path d="M16 8h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4"/>
+          <circle cx="18" cy="12" r="2"/>
+        </svg>
+        Wallet
+      </a>
+    </li>
+    <li>
+      <a href="/password" class="<%= typeof currentPage !== 'undefined' && currentPage === 'password' ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <circle cx="12" cy="16" r="1"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Password
+      </a>
+    </li>
+    <li>
+      <a href="/wishlist" class="<%= typeof currentPage !== 'undefined' && currentPage === 'wishlist' ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        Wishlist
+      </a>
+    </li>
+  </ul>
+
+  <button class="logout-btn" onclick="logout()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16,17 21,12 16,7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+    LOGOUT
+  </button>
+</div>
+
+<style>
+  .avatar-circle {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 600;
+    color: #4caf50;
+    border-radius: 50%;
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // Logout function
+  function logout() {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will be logged out of your account',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, logout',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.location.href = '/logout';
+      }
+    });
+  }
+
+  // Global function to update sidebar avatar from edit profile page
+  window.updateSidebarAvatar = function(avatarUrl) {
+    console.log('updateSidebarAvatar called with:', avatarUrl);
+    
+    const sidebarAvatar = document.querySelector('.avatar-circle');
+    console.log('Sidebar avatar element found:', sidebarAvatar ? 'Yes' : 'No');
+    
+    if (sidebarAvatar) {
+      const userName = sidebarAvatar.getAttribute('data-user-name') || 'User';
+      console.log('User name:', userName);
+      
+      if (avatarUrl) {
+        // Show new avatar image
+        sidebarAvatar.innerHTML = `<img src="${avatarUrl}" alt="Profile Picture" class="avatar-img" id="sidebarAvatarImg">`;
+        console.log('Sidebar updated with new avatar image');
+      } else {
+        // Show user initials
+        const initials = userName.split(' ').map(n => n.charAt(0).toUpperCase()).join('');
+        sidebarAvatar.innerHTML = `<div class="avatar-placeholder" id="sidebarAvatarPlaceholder">${initials}</div>`;
+        console.log('Sidebar updated with initials:', initials);
+      }
+    }
+  };
+</script>

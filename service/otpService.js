@@ -5,22 +5,28 @@ import { sendOTPEmail } from "./emailService.js";
 
 // Generate and save OTP
 export const generateAndSaveOTP = async (email, purpose) => {
-    const otp = generateOTP();
-    
-    await OTP.create({
-        email,
-        otp,
-        purpose
-    });
-    
-    // Send OTP via email
-    const emailResult = await sendOTPEmail(email, otp, purpose);
-    
-    if (!emailResult.success) {
-        console.error(`Failed to send OTP to ${email}:`, emailResult.error);
+    try {
+        const otp = generateOTP();
+        
+        await OTP.create({
+            email,
+            otp,
+            purpose
+        });
+        
+        // Send OTP via email
+        const emailResult = await sendOTPEmail(email, otp, purpose);
+        
+        if (!emailResult.success) {
+            console.error(`Failed to send OTP to ${email}:`, emailResult.error);
+            throw new Error(`Failed to send OTP: ${emailResult.error}`);
+        }
+        
+        return otp;
+    } catch (error) {
+        console.error('Error in generateAndSaveOTP:', error);
+        throw error;
     }
-    
-    return otp;
 };
 
 // Get latest OTP creation time for timer calculation
