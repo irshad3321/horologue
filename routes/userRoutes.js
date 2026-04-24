@@ -49,7 +49,7 @@ import {
     showChangePassword
 } from '../controllers/pageController.js';
 
-import { syncUserSession, isAuthenticated, isNotAuthenticated } from '../middlewares/sessionAuth.js';
+import { syncUserSession, isAuthenticated, isNotAuthenticated, preventCache, redirectAuthenticatedUsers } from '../middlewares/sessionAuth.js';
 import upload, { handleMulterError } from '../config/multer.js';
 
 const router = express.Router();
@@ -57,8 +57,41 @@ const router = express.Router();
 // Apply session sync middleware to all routes
 router.use(syncUserSession);
 
+// Session check endpoint
+router.get('/api/session-check', async (req, res) => {
+    if (req.session.userId || req.user) {
+        const userId = req.session.userId || req.user._id;
+        
+        try {
+            // Import User model
+            const { default: User } = await import('../models/User.js');
+            const user = await User.findById(userId);
+            
+            if (!user || user.isBlocked) {
+                // User is blocked or doesn't exist
+                req.session.destroy((err) => {
+                    if (err) {
+                        console.error('Session destroy error:', err);
+                    }
+                    res.clearCookie('horologue.sid');
+                    res.clearCookie('connect.sid');
+                    res.status(401).json({ authenticated: false, reason: 'account_blocked' });
+                });
+                return;
+            }
+            
+            res.json({ authenticated: true });
+        } catch (error) {
+            console.error('Session check error:', error);
+            res.status(401).json({ authenticated: false, reason: 'validation_error' });
+        }
+    } else {
+        res.status(401).json({ authenticated: false, reason: 'no_session' });
+    }
+});
+
 // Page routes
-router.get('/', showLanding);
+router.get('/', redirectAuthenticatedUsers, showLanding);
 router.get('/home', isAuthenticated, showHome);
 router.get('/profile', isAuthenticated, showProfile);
 router.get('/edit-profile', isAuthenticated, showEditProfile);

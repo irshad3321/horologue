@@ -330,6 +330,23 @@
       input.type = input.type === 'password' ? 'text' : 'password';
     }
 
+    // Prevent back button access after login
+    (function() {
+      if (window.history && window.history.pushState) {
+        window.history.pushState('forward', null, './');
+        window.addEventListener('popstate', function() {
+          window.history.pushState('forward', null, './');
+        });
+      }
+    })();
+
+    // Disable browser cache for this page
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    });
+
     // Auto-hide error messages after 5 seconds
     document.addEventListener('DOMContentLoaded', function() {
       const errorAlert = document.querySelector('.alert-error');

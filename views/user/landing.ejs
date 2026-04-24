@@ -670,6 +670,39 @@
   <%- include('../partials/footer') %>
 
   <script>
+    // Landing page protection - redirect authenticated users
+    (function() {
+      // Check if user is authenticated and redirect them
+      fetch('/api/session-check', {
+        method: 'GET',
+        credentials: 'same-origin',
+        cache: 'no-cache'
+      }).then(response => {
+        if (response.ok) {
+          // User is authenticated, redirect to home
+          window.location.replace('/home');
+        }
+      }).catch(() => {
+        // Not authenticated or error, stay on landing page
+      });
+
+      // Prevent caching of this page
+      if (window.history && window.history.pushState) {
+        window.history.pushState('forward', null, window.location.pathname);
+        
+        window.addEventListener('popstate', function() {
+          window.history.pushState('forward', null, window.location.pathname);
+        });
+      }
+
+      // Handle page cache
+      window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+          window.location.reload(true);
+        }
+      });
+    })();
+
     // Manual Carousel functionality
     let currentSlide = 0;
     const carousel = document.getElementById('carousel');

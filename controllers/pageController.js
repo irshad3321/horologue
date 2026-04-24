@@ -11,7 +11,7 @@ export const showHome = (req, res) => {
     
     // Check for login success message
     const loginSuccess = req.session.loginSuccess;
-    delete req.session.loginSuccess; // Clear it after reading
+    delete req.session.loginSuccess; 
     
     res.render('user/home', { 
         user: req.session.user,

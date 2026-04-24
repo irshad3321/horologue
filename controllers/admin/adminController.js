@@ -234,8 +234,7 @@ export const adminResendOTPForgot = async (req, res) => {
         const lastOTP = await OTP.findOne({
             email,
             purpose: 'admin-forgot-password'
-        }).sort({ createdAt: -1 })
-        
+        }).sort({ createdAt: -1 })  
         if (lastOTP) {
             const timeSinceLastOTP = Date.now() - lastOTP.createdAt.getTime()
             const oneMinute = 60 * 1000; 
@@ -270,11 +269,22 @@ export const adminResendOTPForgot = async (req, res) => {
 export const adminLogout = (req, res) => {
     req.session.destroy((err) => {
         if (err) {
-            console.log('Session destroy error:',err)
+            console.log('Session destroy error:', err);
         }
-        res.redirect('/admin/login')
-    })
-}
+        // Clear session cookies
+        res.clearCookie('horologue.sid');
+        res.clearCookie('connect.sid');
+        
+        // Set cache control headers
+        res.set({
+            'Cache-Control': 'no-cache, no-store, must-revalidate, private',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        });
+        
+        res.redirect('/admin/login');
+    });
+};
 //getting users with search, filter, and pagination
 export const getUsers = async (req, res) => {
     try {
@@ -283,16 +293,13 @@ export const getUsers = async (req, res) => {
         const skip = (page - 1) * limit;
         const search = req.query.search || '';
         const status = req.query.status || 'all';
-        
-        // Build search query
         let searchQuery = {};
-        
         // Search by name or email
         if (search) {
             searchQuery.$or = [
                 { firstName: { $regex: search, $options: 'i' } },
                 { lastName: { $regex: search, $options: 'i' } },
-                { email: { $regex: search, $options: 'i' } }
+                { email: { $regex: search, $options: 'i' } },
             ];
         }
         

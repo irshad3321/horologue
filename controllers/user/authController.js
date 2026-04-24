@@ -13,7 +13,7 @@ export const showRegister = (req, res) => {
 export const showLogin = (req, res) => {
     let error = null;
     
-    // Handle Google OAuth errors
+    // Handle various error types
     if (req.query.error === 'google_auth_failed') {
         error = 'Google authentication failed. Please try again.';
     } else if (req.query.error === 'auth_error') {
@@ -86,6 +86,7 @@ export const registerUser = async (req, res) => {
                 success: null,
                 formData: req.body
             });
+            
         }
 
         // Save temp data and generate OTP
@@ -386,11 +387,23 @@ export const logoutUser = (req, res) => {
             if (err) {
                 console.error('Passport logout error:', err);
             }
+            // Clear session and cookies
             req.session.destroy((err) => {
                 if (err) {
                     console.error('Session destroy error:', err);
                     return res.redirect('/home');
                 }
+                // Clear session cookie
+                res.clearCookie('horologue.sid');
+                res.clearCookie('connect.sid');
+                
+                // Set cache control headers
+                res.set({
+                    'Cache-Control': 'no-cache, no-store, must-revalidate, private',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                });
+                
                 res.redirect('/');
             });
         });
@@ -400,6 +413,17 @@ export const logoutUser = (req, res) => {
                 console.error('Session destroy error:', err);
                 return res.redirect('/home');
             }
+            // Clear session cookie
+            res.clearCookie('horologue.sid');
+            res.clearCookie('connect.sid');
+            
+            // Set cache control headers
+            res.set({
+                'Cache-Control': 'no-cache, no-store, must-revalidate, private',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            });
+            
             res.redirect('/');
         });
     }
@@ -524,6 +548,12 @@ export const googleCallback = (req, res, next) => {
         if (!req.user) {
             return res.redirect('/login?error=account_blocked');
         }
+        
+        // Check if user is blocked
+        if (req.user.isBlocked) {
+            return res.redirect('/login?error=account_blocked');
+        }
+        
         try {
             req.session.userId = req.user._id;
             req.session.user = {

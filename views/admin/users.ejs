@@ -572,7 +572,7 @@
                             <option value="all" <%= typeof status !== 'undefined' && status === 'all' ? 'selected' : '' %>>All Status</option>
                             <option value="active" <%= typeof status !== 'undefined' && status === 'active' ? 'selected' : '' %>>Active Only</option>
                             <option value="blocked" <%= typeof status !== 'undefined' && status === 'blocked' ? 'selected' : '' %>>Blocked Only</option>
-                            <option value="admin" <%= typeof status !== 'undefined' && status === 'admin' ? 'selected' : '' %>>Admins Only</option>
+                            <!-- <option value="admin" <%= typeof status !== 'undefined' && status === 'admin' ? 'selected' : '' %>>Admins Only</option> -->
                         </select>
                         <button type="submit" class="search-btn">Search</button>
                     </form>
@@ -705,6 +705,8 @@
         </div>
     </div>
 
+    <!-- Session Protection Script -->
+    <script src="/js/session-protection.js"></script>
     <script src="/js/admin-users.js"></script>
 </body>
 </html>
