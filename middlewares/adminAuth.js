@@ -7,13 +7,12 @@ export const isAdmin = async (req, res, next) => {
     preventCache(req, res, () => {});
     
     if (!req.session.userId || !req.session.user || !req.session.user.isAdmin) {
-        // Clear invalid session
+        // Clear invalid admin session
         req.session.destroy((err) => {
             if (err) {
                 console.error('Session destroy error:', err);
             }
-            res.clearCookie('horologue.sid');
-            res.clearCookie('connect.sid');
+            res.clearCookie('horologue.admin.sid');
             res.redirect('/admin/login');
         });
         return;
@@ -29,8 +28,7 @@ export const isAdmin = async (req, res, next) => {
                 if (err) {
                     console.error('Session destroy error:', err);
                 }
-                res.clearCookie('horologue.sid');
-                res.clearCookie('connect.sid');
+                res.clearCookie('horologue.admin.sid');
                 res.redirect('/admin/login?error=access_revoked');
             });
             return;
@@ -43,8 +41,7 @@ export const isAdmin = async (req, res, next) => {
             if (err) {
                 console.error('Session destroy error:', err);
             }
-            res.clearCookie('horologue.sid');
-            res.clearCookie('connect.sid');
+            res.clearCookie('horologue.admin.sid');
             res.redirect('/admin/login?error=validation_error');
         });
     }
@@ -55,69 +52,83 @@ export const isNotAuthenticatedAdmin = async (req, res, next) => {
     // Apply cache prevention
     preventCache(req, res, () => {});
     
-    // Check if user is already authenticated as admin
-    if ((req.session.userId && req.session.user?.isAdmin) || (req.user?.isAdmin)) {
-        const userId = req.session.userId || req.user._id;
-        
+    // Check if admin is already authenticated
+    if (req.session.userId && req.session.user?.isAdmin) {
         try {
             // Validate admin status
-            const user = await User.findById(userId);
+            const user = await User.findById(req.session.userId);
             
             if (user && !user.isBlocked && user.isAdmin) {
                 return res.redirect('/admin/dashboard');
             } else {
-                // Admin is blocked or no longer admin, clear session
+                // Admin is blocked or no longer admin, clear admin session
                 req.session.destroy((err) => {
                     if (err) {
                         console.error('Session destroy error:', err);
                     }
-                    res.clearCookie('horologue.sid');
-                    res.clearCookie('connect.sid');
+                    res.clearCookie('horologue.admin.sid');
                     next();
                 });
-                return;
             }
         } catch (error) {
             console.error('Admin validation error:', error);
-            // Clear session on error
+            // Clear admin session on error
             req.session.destroy((err) => {
                 if (err) {
                     console.error('Session destroy error:', err);
                 }
-                res.clearCookie('horologue.sid');
-                res.clearCookie('connect.sid');
+                res.clearCookie('horologue.admin.sid');
                 next();
             });
-            return;
         }
+        return;
     }
     
-    // Check if user is authenticated but not admin
-    if (req.session.userId || req.user) {
-        const userId = req.session.userId || req.user._id;
-        
+    // Allow access to admin login page
+    next();
+};
+
+// Admin session check API endpoint middleware
+export const adminSessionCheck = async (req, res) => {
+    if (req.session.userId && req.session.user && req.session.user.isAdmin) {
         try {
-            const user = await User.findById(userId);
+            // Import User model
+            const { default: User } = await import('../models/User.js');
+            const user = await User.findById(req.session.userId);
             
-            if (user && !user.isBlocked && !user.isAdmin) {
-                return res.redirect('/home');
-            } else {
-                // User is blocked or doesn't exist, clear session
+            if (!user || user.isBlocked || !user.isAdmin) {
+                // Admin is blocked, no longer admin, or doesn't exist
                 req.session.destroy((err) => {
                     if (err) {
                         console.error('Session destroy error:', err);
                     }
-                    res.clearCookie('horologue.sid');
-                    res.clearCookie('connect.sid');
-                    next();
+                    res.clearCookie('horologue.admin.sid');
+                    res.status(401).json({ authenticated: false, reason: 'admin_access_revoked' });
                 });
                 return;
             }
+            
+            res.json({ authenticated: true });
         } catch (error) {
-            console.error('User validation error:', error);
-            next();
+            console.error('Admin session check error:', error);
+            res.status(401).json({ authenticated: false, reason: 'validation_error' });
         }
+    } else {
+        res.status(401).json({ authenticated: false, reason: 'no_admin_session' });
+    }
+};
+
+// Admin login error handling middleware
+export const handleAdminLoginErrors = (req, res, next) => {
+    let error = null;
+    
+    // Handle admin-specific errors
+    if (req.query.error === 'access_revoked') {
+        error = 'Your admin access has been revoked. Please contact the system administrator.';
+    } else if (req.query.error === 'validation_error') {
+        error = 'Session validation failed. Please try logging in again.';
     }
     
+    req.adminLoginError = error;
     next();
 };

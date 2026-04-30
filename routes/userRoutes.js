@@ -49,7 +49,14 @@ import {
     showChangePassword
 } from '../controllers/pageController.js';
 
-import { syncUserSession, isAuthenticated, isNotAuthenticated, preventCache, redirectAuthenticatedUsers } from '../middlewares/sessionAuth.js';
+import {
+    showProducts,
+    showProductDetail,
+    showWishlist,
+    showCart
+} from '../controllers/user/productController.js';
+
+import { syncUserSession, isAuthenticated, isNotAuthenticated, preventCache, redirectAuthenticatedUsers, userSessionCheck } from '../middlewares/sessionAuth.js';
 import upload, { handleMulterError } from '../config/multer.js';
 
 const router = express.Router();
@@ -57,42 +64,14 @@ const router = express.Router();
 // Apply session sync middleware to all routes
 router.use(syncUserSession);
 
-// Session check endpoint
-router.get('/api/session-check', async (req, res) => {
-    if (req.session.userId || req.user) {
-        const userId = req.session.userId || req.user._id;
-        
-        try {
-            // Import User model
-            const { default: User } = await import('../models/User.js');
-            const user = await User.findById(userId);
-            
-            if (!user || user.isBlocked) {
-                // User is blocked or doesn't exist
-                req.session.destroy((err) => {
-                    if (err) {
-                        console.error('Session destroy error:', err);
-                    }
-                    res.clearCookie('horologue.sid');
-                    res.clearCookie('connect.sid');
-                    res.status(401).json({ authenticated: false, reason: 'account_blocked' });
-                });
-                return;
-            }
-            
-            res.json({ authenticated: true });
-        } catch (error) {
-            console.error('Session check error:', error);
-            res.status(401).json({ authenticated: false, reason: 'validation_error' });
-        }
-    } else {
-        res.status(401).json({ authenticated: false, reason: 'no_session' });
-    }
-});
-
 // Page routes
 router.get('/', redirectAuthenticatedUsers, showLanding);
 router.get('/home', isAuthenticated, showHome);
+router.get('/products', showProducts);
+router.get('/collection', showProducts);
+router.get('/product/:id', showProductDetail);
+router.get('/wishlist', showWishlist);
+router.get('/cart', showCart);
 router.get('/profile', isAuthenticated, showProfile);
 router.get('/edit-profile', isAuthenticated, showEditProfile);
 router.get('/addresses', isAuthenticated, showAddresses);
@@ -139,5 +118,9 @@ router.patch('/api/addresses/:id/default', isAuthenticated, setDefault);
 // Google OAuth routes
 router.get('/auth/google', googleAuth);
 router.get('/auth/google/callback', googleCallback);
+
+
+router.get('/api/session-check', userSessionCheck);
+
 
 export default router;

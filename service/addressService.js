@@ -72,10 +72,8 @@ export const setDefaultAddress = async (userId, addressId) => {
             return { success: false, message: 'Address not found' };
         }
         
-        // Remove default from all other addresses
         await Address.updateMany({ userId }, { isDefault: false });
         
-        // Set this address as default
         address.isDefault = true;
         await address.save();
         

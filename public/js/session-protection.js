@@ -6,7 +6,7 @@
 
     // Configuration
     const config = {
-        sessionCheckInterval: 2 * 60 * 1000, // 2 minutes (more frequent)
+        sessionCheckInterval: 30 * 1000, // 30 seconds (more frequent for blocked user detection)
         userSessionEndpoint: '/api/session-check',
         adminSessionEndpoint: '/admin/api/session-check',
         userLoginUrl: '/login',

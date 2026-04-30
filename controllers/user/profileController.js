@@ -26,7 +26,8 @@ export const updateProfile = async (req, res) => {
                 email: updatedUser.email,
                 phone: updatedUser.phone,
                 profileImage: updatedUser.profileImage,
-                isAdmin: updatedUser.isAdmin
+                isAdmin: updatedUser.isAdmin,
+                createdAt: updatedUser.createdAt
             };
             res.json({ success: true, message: 'Profile updated successfully' });
         } else {
@@ -179,7 +180,8 @@ export const uploadAvatar = async (req, res) => {
                 email: updatedUser.email,
                 phone: updatedUser.phone,
                 profileImage: updatedUser.profileImage,
-                isAdmin: updatedUser.isAdmin
+                isAdmin: updatedUser.isAdmin,
+                createdAt: updatedUser.createdAt
             };
             
             res.json({ 

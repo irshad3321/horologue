@@ -10,53 +10,9 @@ export const showRegister = (req, res) => {
     res.render('user/register', { error: null, success: null, formData: {} });
 };
 
-export const showLogin = (req, res) => {
-    let error = null;
-    
-    // Handle various error types
-    if (req.query.error === 'google_auth_failed') {
-        error = 'Google authentication failed. Please try again.';
-    } else if (req.query.error === 'auth_error') {
-        error = 'Authentication error occurred. Please try again.';
-    } else if (req.query.error === 'google_not_configured') {
-        error = 'Google authentication is not available at the moment.';
-    } else if (req.query.error === 'account_blocked') {
-        error = 'Your account has been blocked. Please contact support.';
-    }
-    
-    res.render('user/login', { error, success: null });
-};
 
-export const showVerifyOTPRegistration = async (req, res) => {
-    const email = req.session.tempEmail || '';
-    const otpCreatedAt = email ? await getLatestOTPCreationTime(email, 'signup') : null;
-    
-    res.render('user/verify-otp-registration', {
-        error: null,
-        success: null,
-        email,
-        otpCreatedAt,
-        resendTimerStart: req.session.resendTimerStart
-    });
-};
-
-export const showVerifyOTPForgot = async (req, res) => {
-    const email = req.session.resetEmail || '';
-    const otpCreatedAt = email ? await getLatestOTPCreationTime(email, 'forgot-password') : null;
-    
-    res.render('user/verify-otp-forgot', {
-        error: null,
-        success: null,
-        email,
-        otpCreatedAt,
-        resendTimerStart: req.session.resetResendTimerStart
-    });
-};
-
-// Register user
 export const registerUser = async (req, res) => {
     try {
-        // Trim all input fields
         const trimmedData = {
             firstName: req.body.firstName?.trim(),
             lastName: req.body.lastName?.trim(),
@@ -66,7 +22,6 @@ export const registerUser = async (req, res) => {
             confirmPassword: req.body.confirmPassword?.trim()
         };
         
-        // Validate input
         const validation = validateRegistration(trimmedData);
         
         if (!validation.isValid) {
@@ -77,7 +32,6 @@ export const registerUser = async (req, res) => {
             });
         }
 
-        // Check if user exists
         const existingUser = await findUserByEmail(trimmedData.email);
         
         if (existingUser) {
@@ -89,7 +43,6 @@ export const registerUser = async (req, res) => {
             
         }
 
-        // Save temp data and generate OTP
         req.session.tempUserData = trimmedData;
         req.session.tempEmail = trimmedData.email;
         
@@ -242,6 +195,49 @@ export const verifyOTPForgotController = async (req, res) => {
         });
     }
 };
+export const showLogin = (req, res) => {
+    let error = null;
+    
+    // Handle various error types
+    if (req.query.error === 'google_auth_failed') {
+        error = 'Google authentication failed. Please try again.';
+    } else if (req.query.error === 'auth_error') {
+        error = 'Authentication error occurred. Please try again.';
+    } else if (req.query.error === 'google_not_configured') {
+        error = 'Google authentication is not available at the moment.';
+    } else if (req.query.error === 'account_blocked') {
+        error = 'Your account has been blocked. Please contact support.';
+    }
+    
+    res.render('user/login', { error, success: null });
+};
+
+export const showVerifyOTPRegistration = async (req, res) => {
+    const email = req.session.tempEmail || '';
+    const otpCreatedAt = email ? await getLatestOTPCreationTime(email, 'signup') : null;
+    
+    res.render('user/verify-otp-registration', {
+        error: null,
+        success: null,
+        email,
+        otpCreatedAt,
+        resendTimerStart: req.session.resendTimerStart
+    });
+};
+
+export const showVerifyOTPForgot = async (req, res) => {
+    const email = req.session.resetEmail || '';
+    const otpCreatedAt = email ? await getLatestOTPCreationTime(email, 'forgot-password') : null;
+    
+    res.render('user/verify-otp-forgot', {
+        error: null,
+        success: null,
+        email,
+        otpCreatedAt,
+        resendTimerStart: req.session.resetResendTimerStart
+    });
+};
+
 
 // Login user
 export const loginUser = async (req, res) => {
@@ -255,7 +251,9 @@ export const loginUser = async (req, res) => {
             });
         }
         
-        // Set session
+        // User login - sessions are completely separate now
+        
+        // Set user session
         const user = loginResult.user;
         req.session.userId = user._id;
         req.session.user = {
@@ -263,7 +261,10 @@ export const loginUser = async (req, res) => {
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
-            isAdmin: user.isAdmin
+            phone: user.phone,
+            profileImage: user.profileImage,
+            isAdmin: user.isAdmin,
+            createdAt: user.createdAt
         };
         
         // Set login success flag for toast
@@ -387,15 +388,15 @@ export const logoutUser = (req, res) => {
             if (err) {
                 console.error('Passport logout error:', err);
             }
-            // Clear session and cookies
+            
+            // Destroy the entire user session since it's separate
             req.session.destroy((err) => {
                 if (err) {
-                    console.error('Session destroy error:', err);
-                    return res.redirect('/home');
+                    console.error('User session destroy error:', err);
                 }
-                // Clear session cookie
-                res.clearCookie('horologue.sid');
-                res.clearCookie('connect.sid');
+                
+                // Clear user session cookies
+                res.clearCookie('horologue.user.sid');
                 
                 // Set cache control headers
                 res.set({
@@ -408,14 +409,14 @@ export const logoutUser = (req, res) => {
             });
         });
     } else {
+        // Destroy the entire user session since it's separate
         req.session.destroy((err) => {
             if (err) {
-                console.error('Session destroy error:', err);
-                return res.redirect('/home');
+                console.error('User session destroy error:', err);
             }
-            // Clear session cookie
-            res.clearCookie('horologue.sid');
-            res.clearCookie('connect.sid');
+            
+            // Clear user session cookies
+            res.clearCookie('horologue.user.sid');
             
             // Set cache control headers
             res.set({
@@ -555,19 +556,23 @@ export const googleCallback = (req, res, next) => {
         }
         
         try {
+            // Google OAuth - sessions are completely separate now
+            
+            // Set user session data (never set admin session from Google OAuth)
             req.session.userId = req.user._id;
             req.session.user = {
                 id: req.user._id,
                 firstName: req.user.firstName,
                 lastName: req.user.lastName,
                 email: req.user.email,
-                isAdmin: req.user.isAdmin
-            }
-            if (req.user.isAdmin) {
-                res.redirect('/admin/dashboard');
-            } else {
-                res.redirect('/home');
-            }
+                phone: req.user.phone,
+                profileImage: req.user.profileImage,
+                isAdmin: req.user.isAdmin,
+                createdAt: req.user.createdAt
+            };
+            
+            // Always redirect to user home for Google OAuth (admins should use regular login)
+            res.redirect('/home');
         } catch (error) {
             console.error('Session sync error:', error);
             res.redirect('/login?error=auth_error');

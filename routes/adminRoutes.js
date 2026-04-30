@@ -9,55 +9,14 @@ import {
     adminResendOTPForgot 
 } from '../controllers/admin/adminController.js'
 import { getLatestOTPCreationTime } from '../service/otpService.js';
-import { isAdmin, isNotAuthenticatedAdmin } from '../middlewares/adminAuth.js';
-import { preventCache } from '../middlewares/sessionAuth.js';
-import User from '../models/User.js';
-
+import { isAdmin, isNotAuthenticatedAdmin, adminSessionCheck, handleAdminLoginErrors } from '../middlewares/adminAuth.js';
+import * as categoryController from '../controllers/admin/categoryController.js';
+import * as productController from '../controllers/admin/productController.js';
+import upload from '../config/multer.js';
 const router = express.Router();
 
-// Admin session check endpoint
-router.get('/api/session-check', async (req, res) => {
-    if (req.session.userId && req.session.user && req.session.user.isAdmin) {
-        try {
-            // Import User model
-            const { default: User } = await import('../models/User.js');
-            const user = await User.findById(req.session.userId);
-            
-            if (!user || user.isBlocked || !user.isAdmin) {
-                // Admin is blocked, no longer admin, or doesn't exist
-                req.session.destroy((err) => {
-                    if (err) {
-                        console.error('Session destroy error:', err);
-                    }
-                    res.clearCookie('horologue.sid');
-                    res.clearCookie('connect.sid');
-                    res.status(401).json({ authenticated: false, reason: 'admin_access_revoked' });
-                });
-                return;
-            }
-            
-            res.json({ authenticated: true });
-        } catch (error) {
-            console.error('Admin session check error:', error);
-            res.status(401).json({ authenticated: false, reason: 'validation_error' });
-        }
-    } else {
-        res.status(401).json({ authenticated: false, reason: 'no_admin_session' });
-    }
-});
-
-// Admin login page (GET) - prevent access if already logged in
-router.get('/login', isNotAuthenticatedAdmin, (req, res) => {
-    let error = null;
-    
-    // Handle admin-specific errors
-    if (req.query.error === 'access_revoked') {
-        error = 'Your admin access has been revoked. Please contact the system administrator.';
-    } else if (req.query.error === 'validation_error') {
-        error = 'Session validation failed. Please try logging in again.';
-    }
-    
-    res.render('admin/login', { error, success: null });
+router.get('/login', isNotAuthenticatedAdmin, handleAdminLoginErrors, (req, res) => {
+    res.render('admin/login', { error: req.adminLoginError, success: null });
 });
 
 // Admin login POST route
@@ -112,10 +71,35 @@ router.get('/dashboard', isAdmin, (req, res) => {
 // Admin users page - protected route
 router.get('/users', isAdmin, getUsers);
 
+// Category Routes
+router.get('/category', isAdmin, categoryController.getCategoriesPage);
+router.post('/category', isAdmin, categoryController.createCategory);
+router.get('/category/:categoryId', isAdmin, categoryController.getCategoryById);
+router.put('/category/:categoryId', isAdmin, categoryController.updateCategory);
+router.delete('/category/:categoryId', isAdmin, categoryController.deleteCategory);
+router.patch('/category/:categoryId/toggle-status', isAdmin, categoryController.toggleCategoryStatus);
+
+// Product Routes
+router.get('/products', isAdmin, productController.getProductsPage);
+router.get('/products/:productId', isAdmin, productController.getProductById);
+router.get('/add-product', isAdmin, productController.getAddProductPage);
+router.get('/edit-product/:productId', isAdmin, productController.getEditProductPage);
+router.post('/products', isAdmin, productController.createProduct);
+router.put('/products/:productId', isAdmin, productController.updateProduct);
+router.delete('/products/:productId', isAdmin, productController.deleteProduct);
+router.patch('/products/:productId/toggle-status', isAdmin, productController.toggleProductStatus);
+
+// Image upload routes
+router.post('/products/upload-image', isAdmin, upload.single('image'), productController.uploadVariantImage);
+router.delete('/products/delete-image', isAdmin, productController.deleteVariantImage);
+
 // Admin logout
 router.get('/logout', adminLogout);
 
 // Toggle user status - protected route
 router.post('/users/toggle-status/:userId', isAdmin, toggleUserStatus);
+
+router.get('/api/session-check', adminSessionCheck);
+
 
 export default router;

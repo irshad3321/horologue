@@ -317,7 +317,7 @@
               </div>
               <div class="info-item">
                 <label>Member Since</label>
-                <span><%= user ? new Date(user.createdAt).toLocaleDateString() : 'Not provided' %></span>
+                <span><%= user && user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not available' %></span>
               </div>
             </div>
           </div>

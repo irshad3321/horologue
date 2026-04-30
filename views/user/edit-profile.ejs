@@ -1305,6 +1305,8 @@
           window.location.reload();
         } else {
           showFieldError('verificationCode', result.message || 'Invalid verification code');
+          // Preserve timer state - don't restart timer on wrong OTP
+          preserveTimerState();
         }
       } catch (error) {
         showFieldError('verificationCode', 'Error verifying code. Please try again.');
@@ -1324,14 +1326,21 @@
     // Resend timer functionality
     let resendTimer = 60;
     let resendInterval;
+    let timerStartTime = null;
 
     function startResendTimer() {
       const resendBtn = document.getElementById('resendBtn');
       const resendTimerSpan = document.getElementById('resendTimer');
       
+      // Only start timer if not already running
+      if (resendInterval) {
+        return;
+      }
+      
       resendBtn.style.display = 'none';
       resendTimerSpan.style.display = 'inline';
       resendTimer = 60;
+      timerStartTime = Date.now();
       
       resendInterval = setInterval(() => {
         resendTimerSpan.textContent = `Resend in ${resendTimer}s`;
@@ -1339,12 +1348,38 @@
         
         if (resendTimer < 0) {
           clearInterval(resendInterval);
+          resendInterval = null;
+          timerStartTime = null;
           resendBtn.style.display = 'inline';
           resendBtn.disabled = false;
           resendBtn.innerHTML = 'Resend OTP';
           resendTimerSpan.style.display = 'none';
         }
       }, 1000);
+    }
+
+    function preserveTimerState() {
+      // If timer was running, continue from where it left off
+      if (timerStartTime) {
+        const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+        const remaining = 60 - elapsed;
+        
+        if (remaining > 0) {
+          resendTimer = remaining;
+          // Timer will continue from current state
+        } else {
+          // Timer should have expired, reset
+          clearInterval(resendInterval);
+          resendInterval = null;
+          timerStartTime = null;
+          const resendBtn = document.getElementById('resendBtn');
+          const resendTimerSpan = document.getElementById('resendTimer');
+          resendBtn.style.display = 'inline';
+          resendBtn.disabled = false;
+          resendBtn.innerHTML = 'Resend OTP';
+          resendTimerSpan.style.display = 'none';
+        }
+      }
     }
 
     // Field error handling functions

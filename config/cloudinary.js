@@ -10,15 +10,26 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// Function to upload image to Cloudinary
+export async function uploadToCloudinary(file, folder, options = {}) {
+    try {
+        const result = await cloudinary.uploader.upload(file, {
+            folder: `horologue/${folder}`,
+            ...options
+        });
+        return result;
+    } catch (error) {
+        throw new Error('Failed to upload to Cloudinary');
+    }
+}
+
 // Function to delete image from Cloudinary
-export const deleteFromCloudinary = async (publicId) => {
-  try {
-    const result = await cloudinary.uploader.destroy(publicId);
-    return result;
-  } catch (error) {
-    console.error('Error deleting from Cloudinary:', error);
-    throw error;
-  }
-};
+export async function deleteFromCloudinary(publicId) {
+    try {
+        await cloudinary.uploader.destroy(publicId);
+    } catch (error) {
+        throw new Error('Failed to delete from Cloudinary');
+    }
+}
 
 export default cloudinary;

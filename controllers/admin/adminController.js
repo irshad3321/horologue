@@ -50,7 +50,7 @@ export const adminLogin = async (req, res) => {
             });
         }
         
-        // Creating admin session
+        // Admin login - use simple session keys since we have separate session stores
         req.session.userId = user._id;
         req.session.user = {
             id: user._id,
@@ -267,13 +267,14 @@ export const adminResendOTPForgot = async (req, res) => {
 
 // Admin logout
 export const adminLogout = (req, res) => {
+    // Destroy the entire admin session since it's separate
     req.session.destroy((err) => {
         if (err) {
-            console.log('Session destroy error:', err);
+            console.log('Admin session destroy error:', err);
         }
-        // Clear session cookies
-        res.clearCookie('horologue.sid');
-        res.clearCookie('connect.sid');
+        
+        // Clear admin session cookies
+        res.clearCookie('horologue.admin.sid');
         
         // Set cache control headers
         res.set({
@@ -300,6 +301,7 @@ export const getUsers = async (req, res) => {
                 { firstName: { $regex: search, $options: 'i' } },
                 { lastName: { $regex: search, $options: 'i' } },
                 { email: { $regex: search, $options: 'i' } },
+                
             ];
         }
         
@@ -376,12 +378,20 @@ export const toggleUserStatus = async (req, res) => {
             });
         }
         
+        const wasBlocked = user.isBlocked;
         user.isBlocked = !user.isBlocked;
         await user.save();
         
+        // If user is being blocked, force logout by clearing their sessions
+        if (!wasBlocked && user.isBlocked) {
+            // Note: In a production environment with multiple servers, 
+            // you'd want to use Redis or a session store to invalidate sessions
+            // For now, the session-check endpoint will handle this on next request
+        }
+        
         res.json({
             success: true,
-            message: user.isBlocked ? 'User blocked successfully' : 'User unblocked successfully',
+            message: user.isBlocked ? 'User blocked successfully. They will be logged out on next activity.' : 'User unblocked successfully',
             isBlocked: user.isBlocked
         });
 

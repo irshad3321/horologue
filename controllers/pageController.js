@@ -1,10 +1,9 @@
-// Add import at the top
 import { getUserById } from '../service/userService.js';
 import { getUserAddresses } from '../service/addressService.js';
 
 // Show home page
-export const showHome = (req, res) => {
-    // Check if user is logged in
+export const showHome = async (req, res) => {
+    // Check if user is logged in (prioritize USER session for user pages)
     if (!req.session.userId) {
         return res.redirect('/login');
     }
@@ -33,7 +32,16 @@ export const showProfile = async (req, res) => {
     // Get fresh user data
     const user = await getUserById(req.session.userId);
     if (user) {
-        req.session.user = user;
+        req.session.user = {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phone: user.phone,
+            profileImage: user.profileImage,
+            isAdmin: user.isAdmin,
+            createdAt: user.createdAt
+        };
     }
     
     res.render('user/profile', {
@@ -51,7 +59,16 @@ export const showEditProfile = async (req, res) => {
     // Get fresh user data
     const user = await getUserById(req.session.userId);
     if (user) {
-        req.session.user = user;
+        req.session.user = {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phone: user.phone,
+            profileImage: user.profileImage,
+            isAdmin: user.isAdmin,
+            createdAt: user.createdAt
+        };
     }
     
     res.render('user/edit-profile', {
@@ -69,7 +86,16 @@ export const showAddresses = async (req, res) => {
     // Get fresh user data
     const user = await getUserById(req.session.userId);
     if (user) {
-        req.session.user = user;
+        req.session.user = {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phone: user.phone,
+            profileImage: user.profileImage,
+            isAdmin: user.isAdmin,
+            createdAt: user.createdAt
+        };
     }
     
     // Get user addresses
@@ -91,7 +117,16 @@ export const showChangePassword = async (req, res) => {
     // Get fresh user data
     const user = await getUserById(req.session.userId);
     if (user) {
-        req.session.user = user;
+        req.session.user = {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phone: user.phone,
+            profileImage: user.profileImage,
+            isAdmin: user.isAdmin,
+            createdAt: user.createdAt
+        };
     }
     
     res.render('user/change-password', {

@@ -2,15 +2,29 @@ import User from '../models/User.js';
 
 // Middleware to sync passport user with session
 export const syncUserSession = (req, res, next) => {
+    // Only sync if there's a passport user but no session, and ensure we don't override existing valid sessions
     if (req.user && !req.session.userId) {
-        // User authenticated via passport but no session data
+        // Google OAuth - DO NOT clear admin session data
+        // Keep sessions completely separate
+        
+        // Double-check that there's no conflicting session data
+        if (req.session.user && req.session.user.id !== req.user._id.toString()) {
+            // Clear conflicting session data
+            delete req.session.userId;
+            delete req.session.user;
+        }
+        
+        // Set fresh session data from passport user
         req.session.userId = req.user._id;
         req.session.user = {
             id: req.user._id,
             firstName: req.user.firstName,
             lastName: req.user.lastName,
             email: req.user.email,
-            isAdmin: req.user.isAdmin
+            phone: req.user.phone,
+            profileImage: req.user.profileImage,
+            isAdmin: req.user.isAdmin,
+            createdAt: req.user.createdAt
         };
     }
     next();
@@ -54,13 +68,12 @@ export const isAuthenticated = async (req, res, next) => {
         const isValidUser = await validateUserStatus(userId);
         
         if (!isValidUser) {
-            // User is blocked or doesn't exist, destroy session and redirect
+            // User is blocked or doesn't exist, clear user session
             req.session.destroy((err) => {
                 if (err) {
                     console.error('Session destroy error:', err);
                 }
-                res.clearCookie('horologue.sid');
-                res.clearCookie('connect.sid');
+                res.clearCookie('horologue.user.sid');
                 res.redirect('/login?error=account_blocked');
             });
             return;
@@ -69,15 +82,8 @@ export const isAuthenticated = async (req, res, next) => {
         return next();
     }
     
-    // Clear any existing session data
-    req.session.destroy((err) => {
-        if (err) {
-            console.error('Session destroy error:', err);
-        }
-        res.clearCookie('horologue.sid');
-        res.clearCookie('connect.sid');
-        res.redirect('/login');
-    });
+    // No user session, redirect to login
+    res.redirect('/login');
 };
 
 // Check if user is not authenticated - with strict session validation
@@ -85,7 +91,7 @@ export const isNotAuthenticated = async (req, res, next) => {
     // Apply cache prevention for login pages
     preventCache(req, res, () => {});
     
-    // Check for any existing valid session
+    // Check for any existing valid user session
     if (req.session.userId || req.user) {
         const userId = req.session.userId || req.user._id;
         
@@ -93,30 +99,19 @@ export const isNotAuthenticated = async (req, res, next) => {
         const isValidUser = await validateUserStatus(userId);
         
         if (!isValidUser) {
-            // User is blocked, clear session and allow access to login page
+            // User is blocked, clear user session and allow access to login page
             req.session.destroy((err) => {
                 if (err) {
                     console.error('Session destroy error:', err);
                 }
-                res.clearCookie('horologue.sid');
-                res.clearCookie('connect.sid');
+                res.clearCookie('horologue.user.sid');
                 next();
             });
             return;
         }
         
-        // Valid session exists, redirect based on user type
-        if (req.session.user) {
-            if (req.session.user.isAdmin || req.user?.isAdmin) {
-                return res.redirect('/admin/dashboard');
-            }
-            return res.redirect('/home');
-        } else if (req.user) {
-            if (req.user.isAdmin) {
-                return res.redirect('/admin/dashboard');
-            }
-            return res.redirect('/home');
-        }
+        // Valid user session exists, redirect to user home
+        return res.redirect('/home');
     }
     
     // No valid session, allow access to login page
@@ -136,25 +131,51 @@ export const redirectAuthenticatedUsers = async (req, res, next) => {
         const isValidUser = await validateUserStatus(userId);
         
         if (!isValidUser) {
-            // User is blocked, clear session and allow access to public page
+            // User is blocked, clear user session and allow access to public page
             req.session.destroy((err) => {
                 if (err) {
                     console.error('Session destroy error:', err);
                 }
-                res.clearCookie('horologue.sid');
-                res.clearCookie('connect.sid');
+                res.clearCookie('horologue.user.sid');
                 next();
             });
             return;
         }
         
-        // Valid authenticated user, redirect to appropriate dashboard
-        if (req.session.user?.isAdmin || req.user?.isAdmin) {
-            return res.redirect('/admin/dashboard');
-        }
+        // Valid authenticated user, redirect to user home
         return res.redirect('/home');
     }
     
     // No authentication, allow access to public page
     next();
+};
+
+// User session check API endpoint middleware
+export const userSessionCheck = async (req, res) => {
+    if (req.session.userId || req.user) {
+        const userId = req.session.userId || req.user._id;
+        
+        try {
+            const user = await User.findById(userId);
+            
+            if (!user || user.isBlocked) {
+                // Clear user session
+                req.session.destroy((err) => {
+                    if (err) {
+                        console.error('Session destroy error:', err);
+                    }
+                    res.clearCookie('horologue.user.sid');
+                    res.status(401).json({ authenticated: false, reason: 'account_blocked' });
+                });
+                return;
+            }
+            
+            res.json({ authenticated: true });
+        } catch (error) {
+            console.error('Session check error:', error);
+            res.status(401).json({ authenticated: false, reason: 'validation_error' });
+        }
+    } else {
+        res.status(401).json({ authenticated: false, reason: 'no_session' });
+    }
 };

@@ -7,7 +7,6 @@ import {
     validateAddressData 
 } from '../../service/addressService.js';
 
-// Get all addresses for user
 export const getAddresses = async (req, res) => {
     try {
         const userId = req.session.userId;
@@ -34,9 +33,7 @@ export const addAddress = async (req, res) => {
             return res.json({ success: false, message: 'Not authenticated' });
         }
         
-        const addressData = req.body;
-        
-        // Validate address data
+        const addressData = req.body   
         const validation = validateAddressData(addressData);
         if (!validation.isValid) {
             return res.json({ 

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Watches - Horologue</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #fff;
+            color: #333;
+            padding-top: 80px;
+            line-height: 1.6;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: #fff;
+            padding: 100px 0 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(118, 75, 162, 0.05) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .page-header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 56px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            color: #111;
+            letter-spacing: -2px;
+            line-height: 1.1;
+        }
+
+        .page-title .highlight {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            font-size: 20px;
+            color: #666;
+            font-weight: 300;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 48px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .filter-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .filter-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-select,
+        .filter-input {
+            padding: 14px 18px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 15px;
+            color: #111;
+            background: white;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .filter-select:focus,
+        .filter-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-input {
+            padding-left: 45px;
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            font-size: 16px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        .btn-filter {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        /* Products Grid */
+        .products-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .products-count {
+            font-size: 18px;
+            color: #666;
+            font-weight: 300;
+        }
+
+        .products-count strong {
+            font-weight: 700;
+            color: #111;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .view-btn {
+            padding: 10px 14px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #6c757d;
+        }
+
+        .view-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 32px;
+            margin-bottom: 60px;
+        }
+
+        /* Product Card */
+        .product-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .product-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .product-badge.premium {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .product-image-container {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.15);
+        }
+
+        .product-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 24px;
+            transform: translateY(100%);
+            transition: transform 0.4s ease;
+        }
+
+        .product-card:hover .product-overlay {
+            transform: translateY(0);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .quick-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: white;
+            color: #333;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .quick-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .product-info {
+            padding: 24px;
+        }
+
+        .product-category {
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .product-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .product-brand {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            font-weight: 300;
+        }
+
+        .product-variants {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .variant-badge {
+            padding: 6px 12px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid #f1f3f4;
+        }
+
+        .product-price {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .price-current {
+            font-size: 28px;
+            font-weight: 900;
+            color: #28a745;
+            line-height: 1;
+        }
+
+        .price-original {
+            font-size: 15px;
+            color: #999;
+            text-decoration: line-through;
+            font-weight: 300;
+        }
+
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #ffc107;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        .empty-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 32px;
+            background: #f8f9fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            color: #adb5bd;
+        }
+
+        .empty-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 16px;
+        }
+
+        .empty-description {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 32px;
+            font-weight: 300;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 60px;
+        }
+
+        .pagination-btn {
+            padding: 12px 20px;
+            border: 2px solid #e9ecef;
+            background: white;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pagination-btn:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .pagination-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn:disabled:hover {
+            background: white;
+            border-color: #e9ecef;
+            color: #495057;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px;
+            }
+
+            .page-title {
+                font-size: 36px;
+            }
+
+            .page-subtitle {
+                font-size: 16px;
+            }
+
+            .container {
+                padding: 40px 20px;
+            }
+
+            .page-header-content {
+                padding: 0 20px;
+            }
+
+            .filter-section {
+                padding: 24px;
+            }
+
+            .filter-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-filter {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 24px;
+            }
+
+            .products-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-content">
+            <h1 class="page-title">Discover <span class="highlight">Timeless Elegance</span></h1>
+            <p class="page-subtitle">Explore our curated collection of premium watches</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-header">
+                <h2 class="filter-title">
+                    <i class="fas fa-filter"></i>
+                    Filter Products
+                </h2>
+            </div>
+            
+            <form method="GET" action="/products">
+                <div class="filter-controls">
+                    <!-- Search -->
+                    <div class="filter-group">
+                        <label class="filter-label">Search</label>
+                        <div class="search-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" 
+                                   name="search" 
+                                   class="filter-input" 
+                                   placeholder="Search watches..."
+                                   value="<%= search || '' %>">
+                        </div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="filter-group">
+                        <label class="filter-label">Category</label>
+                        <select name="category" class="filter-select">
+                            <option value="">All Categories</option>
+                            <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+                                <% categories.forEach(cat => { %>
+                                    <option value="<%= cat.name %>" <%= category === cat.name ? 'selected' : '' %>><%= cat.name %></option>
+                                <% }); %>
+                            <% } %>
+                        </select>
+                    </div>
+
+                    <!-- Price Range -->
+                    <div class="filter-group">
+                        <label class="filter-label">Price Range</label>
+                        <select name="priceRange" class="filter-select">
+                            <option value="">All Prices</option>
+                            <option value="0-5000" <%= priceRange === '0-5000' ? 'selected' : '' %>>Under ₹5,000</option>
+                            <option value="5000-10000" <%= priceRange === '5000-10000' ? 'selected' : '' %>>₹5,000 - ₹10,000</option>
+                            <option value="10000-20000" <%= priceRange === '10000-20000' ? 'selected' : '' %>>₹10,000 - ₹20,000</option>
+                            <option value="20000-50000" <%= priceRange === '20000-50000' ? 'selected' : '' %>>₹20,000 - ₹50,000</option>
+                            <option value="50000+" <%= priceRange === '50000+' ? 'selected' : '' %>>Above ₹50,000</option>
+                        </select>
+                    </div>
+
+                    <!-- Sort By -->
+                    <div class="filter-group">
+                        <label class="filter-label">Sort By</label>
+                        <select name="sort" class="filter-select">
+                            <option value="newest" <%= sort === 'newest' ? 'selected' : '' %>>Newest First</option>
+                            <option value="price-asc" <%= sort === 'price-asc' ? 'selected' : '' %>>Price: Low to High</option>
+                            <option value="price-desc" <%= sort === 'price-desc' ? 'selected' : '' %>>Price: High to Low</option>
+                            <option value="name-asc" <%= sort === 'name-asc' ? 'selected' : '' %>>Name: A to Z</option>
+                            <option value="name-desc" <%= sort === 'name-desc' ? 'selected' : '' %>>Name: Z to A</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-buttons" style="margin-top: 24px;">
+                    <button type="submit" class="btn-filter btn-primary">
+                        <i class="fas fa-search"></i>
+                        Apply Filters
+                    </button>
+                    <a href="/products" class="btn-filter btn-secondary" style="text-decoration: none;">
+                        <i class="fas fa-redo"></i>
+                        Clear Filters
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Products Header -->
+        <div class="products-header">
+            <div class="products-count">
+                Showing <strong><%= typeof total !== 'undefined' ? total : 0 %></strong> products
+            </div>
+            <div class="view-toggle">
+                <button class="view-btn active" title="Grid View">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button class="view-btn" title="List View">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid">
+            <% if (typeof products !== 'undefined' && products.length > 0) { %>
+                <% products.forEach(product => { %>
+                    <% 
+                    // Get first variant's first image or placeholder
+                    let productImage = 'https://via.placeholder.com/400?text=No+Image';
+                    if (product.variants && product.variants.length > 0 && product.variants[0].images && product.variants[0].images.length > 0) {
+                        productImage = product.variants[0].images[0].url;
+                    }
+                    
+                    // Calculate min price from variants
+                    let minPrice = 0;
+                    if (product.variants && product.variants.length > 0) {
+                        minPrice = Math.min(...product.variants.map(v => v.price));
+                    }
+                    
+                    // Calculate discounted price if offer exists
+                    let finalPrice = minPrice;
+                    let hasDiscount = product.offer > 0;
+                    if (hasDiscount) {
+                        finalPrice = minPrice - (minPrice * product.offer / 100);
+                    }
+                    %>
+                    
+                    <div class="product-card" onclick="window.location.href='/product/<%= product._id %>'">
+                        <% if (product.offer > 0) { %>
+                            <div class="product-badge">-<%= product.offer %>%</div>
+                        <% } else if (product.premium === 'Yes') { %>
+                            <div class="product-badge premium">Premium</div>
+                        <% } %>
+                        
+                        <div class="product-image-container">
+                            <img src="<%= productImage %>" alt="<%= product.name %>" class="product-image">
+                            <div class="product-overlay">
+                                <div class="quick-actions">
+                                    <button class="quick-btn" onclick="event.stopPropagation(); window.location.href='/product/<%= product._id %>'">
+                                        <i class="fas fa-eye"></i>
+                                        View
+                                    </button>
+                                    <button class="quick-btn" onclick="event.stopPropagation();">
+                                        <i class="fas fa-heart"></i>
+                                        Save
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="product-info">
+                            <div class="product-category"><%= product.category %></div>
+                            <h3 class="product-name"><%= product.name %></h3>
+                            <div class="product-brand">Brand: <%= product.brand %></div>
+                            
+                            <% if (product.variants && product.variants.length > 0) { %>
+                                <div class="product-variants">
+                                    <% product.variants.slice(0, 3).forEach(variant => { %>
+                                        <span class="variant-badge"><%= variant.color %></span>
+                                    <% }); %>
+                                    <% if (product.variants.length > 3) { %>
+                                        <span class="variant-badge">+<%= product.variants.length - 3 %></span>
+                                    <% } %>
+                                </div>
+                            <% } %>
+                            
+                            <div class="product-footer">
+                                <div class="product-price">
+                                    <span class="price-current">₹<%= finalPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
+                                    <% if (hasDiscount) { %>
+                                        <span class="price-original">₹<%= minPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
+                                    <% } %>
+                                </div>
+                                <div class="product-rating">
+                                    <i class="fas fa-star"></i>
+                                    <span>4.5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <!-- Empty State -->
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <div class="empty-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h2 class="empty-title">No Products Found</h2>
+                    <p class="empty-description">
+                        We couldn't find any products matching your criteria.<br>
+                        Try adjusting your filters or search terms.
+                    </p>
+                    <a href="/products" class="btn-shop" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);">
+                        <i class="fas fa-redo"></i>
+                        Clear All Filters
+                    </a>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Pagination -->
+        <% if (typeof totalPages !== 'undefined' && totalPages > 1) { %>
+            <div class="pagination">
+                <% if (currentPage > 1) { %>
+                    <a href="?page=<%= currentPage - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= category ? '&category=' + encodeURIComponent(category) : '' %><%= priceRange ? '&priceRange=' + encodeURIComponent(priceRange) : '' %><%= sort ? '&sort=' + sort : '' %>" class="pagination-btn">
+                        <i class="fas fa-chevron-left"></i>
+                        Previous
+                    </a>
+                <% } else { %>
+                    <span class="pagination-btn" style="opacity: 0.5; cursor: not-allowed;">
+                        <i class="fas fa-chevron-left"></i>
+                        Previous
+                    </span>
+                <% } %>
+                
+                <% for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
+                    <a href="?page=<%= i %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= category ? '&category=' + encodeURIComponent(category) : '' %><%= priceRange ? '&priceRange=' + encodeURIComponent(priceRange) : '' %><%= sort ? '&sort=' + sort : '' %>" 
+                       class="pagination-btn <%= i === currentPage ? 'active' : '' %>">
+                        <%= i %>
+                    </a>
+                <% } %>
+                
+                <% if (currentPage < totalPages) { %>
+                    <a href="?page=<%= currentPage + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= category ? '&category=' + encodeURIComponent(category) : '' %><%= priceRange ? '&priceRange=' + encodeURIComponent(priceRange) : '' %><%= sort ? '&sort=' + sort : '' %>" class="pagination-btn">
+                        Next
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                <% } else { %>
+                    <span class="pagination-btn" style="opacity: 0.5; cursor: not-allowed;">
+                        Next
+                        <i class="fas fa-chevron-right"></i>
+                    </span>
+                <% } %>
+            </div>
+        <% } %>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <!-- Session Protection Script -->
+    <script src="/js/session-protection.js"></script>
+</body>
+</html>
