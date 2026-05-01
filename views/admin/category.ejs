@@ -720,6 +720,7 @@
                                         <%= category.offer || 0 %>%
                                     </td>
                                     <td>
+        
                                         <span class="status-badge status-<%= category.status === 'active' ? 'active' : 'inactive' %>">
                                             <%= category.status === 'active' ? 'ACTIVE' : 'INACTIVE' %>
                                         </span>
@@ -748,6 +749,8 @@
                                     <div style="font-size: 18px; font-weight: 600; margin-bottom: 0.5rem;">No Categories Found</div>
                                     <div>Try adjusting your search criteria or add a new category.</div>
                                 </td>
+
+
                             </tr>
                         <% } %>
                     </tbody>

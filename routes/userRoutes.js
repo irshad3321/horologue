@@ -53,7 +53,12 @@ import {
     showProducts,
     showProductDetail,
     showWishlist,
-    showCart
+    showCart,
+    addToCart,
+    updateCartQuantity,
+    removeFromCart,
+    addToWishlist,
+    removeFromWishlist
 } from '../controllers/user/productController.js';
 
 import { syncUserSession, isAuthenticated, isNotAuthenticated, preventCache, redirectAuthenticatedUsers, userSessionCheck } from '../middlewares/sessionAuth.js';
@@ -76,6 +81,15 @@ router.get('/profile', isAuthenticated, showProfile);
 router.get('/edit-profile', isAuthenticated, showEditProfile);
 router.get('/addresses', isAuthenticated, showAddresses);
 router.get('/password', isAuthenticated, showChangePassword);
+
+// Cart API routes
+router.post('/api/cart/add', isAuthenticated, addToCart);
+router.put('/api/cart/update', isAuthenticated, updateCartQuantity);
+router.delete('/api/cart/remove', isAuthenticated, removeFromCart);
+
+// Wishlist API routes
+router.post('/api/wishlist/add', isAuthenticated, addToWishlist);
+router.delete('/api/wishlist/remove', isAuthenticated, removeFromWishlist);
 
 // Authentication routes
 router.get('/register', isNotAuthenticated,showRegister);

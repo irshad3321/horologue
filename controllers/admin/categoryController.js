@@ -1,3 +1,4 @@
+import Product from '../../models/Product.js';
 import * as categoryService from '../../service/categoryService.js';
 export async function getCategoriesPage(req, res) {
     try {
@@ -12,7 +13,8 @@ export async function getCategoriesPage(req, res) {
         };
         
         const result = await categoryService.getCategories(filters);
-        
+
+
         res.render('admin/category', {
             admin: req.session.user,
             currentPage: 'category',
@@ -115,7 +117,7 @@ export async function updateCategory(req, res) {
     }
 }
 
-// Delete catego
+// Delete category
 export async function deleteCategory(req, res) {
     try {
         const { categoryId } = req.params

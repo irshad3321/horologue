@@ -218,15 +218,21 @@
             color: white;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .btn-secondary {
             background: white;
             color: #111;
             border: 2px solid #e9ecef;
+            text-decoration: none;
         }
 
         .btn-secondary:hover {
@@ -234,7 +240,6 @@
             color: #667eea;
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 80px 40px;
@@ -289,7 +294,6 @@
             box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 padding: 40px 20px;
@@ -316,126 +320,199 @@
     <div class="page-header">
         <div class="page-header-content">
             <h1 class="page-title">My Wishlist</h1>
-            <p class="page-subtitle">3 items saved for later</p>
+            <p class="page-subtitle"><%= wishlist.items.length %> item<%= wishlist.items.length !== 1 ? 's' : '' %> saved for later</p>
         </div>
     </div>
 
     <div class="container">
-        <!-- Wishlist Grid -->
-        <div class="wishlist-grid">
-            <!-- Wishlist Item 1 -->
-            <div class="wishlist-card">
-                <button class="remove-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div class="product-image-container">
-                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400" alt="Watch" class="product-image">
-                    <div class="stock-badge">In Stock</div>
-                </div>
-                <div class="product-info">
-                    <div class="product-category">Analogue Watch</div>
-                    <h3 class="product-name">Classic Leather Strap Watch</h3>
-                    <div class="product-price">
-                        <span class="current-price">₹4,999</span>
-                        <span class="original-price">₹6,249</span>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-primary">
-                            <i class="fas fa-shopping-cart"></i>
-                            Add to Cart
+        <% if (wishlist.items && wishlist.items.length > 0) { %>
+            <!-- Wishlist Grid -->
+            <div class="wishlist-grid">
+                <% wishlist.items.forEach(item => { %>
+                    <% 
+                    const product = item.product;
+                    
+                    // Get first variant for display
+                    const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+                    
+                    // Handle missing variant
+                    if (!firstVariant) { %>
+                    <div class="wishlist-card" data-product-id="<%= product._id %>">
+                        <button class="remove-btn" onclick="removeFromWishlist('<%= product._id %>')">
+                            <i class="fas fa-times"></i>
                         </button>
-                        <button class="btn btn-secondary">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                        <div class="product-image-container">
+                            <img src="https://via.placeholder.com/400?text=No+Image" alt="<%= product.name %>" class="product-image">
+                            <div class="stock-badge out-of-stock">Not Available</div>
+                        </div>
+                        <div class="product-info">
+                            <div class="product-category"><%= product.category %></div>
+                            <h3 class="product-name"><%= product.name %></h3>
+                            <div class="product-price">
+                                <span class="current-price">₹0</span>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn btn-primary" disabled>
+                                    <i class="fas fa-shopping-cart"></i>
+                                    Not Available
+                                </button>
+                                <a href="/product/<%= product._id %>" class="btn btn-secondary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                    <% return; } %>
+                    
+                    <% 
+                    // Get product image
+                    let productImage = 'https://via.placeholder.com/400?text=No+Image';
+                    if (firstVariant.images && firstVariant.images.length > 0) {
+                        productImage = firstVariant.images[0].url;
+                    }
+                    
+                    // Calculate min price
+                    let minPrice = Math.min(...product.variants.map(v => v.price));
+                    
+                    // Calculate price with offer
+                    let finalPrice = minPrice;
+                    let hasDiscount = product.offer > 0;
+                    if (hasDiscount) {
+                        finalPrice = minPrice - (minPrice * product.offer / 100);
+                    }
+                    
+                    // Check if any variant is in stock
+                    const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
+                    const isOutOfStock = totalStock === 0;
+                    %>
+                    
+                    <div class="wishlist-card" data-product-id="<%= product._id %>">
+                        <button class="remove-btn" onclick="removeFromWishlist('<%= product._id %>')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="product-image-container">
+                            <img src="<%= productImage %>" alt="<%= product.name %>" class="product-image">
+                            <% if (isOutOfStock) { %>
+                                <div class="stock-badge out-of-stock">Out of Stock</div>
+                            <% } else { %>
+                                <div class="stock-badge">In Stock</div>
+                            <% } %>
+                        </div>
+                        <div class="product-info">
+                            <div class="product-category"><%= product.category %></div>
+                            <h3 class="product-name"><%= product.name %></h3>
+                            <div class="product-price">
+                                <span class="current-price">₹<%= finalPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
+                                <% if (hasDiscount) { %>
+                                    <span class="original-price">₹<%= minPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
+                                <% } %>
+                            </div>
+                            <div class="action-buttons">
+                                <% if (isOutOfStock) { %>
+                                    <button class="btn btn-primary" disabled>
+                                        <i class="fas fa-shopping-cart"></i>
+                                        Out of Stock
+                                    </button>
+                                <% } else { %>
+                                    <button class="btn btn-primary" onclick="addToCartFromWishlist('<%= product._id %>', '<%= firstVariant._id %>')">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        Add to Cart
+                                    </button>
+                                <% } %>
+                                <a href="/product/<%= product._id %>" class="btn btn-secondary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
             </div>
-
-            <!-- Wishlist Item 2 -->
-            <div class="wishlist-card">
-                <button class="remove-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div class="product-image-container">
-                    <img src="https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=400" alt="Watch" class="product-image">
-                    <div class="stock-badge">In Stock</div>
+        <% } else { %>
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="far fa-heart"></i>
                 </div>
-                <div class="product-info">
-                    <div class="product-category">Digital Watch</div>
-                    <h3 class="product-name">Smart Digital Sports Watch</h3>
-                    <div class="product-price">
-                        <span class="current-price">₹8,999</span>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-primary">
-                            <i class="fas fa-shopping-cart"></i>
-                            Add to Cart
-                        </button>
-                        <button class="btn btn-secondary">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
+                <h2 class="empty-title">Your Wishlist is Empty</h2>
+                <p class="empty-description">
+                    Start adding products you love to your wishlist.<br>
+                    They'll be saved here for easy access later.
+                </p>
+                <a href="/products" class="btn-shop">
+                    <i class="fas fa-shopping-bag"></i>
+                    Start Shopping
+                </a>
             </div>
-
-            <!-- Wishlist Item 3 -->
-            <div class="wishlist-card">
-                <button class="remove-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div class="product-image-container">
-                    <img src="https://images.unsplash.com/photo-1533139502658-0198f920d8e8?w=400" alt="Watch" class="product-image">
-                    <div class="stock-badge out-of-stock">Out of Stock</div>
-                </div>
-                <div class="product-info">
-                    <div class="product-category">Analogue Watch</div>
-                    <h3 class="product-name">Elegant Minimalist Watch</h3>
-                    <div class="product-price">
-                        <span class="current-price">₹12,499</span>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;">
-                            <i class="fas fa-shopping-cart"></i>
-                            Out of Stock
-                        </button>
-                        <button class="btn btn-secondary">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Empty State (hidden by default) -->
-        <!-- <div class="empty-state">
-            <div class="empty-icon">
-                <i class="far fa-heart"></i>
-            </div>
-            <h2 class="empty-title">Your Wishlist is Empty</h2>
-            <p class="empty-description">
-                Start adding products you love to your wishlist.<br>
-                They'll be saved here for easy access later.
-            </p>
-            <a href="/products" class="btn-shop">
-                <i class="fas fa-shopping-bag"></i>
-                Start Shopping
-            </a>
-        </div> -->
+        <% } %>
     </div>
 
     <%- include('../partials/footer') %>
+    <%- include('../partials/toast') %>
 
     <script src="/js/session-protection.js"></script>
     <script>
         // Remove from wishlist
-        document.querySelectorAll('.remove-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const card = this.closest('.wishlist-card');
-                card.style.opacity = '0';
-                card.style.transform = 'scale(0.8)';
-                setTimeout(() => card.remove(), 300);
+        async function removeFromWishlist(productId) {
+            const result = await Swal.fire({
+                title: 'Remove from Wishlist?',
+                text: 'Are you sure you want to remove this item from your wishlist?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, remove it',
+                cancelButtonText: 'Cancel'
             });
-        });
+            
+            if (!result.isConfirmed) return;
+            
+            try {
+                const response = await fetch('/api/wishlist/remove', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    toastManager.success('Item removed from wishlist');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    toastManager.error(data.message);
+                }
+            } catch (error) {
+                toastManager.error('Error removing item from wishlist');
+            }
+        }
+
+        // Add to cart from wishlist
+        async function addToCartFromWishlist(productId, variantId) {
+            // Get product name from the card
+            const card = document.querySelector(`[data-product-id="${productId}"]`);
+            const productName = card.querySelector('.product-name').textContent;
+            
+            try {
+                const response = await fetch('/api/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId, variantId, quantity: 1 })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Remove the card from view immediately
+                    card.remove();
+                    toastManager.success(`"${productName}" added to cart!`);
+                    
+                    // Reload after a delay to update counts
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    toastManager.error(data.message);
+                }
+            } catch (error) {
+                toastManager.error('Error adding to cart');
+            }
+        }
     </script>
 </body>
 </html>

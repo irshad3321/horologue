@@ -469,7 +469,7 @@
 
             <!-- Form Container -->
             <div class="form-container">
-                <form id="editProductForm">
+                <form id="editProductForm" novalidate>
                     <!-- Basic Information -->
                     <div class="form-section">
                         <h2 class="section-title">Basic Information</h2>
@@ -571,12 +571,17 @@
         let variantCount = 0;
 
         // Add Variant
-        function addVariant(color = '', price = '', stock = '', images = []) {
+        function addVariant(color = '', price = '', stock = '', images = [], variantId = null) {
             variantCount++;
             const container = document.getElementById('variantsContainer');
             const variantCard = document.createElement('div');
             variantCard.className = 'variant-card';
             variantCard.id = `variant-${variantCount}`;
+            
+            // Store variant ID if it exists (for existing variants)
+            if (variantId) {
+                variantCard.dataset.variantId = variantId;
+            }
             
             const imagesHtml = images.map((img, idx) => `
                 <div class="variant-image-item">
@@ -760,12 +765,19 @@
                     publicId: ''
                 }));
                 
-                variants.push({
+                const variantData = {
                     color,
                     price: parseFloat(price),
                     stock: parseInt(stock),
                     images
-                });
+                };
+                
+                // Include _id if this is an existing variant
+                if (card.dataset.variantId) {
+                    variantData._id = card.dataset.variantId;
+                }
+                
+                variants.push(variantData);
             });
             
             if (hasError) {
@@ -875,7 +887,7 @@
                     if (product.variants && product.variants.length > 0) {
                         product.variants.forEach(variant => {
                             const images = variant.images ? variant.images.map(img => img.url) : [];
-                            addVariant(variant.color, variant.price, variant.stock, images);
+                            addVariant(variant.color, variant.price, variant.stock, images, variant._id);
                         });
                     }
                 } else {

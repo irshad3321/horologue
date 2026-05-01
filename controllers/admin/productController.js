@@ -11,7 +11,7 @@ export async function getProductsPage(req, res) {
             category,
             page,
             sort,
-            limit: 10
+            limit: 5
         }
         const result = await productService.getProducts(filters)
         const categories = await categoryService.getCategories({ limit: 100 })
@@ -169,7 +169,11 @@ export async function updateProduct(req, res) {
             if (variant.newImages && variant.newImages.length > 0) {
                 const uploadedImages = [];
                 for (let image of variant.newImages) {
-                    const result = await uploadToCloudinary(image, 'products');
+                    const result = await uploadToCloudinary(image, 'products', {
+                        width: 800,
+                        height: 800,
+                        crop: 'fill'
+                    });
                     uploadedImages.push({
                         url: result.secure_url,
                         publicId: result.public_id

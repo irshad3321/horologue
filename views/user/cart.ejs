@@ -74,7 +74,6 @@
             gap: 32px;
         }
 
-        /* Cart Items */
         .cart-items {
             display: flex;
             flex-direction: column;
@@ -135,7 +134,25 @@
         .item-variant {
             font-size: 14px;
             color: #666;
+            margin-bottom: 8px;
+        }
+
+        .item-stock {
+            font-size: 13px;
+            font-weight: 600;
             margin-bottom: 12px;
+        }
+
+        .item-stock.in-stock {
+            color: #28a745;
+        }
+
+        .item-stock.low-stock {
+            color: #ffc107;
+        }
+
+        .item-stock.out-of-stock {
+            color: #dc3545;
         }
 
         .item-price {
@@ -169,8 +186,13 @@
             transition: all 0.3s ease;
         }
 
-        .qty-btn:hover {
+        .qty-btn:hover:not(:disabled) {
             background: #f8f9fa;
+        }
+
+        .qty-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .qty-input {
@@ -199,7 +221,6 @@
             color: #c82333;
         }
 
-        /* Order Summary */
         .order-summary {
             background: white;
             border-radius: 20px;
@@ -267,9 +288,14 @@
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
 
-        .checkout-btn:hover {
+        .checkout-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .checkout-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .continue-shopping {
@@ -296,53 +322,6 @@
             color: #667eea;
         }
 
-        .promo-section {
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .promo-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #111;
-            margin-bottom: 12px;
-        }
-
-        .promo-input-group {
-            display: flex;
-            gap: 8px;
-        }
-
-        .promo-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 14px;
-        }
-
-        .promo-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .apply-btn {
-            padding: 12px 20px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .apply-btn:hover {
-            background: #218838;
-        }
-
-        /* Empty Cart */
         .empty-cart {
             text-align: center;
             padding: 80px 40px;
@@ -397,7 +376,6 @@
             box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
         }
 
-        /* Responsive */
         @media (max-width: 968px) {
             .cart-layout {
                 grid-template-columns: 1fr;
@@ -446,187 +424,282 @@
     <div class="page-header">
         <div class="page-header-content">
             <h1 class="page-title">Shopping Cart</h1>
-            <p class="page-subtitle">3 items in your cart</p>
+            <p class="page-subtitle"><%= cart.items.length %> item<%= cart.items.length !== 1 ? 's' : '' %> in your cart</p>
         </div>
     </div>
 
     <div class="container">
-        <div class="cart-layout">
-            <!-- Cart Items -->
-            <div class="cart-items">
-                <!-- Cart Item 1 -->
-                <div class="cart-item">
-                    <div class="item-image">
-                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200" alt="Watch">
-                    </div>
-                    <div class="item-details">
-                        <div class="item-category">Analogue Watch</div>
-                        <h3 class="item-name">Classic Leather Strap Watch</h3>
-                        <div class="item-variant">Color: Black | Brand: Timex</div>
-                        <div class="item-price">₹4,999</div>
-                    </div>
-                    <div class="item-actions">
-                        <div class="quantity-controls">
-                            <button class="qty-btn">-</button>
-                            <input type="number" class="qty-input" value="1" min="1">
-                            <button class="qty-btn">+</button>
+        <% if (cart.items && cart.items.length > 0) { %>
+            <% 
+            // Calculate totals
+            let subtotal = 0;
+            let totalItems = 0;
+            let hasOutOfStock = false;
+            %>
+            
+            <div class="cart-layout">
+                <!-- Cart Items -->
+                <div class="cart-items">
+                    <% cart.items.forEach(item => { %>
+                        <% 
+                        const product = item.product;
+                        const variant = product.variants.id(item.variantId);
+                        
+                        // Handle missing variant (deleted or ID changed)
+                        if (!variant) {
+                            hasOutOfStock = true;
+                            
+                            // Try to get image from first available variant
+                            let fallbackImage = 'https://via.placeholder.com/200?text=No+Image';
+                            if (product.variants && product.variants.length > 0) {
+                                const firstVariant = product.variants[0];
+                                if (firstVariant.images && firstVariant.images.length > 0) {
+                                    fallbackImage = firstVariant.images[0].url;
+                                }
+                            }
+                        %>
+                        <div class="cart-item" data-product-id="<%= product._id %>" data-variant-id="<%= item.variantId %>">
+                            <div class="item-image">
+                                <img src="<%= fallbackImage %>" alt="<%= product.name %>">
+                            </div>
+                            <div class="item-details">
+                                <div class="item-category"><%= product.category %></div>
+                                <h3 class="item-name"><%= product.name %></h3>
+                                <div class="item-variant">This variant was updated. Please remove and re-add from product page.</div>
+                                <div class="item-stock out-of-stock">
+                                    <i class="fas fa-exclamation-triangle"></i> Variant Updated - Please Re-add
+                                </div>
+                                <div class="item-price">₹0</div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="remove-btn">
+                                    <i class="fas fa-trash"></i>
+                                    Remove
+                                </button>
+                            </div>
                         </div>
-                        <button class="remove-btn">
-                            <i class="fas fa-trash"></i>
-                            Remove
-                        </button>
-                    </div>
+                        <% return; } %>
+                        
+                        <% 
+                        // Get variant image
+                        let variantImage = 'https://via.placeholder.com/200?text=No+Image';
+                        if (variant.images && variant.images.length > 0) {
+                            variantImage = variant.images[0].url;
+                        }
+                        
+                        // Calculate price with offer
+                        let itemPrice = variant.price;
+                        if (product.offer > 0) {
+                            itemPrice = variant.price - (variant.price * product.offer / 100);
+                        }
+                        
+                        // Calculate item total (don't add to subtotal if out of stock)
+                        const isOutOfStock = variant.stock === 0;
+                        const isLowStock = variant.stock > 0 && variant.stock < 5;
+                        
+                        if (!isOutOfStock) {
+                            const itemTotal = itemPrice * item.quantity;
+                            subtotal += itemTotal;
+                            totalItems += item.quantity;
+                        }
+                        
+                        if (isOutOfStock) {
+                            hasOutOfStock = true;
+                        }
+                        %>
+                        
+                        <div class="cart-item" data-product-id="<%= product._id %>" data-variant-id="<%= variant._id %>">
+                            <div class="item-image">
+                                <img src="<%= variantImage %>" alt="<%= product.name %>">
+                            </div>
+                            <div class="item-details">
+                                <div class="item-category"><%= product.category %></div>
+                                <h3 class="item-name"><%= product.name %></h3>
+                                <div class="item-variant">Color: <%= variant.color %> | Brand: <%= product.brand %></div>
+                                <% if (isOutOfStock) { %>
+                                    <div class="item-stock out-of-stock">
+                                        <i class="fas fa-times-circle"></i> Out of Stock
+                                    </div>
+                                <% } else if (isLowStock) { %>
+                                    <div class="item-stock low-stock">
+                                        <i class="fas fa-exclamation-circle"></i> Only <%= variant.stock %> left
+                                    </div>
+                                <% } else { %>
+                                    <div class="item-stock in-stock">
+                                        <i class="fas fa-check-circle"></i> In Stock
+                                    </div>
+                                <% } %>
+                                <div class="item-price">₹<%= itemPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></div>
+                            </div>
+                            <div class="item-actions">
+                                <div class="quantity-controls">
+                                    <button class="qty-btn decrease-qty" <%= isOutOfStock || item.quantity <= 1 ? 'disabled' : '' %>>-</button>
+                                    <input type="number" class="qty-input" value="<%= item.quantity %>" min="1" max="5" readonly>
+                                    <button class="qty-btn increase-qty" <%= isOutOfStock || item.quantity >= 5 || item.quantity >= variant.stock ? 'disabled' : '' %>>+</button>
+                                </div>
+                                <button class="remove-btn">
+                                    <i class="fas fa-trash"></i>
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    <% }); %>
                 </div>
 
-                <!-- Cart Item 2 -->
-                <div class="cart-item">
-                    <div class="item-image">
-                        <img src="https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=200" alt="Watch">
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h2 class="summary-title">Order Summary</h2>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Subtotal (<%= totalItems %> item<%= totalItems !== 1 ? 's' : '' %>)</span>
+                        <span class="summary-value">₹<%= subtotal.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
                     </div>
-                    <div class="item-details">
-                        <div class="item-category">Digital Watch</div>
-                        <h3 class="item-name">Smart Digital Sports Watch</h3>
-                        <div class="item-variant">Color: Silver | Brand: Casio</div>
-                        <div class="item-price">₹8,999</div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Shipping</span>
+                        <span class="summary-value" style="color: #28a745;">FREE</span>
                     </div>
-                    <div class="item-actions">
-                        <div class="quantity-controls">
-                            <button class="qty-btn">-</button>
-                            <input type="number" class="qty-input" value="2" min="1">
-                            <button class="qty-btn">+</button>
-                        </div>
-                        <button class="remove-btn">
-                            <i class="fas fa-trash"></i>
-                            Remove
-                        </button>
+                    
+                    <div class="summary-divider"></div>
+                    
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <span>₹<%= subtotal.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
                     </div>
-                </div>
-
-                <!-- Cart Item 3 -->
-                <div class="cart-item">
-                    <div class="item-image">
-                        <img src="https://images.unsplash.com/photo-1533139502658-0198f920d8e8?w=200" alt="Watch">
-                    </div>
-                    <div class="item-details">
-                        <div class="item-category">Analogue Watch</div>
-                        <h3 class="item-name">Elegant Minimalist Watch</h3>
-                        <div class="item-variant">Color: Rose Gold | Brand: Daniel Wellington</div>
-                        <div class="item-price">₹12,499</div>
-                    </div>
-                    <div class="item-actions">
-                        <div class="quantity-controls">
-                            <button class="qty-btn">-</button>
-                            <input type="number" class="qty-input" value="1" min="1">
-                            <button class="qty-btn">+</button>
-                        </div>
-                        <button class="remove-btn">
-                            <i class="fas fa-trash"></i>
-                            Remove
-                        </button>
-                    </div>
+                    
+                    <button class="checkout-btn" <%= hasOutOfStock ? 'disabled' : '' %>>
+                        <i class="fas fa-lock"></i>
+                        <%= hasOutOfStock ? 'Remove Out of Stock Items' : 'Proceed to Checkout' %>
+                    </button>
+                    
+                    <a href="/products" class="continue-shopping">
+                        <i class="fas fa-arrow-left"></i>
+                        Continue Shopping
+                    </a>
                 </div>
             </div>
-
-            <!-- Order Summary -->
-            <div class="order-summary">
-                <h2 class="summary-title">Order Summary</h2>
-                
-                <div class="summary-row">
-                    <span class="summary-label">Subtotal (4 items)</span>
-                    <span class="summary-value">₹30,496</span>
+        <% } else { %>
+            <!-- Empty Cart State -->
+            <div class="empty-cart">
+                <div class="empty-icon">
+                    <i class="fas fa-shopping-cart"></i>
                 </div>
-                
-                <div class="summary-row">
-                    <span class="summary-label">Shipping</span>
-                    <span class="summary-value" style="color: #28a745;">FREE</span>
-                </div>
-                
-                <div class="summary-row">
-                    <span class="summary-label">Discount</span>
-                    <span class="summary-value" style="color: #dc3545;">-₹1,250</span>
-                </div>
-                
-                <div class="summary-divider"></div>
-                
-                <div class="summary-total">
-                    <span>Total</span>
-                    <span>₹29,246</span>
-                </div>
-                
-                <button class="checkout-btn">
-                    <i class="fas fa-lock"></i>
-                    Proceed to Checkout
-                </button>
-                
-                <a href="/products" class="continue-shopping">
-                    <i class="fas fa-arrow-left"></i>
-                    Continue Shopping
+                <h2 class="empty-title">Your Cart is Empty</h2>
+                <p class="empty-description">
+                    Looks like you haven't added anything to your cart yet.<br>
+                    Start shopping and add your favorite watches!
+                </p>
+                <a href="/products" class="btn-shop">
+                    <i class="fas fa-shopping-bag"></i>
+                    Start Shopping
                 </a>
-                
-                <div class="promo-section">
-                    <div class="promo-title">Have a promo code?</div>
-                    <div class="promo-input-group">
-                        <input type="text" class="promo-input" placeholder="Enter code">
-                        <button class="apply-btn">Apply</button>
-                    </div>
-                </div>
             </div>
-        </div>
-
-        <!-- Empty Cart State (hidden by default) -->
-        <!-- <div class="empty-cart">
-            <div class="empty-icon">
-                <i class="fas fa-shopping-cart"></i>
-            </div>
-            <h2 class="empty-title">Your Cart is Empty</h2>
-            <p class="empty-description">
-                Looks like you haven't added anything to your cart yet.<br>
-                Start shopping and add your favorite watches!
-            </p>
-            <a href="/products" class="btn-shop">
-                <i class="fas fa-shopping-bag"></i>
-                Start Shopping
-            </a>
-        </div> -->
+        <% } %>
     </div>
 
     <%- include('../partials/footer') %>
+    <%- include('../partials/toast') %>
 
     <script src="/js/session-protection.js"></script>
     <script>
-        // Quantity controls
-        document.querySelectorAll('.qty-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const input = this.parentElement.querySelector('.qty-input');
-                const currentValue = parseInt(input.value);
+        // Increase quantity
+        document.querySelectorAll('.increase-qty').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const cartItem = this.closest('.cart-item');
+                const productId = cartItem.dataset.productId;
+                const variantId = cartItem.dataset.variantId;
+                const qtyInput = cartItem.querySelector('.qty-input');
+                const newQuantity = parseInt(qtyInput.value) + 1;
                 
-                if (this.textContent === '+') {
-                    input.value = currentValue + 1;
-                } else if (this.textContent === '-' && currentValue > 1) {
-                    input.value = currentValue - 1;
+                try {
+                    const response = await fetch('/api/cart/update', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId, variantId, quantity: newQuantity })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        toastManager.error(data.message);
+                    }
+                } catch (error) {
+                    toastManager.error('Error updating cart');
                 }
+            });
+        });
+
+        // Decrease quantity
+        document.querySelectorAll('.decrease-qty').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const cartItem = this.closest('.cart-item');
+                const productId = cartItem.dataset.productId;
+                const variantId = cartItem.dataset.variantId;
+                const qtyInput = cartItem.querySelector('.qty-input');
+                const newQuantity = parseInt(qtyInput.value) - 1;
                 
-                updateTotal();
+                if (newQuantity < 1) return;
+                
+                try {
+                    const response = await fetch('/api/cart/update', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId, variantId, quantity: newQuantity })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        toastManager.error(data.message);
+                    }
+                } catch (error) {
+                    toastManager.error('Error updating cart');
+                }
             });
         });
 
-        // Remove item
+        // Remove from cart
         document.querySelectorAll('.remove-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const item = this.closest('.cart-item');
-                item.style.opacity = '0';
-                item.style.transform = 'translateX(-20px)';
-                setTimeout(() => {
-                    item.remove();
-                    updateTotal();
-                }, 300);
+            btn.addEventListener('click', async function() {
+                const result = await Swal.fire({
+                    title: 'Remove Item?',
+                    text: 'Are you sure you want to remove this item from cart?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, remove it',
+                    cancelButtonText: 'Cancel'
+                });
+                
+                if (!result.isConfirmed) return;
+                
+                const cartItem = this.closest('.cart-item');
+                const productId = cartItem.dataset.productId;
+                const variantId = cartItem.dataset.variantId;
+                
+                try {
+                    const response = await fetch('/api/cart/remove', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId, variantId })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        toastManager.success('Item removed from cart');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        toastManager.error(data.message);
+                    }
+                } catch (error) {
+                    toastManager.error('Error removing item');
+                }
             });
         });
-
-        function updateTotal() {
-            // Calculate and update totals
-            console.log('Updating totals...');
-        }
     </script>
 </body>
 </html>

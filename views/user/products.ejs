@@ -626,6 +626,19 @@
                         </select>
                     </div>
 
+                    <!-- Brand -->
+                    <div class="filter-group">
+                        <label class="filter-label">Brand</label>
+                        <select name="brand" class="filter-select">
+                            <option value="">All Brands</option>
+                            <% if (typeof brands !== 'undefined' && brands.length > 0) { %>
+                                <% brands.forEach(brandName => { %>
+                                    <option value="<%= brandName %>" <%= brand === brandName ? 'selected' : '' %>><%= brandName %></option>
+                                <% }); %>
+                            <% } %>
+                        </select>
+                    </div>
+
                     <!-- Price Range -->
                     <div class="filter-group">
                         <label class="filter-label">Price Range</label>
@@ -670,14 +683,14 @@
             <div class="products-count">
                 Showing <strong><%= typeof total !== 'undefined' ? total : 0 %></strong> products
             </div>
-            <div class="view-toggle">
+            <!-- <div class="view-toggle">
                 <button class="view-btn active" title="Grid View">
                     <i class="fas fa-th"></i>
                 </button>
                 <button class="view-btn" title="List View">
                     <i class="fas fa-list"></i>
                 </button>
-            </div>
+            </div> -->
         </div>
 
         <!-- Products Grid -->
@@ -782,7 +795,7 @@
         <% if (typeof totalPages !== 'undefined' && totalPages > 1) { %>
             <div class="pagination">
                 <% if (currentPage > 1) { %>
-                    <a href="?page=<%= currentPage - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= category ? '&category=' + encodeURIComponent(category) : '' %><%= priceRange ? '&priceRange=' + encodeURIComponent(priceRange) : '' %><%= sort ? '&sort=' + sort : '' %>" class="pagination-btn">
+                    <a href="?page=<%= currentPage - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= category ? '&category=' + encodeURIComponent(category) : '' %><%= brand ? '&brand=' + encodeURIComponent(brand) : '' %><%= priceRange ? '&priceRange=' + encodeURIComponent(priceRange) : '' %><%= sort ? '&sort=' + sort : '' %>" class="pagination-btn">
                         <i class="fas fa-chevron-left"></i>
                         Previous
                     </a>
@@ -794,14 +807,14 @@
                 <% } %>
                 
                 <% for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
-                    <a href="?page=<%= i %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= category ? '&category=' + encodeURIComponent(category) : '' %><%= priceRange ? '&priceRange=' + encodeURIComponent(priceRange) : '' %><%= sort ? '&sort=' + sort : '' %>" 
+                    <a href="?page=<%= i %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= category ? '&category=' + encodeURIComponent(category) : '' %><%= brand ? '&brand=' + encodeURIComponent(brand) : '' %><%= priceRange ? '&priceRange=' + encodeURIComponent(priceRange) : '' %><%= sort ? '&sort=' + sort : '' %>" 
                        class="pagination-btn <%= i === currentPage ? 'active' : '' %>">
                         <%= i %>
                     </a>
                 <% } %>
                 
                 <% if (currentPage < totalPages) { %>
-                    <a href="?page=<%= currentPage + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= category ? '&category=' + encodeURIComponent(category) : '' %><%= priceRange ? '&priceRange=' + encodeURIComponent(priceRange) : '' %><%= sort ? '&sort=' + sort : '' %>" class="pagination-btn">
+                    <a href="?page=<%= currentPage + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= category ? '&category=' + encodeURIComponent(category) : '' %><%= brand ? '&brand=' + encodeURIComponent(brand) : '' %><%= priceRange ? '&priceRange=' + encodeURIComponent(priceRange) : '' %><%= sort ? '&sort=' + sort : '' %>" class="pagination-btn">
                         Next
                         <i class="fas fa-chevron-right"></i>
                     </a>

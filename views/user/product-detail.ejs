@@ -70,12 +70,19 @@
             margin-bottom: 20px;
             background: #f8f9fa;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            position: relative;
+            cursor: zoom-in;
         }
 
         .main-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .main-image:hover img {
+            transform: scale(1.5);
         }
 
         .thumbnail-images {
@@ -486,7 +493,7 @@
                     <div class="product-badge premium">Premium</div>
                 <% } %>
                 
-                <h1 class="product-title"><%= product.name %></h1>
+                <h1 class="product-title" id="productTitle" data-product-name="<%= product.name %>"><%= product.name %></h1>
                 <div class="product-brand">Brand: <%= product.brand %></div>
 
                 <div class="product-rating">
@@ -501,10 +508,10 @@
                 </div>
 
                 <div class="product-price">
-                    <span class="current-price">₹<%= finalPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
+                    <span class="current-price" id="currentPrice">₹<%= finalPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
                     <% if (hasDiscount) { %>
-                        <span class="original-price">₹<%= minPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
-                        <span class="discount"><%= product.offer %>% OFF</span>
+                        <span class="original-price" id="originalPrice">₹<%= minPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
+                        <span class="discount" id="discountBadge"><%= product.offer %>% OFF</span>
                     <% } %>
                 </div>
 
@@ -518,18 +525,31 @@
                 <!-- Color Selection -->
                 <% if (product.variants && product.variants.length > 0) { %>
                     <div class="variant-section">
-                        <div class="variant-title">Select Color</div>
+                        <div class="variant-title">Select Color (Total: <%= product.variants.length %>)</div>
                         <div class="variant-options">
                             <% product.variants.forEach((variant, index) => { %>
                                 <div class="variant-option <%= index === 0 ? 'active' : '' %>" 
                                      data-variant-id="<%= variant._id %>"
                                      data-price="<%= variant.price %>"
                                      data-stock="<%= variant.stock %>"
-                                     data-images='<%= JSON.stringify(variant.images) %>'>
+                                     data-images='<%= JSON.stringify(variant.images) %>'
+                                     data-color="<%= variant.color %>">
                                     <%= variant.color %>
                                 </div>
                             <% }); %>
                         </div>
+                        <!-- Debug info -->
+                        <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 12px; color: #666;">
+                            <strong>Debug Info:</strong><br>
+                            <% product.variants.forEach((variant, index) => { %>
+                                Variant <%= index + 1 %>: <%= variant.color %> - ₹<%= variant.price %> - Stock: <%= variant.stock %> - Images: <%= variant.images ? variant.images.length : 0 %><br>
+                            <% }); %>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="variant-section">
+                        <div class="variant-title">Select Color</div>
+                        <p style="color: #dc3545;">No variants available for this product</p>
                     </div>
                 <% } %>
 
@@ -539,7 +559,7 @@
                     <div class="quantity-selector">
                         <div class="quantity-controls">
                             <button class="qty-btn" id="decreaseQty">-</button>
-                            <input type="number" class="qty-input" value="1" min="1" max="<%= maxStock %>" id="qtyInput">
+                            <input type="number" class="qty-input" value="1" min="1" max="5" id="qtyInput">
                             <button class="qty-btn" id="increaseQty">+</button>
                         </div>
                         <span class="stock-info" id="stockInfo">
@@ -554,7 +574,7 @@
 
                 <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <button class="btn btn-primary">
+                    <button class="btn btn-primary" id="addToCartBtn">
                         <i class="fas fa-shopping-cart"></i>
                         Add to Cart
                     </button>
@@ -562,7 +582,7 @@
                         <i class="fas fa-bolt"></i>
                         Buy Now
                     </button>
-                    <button class="btn-wishlist">
+                    <button class="btn-wishlist" id="addToWishlistBtn">
                         <i class="far fa-heart"></i>
                     </button>
                 </div>
@@ -599,10 +619,31 @@
     </div>
 
     <%- include('../partials/footer') %>
+    <%- include('../partials/toast') %>
 
     <script src="/js/session-protection.js"></script>
     <script>
         let currentMaxStock = <%= maxStock %>;
+        let currentVariantId = '<%= product.variants[0]._id %>';
+        const productId = '<%= product._id %>';
+        const productName = document.getElementById('productTitle').dataset.productName;
+        const productOffer = <%= product.offer || 0 %>;
+        
+        // Debug: Log total variants
+        console.log('Total variants loaded:', <%= product.variants.length %>);
+        
+        // Debug: Check if variant buttons exist
+        const variantButtons = document.querySelectorAll('.variant-option');
+        console.log('Variant buttons found:', variantButtons.length);
+        variantButtons.forEach((btn, idx) => {
+            console.log('Button ' + idx + ':', {
+                color: btn.textContent.trim(),
+                variantId: btn.dataset.variantId,
+                price: btn.dataset.price,
+                stock: btn.dataset.stock,
+                hasImages: btn.dataset.images ? 'yes' : 'no'
+            });
+        });
         
         // Thumbnail click handler
         document.querySelectorAll('.thumbnail').forEach(thumb => {
@@ -628,7 +669,15 @@
         
         increaseBtn.addEventListener('click', function() {
             const currentValue = parseInt(qtyInput.value);
-            if (currentValue < currentMaxStock) {
+            const maxLimit = 5;
+            const stockLimit = Math.min(currentMaxStock, maxLimit);
+            
+            if (currentValue >= maxLimit) {
+                toastManager.warning('Maximum 5 quantities allowed per product');
+                return;
+            }
+            
+            if (currentValue < stockLimit) {
                 qtyInput.value = currentValue + 1;
             }
         });
@@ -636,17 +685,48 @@
         // Variant selection
         document.querySelectorAll('.variant-option').forEach(option => {
             option.addEventListener('click', function() {
+                console.log('=== Variant clicked ===');
+                console.log('Clicked element:', this);
+                console.log('Color:', this.textContent.trim());
+                
                 this.parentElement.querySelectorAll('.variant-option').forEach(o => o.classList.remove('active'));
                 this.classList.add('active');
+                
+                // Update current variant ID
+                currentVariantId = this.dataset.variantId;
+                console.log('Selected variant ID:', currentVariantId);
+                
+                // Update price
+                const variantPrice = parseFloat(this.dataset.price);
+                console.log('Variant price:', variantPrice);
+                
+                let finalPrice = variantPrice;
+                let originalPrice = variantPrice;
+                
+                if (productOffer > 0) {
+                    finalPrice = variantPrice - (variantPrice * productOffer / 100);
+                }
+                
+                // Update price display
+                const currentPriceEl = document.getElementById('currentPrice');
+                if (currentPriceEl) {
+                    currentPriceEl.textContent = '₹' + Math.round(finalPrice).toLocaleString('en-IN');
+                }
+                
+                const originalPriceEl = document.getElementById('originalPrice');
+                if (originalPriceEl && productOffer > 0) {
+                    originalPriceEl.textContent = '₹' + Math.round(originalPrice).toLocaleString('en-IN');
+                }
                 
                 // Update stock info
                 const stock = parseInt(this.dataset.stock);
                 currentMaxStock = stock;
                 qtyInput.max = stock;
+                console.log('Stock:', stock);
                 
                 const stockInfo = document.getElementById('stockInfo');
                 if (stock > 0) {
-                    stockInfo.innerHTML = `<i class="fas fa-check-circle"></i> In Stock (${stock} available)`;
+                    stockInfo.innerHTML = '<i class="fas fa-check-circle"></i> In Stock (' + stock + ' available)';
                     stockInfo.style.color = '#28a745';
                 } else {
                     stockInfo.innerHTML = '<i class="fas fa-times-circle"></i> Out of Stock';
@@ -658,10 +738,15 @@
                 
                 // Update images
                 try {
-                    const images = JSON.parse(this.dataset.images);
+                    const imagesData = this.dataset.images;
+                    console.log('Images data:', imagesData);
+                    const images = JSON.parse(imagesData);
+                    console.log('Parsed images:', images);
+                    
                     if (images && images.length > 0) {
                         const mainImg = document.getElementById('mainImage');
                         mainImg.src = images[0].url;
+                        console.log('Updated main image to:', images[0].url);
                         
                         // Update thumbnails
                         const thumbnailContainer = document.querySelector('.thumbnail-images');
@@ -678,18 +763,88 @@
                             });
                             thumbnailContainer.appendChild(thumbDiv);
                         });
+                        console.log('Updated thumbnails, count:', images.length);
+                    } else {
+                        console.warn('No images found for this variant');
                     }
                 } catch (e) {
                     console.error('Error updating images:', e);
+                    console.error('Images data was:', this.dataset.images);
                 }
+                
+                console.log('=== Variant update complete ===');
             });
         });
 
-        // Wishlist toggle
-        document.querySelector('.btn-wishlist').addEventListener('click', function() {
+        // Add to cart
+        document.getElementById('addToCartBtn').addEventListener('click', async function() {
+            const quantity = parseInt(qtyInput.value);
+            
+            if (currentMaxStock === 0) {
+                toastManager.error('This product is out of stock');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productId: productId,
+                        variantId: currentVariantId,
+                        quantity: quantity
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    toastManager.success('"' + productName + '" added to cart!');
+                } else {
+                    if (response.status === 401) {
+                        toastManager.warning('Please login to add items to cart');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 2000);
+                    } else {
+                        toastManager.error(data.message);
+                    }
+                }
+            } catch (error) {
+                toastManager.error('Error adding to cart');
+            }
+        });
+
+        // Add to wishlist
+        document.getElementById('addToWishlistBtn').addEventListener('click', async function() {
             const icon = this.querySelector('i');
-            icon.classList.toggle('far');
-            icon.classList.toggle('fas');
+            
+            try {
+                const response = await fetch('/api/wishlist/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: productId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    toastManager.success('"' + productName + '" added to wishlist!');
+                } else {
+                    if (response.status === 401) {
+                        toastManager.warning('Please login to add items to wishlist');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 2000);
+                    } else {
+                        toastManager.error(data.message);
+                    }
+                }
+            } catch (error) {
+                toastManager.error('Error adding to wishlist');
+            }
         });
     </script>
 </body>

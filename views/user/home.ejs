@@ -564,71 +564,44 @@
       </div>
       <div class="carousel-container">
         <div class="carousel-wrapper" id="carousel">
+          <% 
+          const productsPerSlide = 4;
+          const totalSlides = Math.ceil(products.length / productsPerSlide);
+          
+          for (let slideIndex = 0; slideIndex < totalSlides; slideIndex++) {
+            const startIndex = slideIndex * productsPerSlide;
+            const endIndex = Math.min(startIndex + productsPerSlide, products.length);
+            const slideProducts = products.slice(startIndex, endIndex);
+          %>
           <div class="carousel-slide">
+            <% slideProducts.forEach(product => { 
+              const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+              const productImage = firstVariant && firstVariant.images && firstVariant.images.length > 0 ? firstVariant.images[0].url : 'https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=300&h=200&fit=crop';
+              const productPrice = firstVariant ? firstVariant.price : 0;
+              const productStock = firstVariant ? firstVariant.stock : 0;
+            %>
             <div class="product-card">
-              <img src="https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=300&h=200&fit=crop" alt="Vacheron Constantin Premium Watch" />
-              <h3>VACHERON CONSTANTIN</h3>
-              <p>Patrimony Collection - Swiss Made</p>
-              <div class="product-price">$45,000</div>
-              <a href="/product/vacheron-constantin" class="btn-add-cart">View Details</a>
+              <img src="<%= productImage %>" alt="<%= product.name %>" />
+              <h3><%= product.brand.toUpperCase() %></h3>
+              <p><%= product.name %></p>
+              <div class="product-price">₹<%= productPrice.toLocaleString() %></div>
+              <% if (productStock > 0) { %>
+                <a href="/product/<%= product._id %>" class="btn-add-cart">View Details</a>
+              <% } else { %>
+                <span class="btn-add-cart" style="background: #ccc; cursor: not-allowed;">Out of Stock</span>
+              <% } %>
             </div>
-            <div class="product-card">
-              <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=200&fit=crop" alt="Jaquet Droz Luxury Timepiece" />
-              <h3>JAQUET DROZ</h3>
-              <p>Grande Seconde - Automatic Movement</p>
-              <div class="product-price">$28,500</div>
-              <a href="/product/jaquet-droz" class="btn-add-cart">View Details</a>
-            </div>
-            <div class="product-card">
-              <img src="https://images.unsplash.com/photo-1548181048-dcea1c2d4c3d?w=300&h=200&fit=crop" alt="Breitling Professional Watch" />
-              <h3>BREITLING</h3>
-              <p>Navitimer Collection - Chronograph</p>
-              <div class="product-price">$8,200</div>
-              <a href="/product/breitling" class="btn-add-cart">View Details</a>
-            </div>
-            <div class="product-card">
-              <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=300&h=200&fit=crop" alt="Patek Philippe Premium Watch" />
-              <h3>PATEK PHILIPPE</h3>
-              <p>Calatrava Series - 18K Gold</p>
-              <div class="product-price">$32,800</div>
-              <a href="/product/patek-philippe" class="btn-add-cart">View Details</a>
-            </div>
+            <% }); %>
           </div>
-          <div class="carousel-slide">
-            <div class="product-card">
-              <img src="https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?w=300&h=200&fit=crop" alt="Rolex Submariner Watch" />
-              <h3>ROLEX</h3>
-              <p>Submariner - Diving Watch</p>
-              <div class="product-price">$15,400</div>
-              <a href="/product/rolex" class="btn-add-cart">View Details</a>
-            </div>
-            <div class="product-card">
-              <img src="https://images.unsplash.com/photo-1548181048-dcea1c2d4c3d?w=300&h=200&fit=crop" alt="Omega Speedmaster Watch" />
-              <h3>OMEGA</h3>
-              <p>Speedmaster - Moonwatch</p>
-              <div class="product-price">$6,800</div>
-              <a href="/product/omega" class="btn-add-cart">View Details</a>
-            </div>
-            <div class="product-card">
-              <img src="https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=300&h=200&fit=crop" alt="Cartier Tank Watch" />
-              <h3>CARTIER</h3>
-              <p>Tank Collection - Dress Watch</p>
-              <div class="product-price">$18,900</div>
-              <a href="/product/cartier" class="btn-add-cart">View Details</a>
-            </div>
-            <div class="product-card">
-              <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=200&fit=crop" alt="Audemars Piguet Watch" />
-              <h3>AUDEMARS PIGUET</h3>
-              <p>Royal Oak - Sport Luxury</p>
-              <div class="product-price">$52,000</div>
-              <a href="/product/audemars-piguet" class="btn-add-cart">View Details</a>
-            </div>
-          </div>
+          <% } %>
         </div>
+        <% if (totalSlides > 1) { %>
         <div class="carousel-indicators">
-          <div class="indicator active" data-slide="0"></div>
-          <div class="indicator" data-slide="1"></div>
+          <% for (let i = 0; i < totalSlides; i++) { %>
+          <div class="indicator <%= i === 0 ? 'active' : '' %>" data-slide="<%= i %>"></div>
+          <% } %>
         </div>
+        <% } %>
         <div class="carousel-controls">
           <div class="carousel-nav">
             <button class="carousel-btn" id="prevBtn">‹</button>
@@ -680,27 +653,31 @@
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const indicators = document.querySelectorAll('.indicator');
-    const totalSlides = 2;
+    const totalSlides = indicators.length;
 
     function updateCarousel() {
-      carousel.style.transform = `translateX(-${currentSlide * 100}%)`;
+      carousel.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
       prevBtn.disabled = currentSlide === 0;
       nextBtn.disabled = currentSlide === totalSlides - 1;
       
       // Update indicators
-      indicators.forEach((indicator, index) => {
-        indicator.classList.toggle('active', index === currentSlide);
+      indicators.forEach(function(indicator, index) {
+        if (index === currentSlide) {
+          indicator.classList.add('active');
+        } else {
+          indicator.classList.remove('active');
+        }
       });
     }
 
-    prevBtn.addEventListener('click', () => {
+    prevBtn.addEventListener('click', function() {
       if (currentSlide > 0) {
         currentSlide--;
         updateCarousel();
       }
     });
 
-    nextBtn.addEventListener('click', () => {
+    nextBtn.addEventListener('click', function() {
       if (currentSlide < totalSlides - 1) {
         currentSlide++;
         updateCarousel();
@@ -708,8 +685,8 @@
     });
 
     // Indicator clicks
-    indicators.forEach((indicator, index) => {
-      indicator.addEventListener('click', () => {
+    indicators.forEach(function(indicator, index) {
+      indicator.addEventListener('click', function() {
         currentSlide = index;
         updateCarousel();
       });

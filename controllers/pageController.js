@@ -1,5 +1,7 @@
 import { getUserById } from '../service/userService.js';
 import { getUserAddresses } from '../service/addressService.js';
+import { getProducts } from '../service/productService.js';
+import { getUserCart } from '../service/cartService.js';
 
 // Show home page
 export const showHome = async (req, res) => {
@@ -12,9 +14,25 @@ export const showHome = async (req, res) => {
     const loginSuccess = req.session.loginSuccess;
     delete req.session.loginSuccess; 
     
+    // Get featured products (active products, limit 8)
+    const result = await getProducts({
+        status: 'active',
+        limit: 8,
+        sort: 'newest',
+        hideInactiveCategories: true
+    });
+    
+    const products = result.products;
+    
+    // Get cart count
+    const cart = await getUserCart(req.session.userId);
+    const cartCount = cart.items.length;
+    
     res.render('user/home', { 
         user: req.session.user,
-        loginSuccess: loginSuccess || null
+        loginSuccess: loginSuccess || null,
+        products: products,
+        cartCount: cartCount
     });
 };
 
@@ -44,9 +62,14 @@ export const showProfile = async (req, res) => {
         };
     }
     
+    // Get cart count
+    const cart = await getUserCart(req.session.userId);
+    const cartCount = cart.items.length;
+    
     res.render('user/profile', {
         user: req.session.user,
-        currentPage: 'profile'
+        currentPage: 'profile',
+        cartCount: cartCount
     });
 };
 
@@ -71,9 +94,14 @@ export const showEditProfile = async (req, res) => {
         };
     }
     
+    // Get cart count
+    const cart = await getUserCart(req.session.userId);
+    const cartCount = cart.items.length;
+    
     res.render('user/edit-profile', {
         user: req.session.user,
-        currentPage: 'edit-profile'
+        currentPage: 'edit-profile',
+        cartCount: cartCount
     });
 };
 

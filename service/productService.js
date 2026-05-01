@@ -1,20 +1,55 @@
 import Product from '../models/Product.js';
+import Category from '../models/Category.js';
 import { deleteFromCloudinary } from '../config/cloudinary.js';
+
 export async function getProducts(filters = {}) {
-    const { search, status, category, page = 1, limit = 10, sort = 'newest', minPrice, maxPrice } = filters;
+    const search = filters.search;
+    const status = filters.status;
+    const category = filters.category;
+    const brand = filters.brand;
+    const page = filters.page || 1;
+    const limit = filters.limit || 10;
+    const sort = filters.sort || 'newest';
+    const minPrice = filters.minPrice;
+    const maxPrice = filters.maxPrice;
+    const hideInactiveCategories = filters.hideInactiveCategories || false;
     
     const query = { isDeleted: false };
+    
+    // If we need to hide products from inactive categories (for user side)
+    if (hideInactiveCategories) {
+        const activeCategories = await Category.find({ 
+            status: 'active', 
+            isDeleted: false 
+        }).select('name');
+        
+        const activeCategoryNames = activeCategories.map(cat => cat.name);
+        
+        // Only show products from active categories
+        query.category = { $in: activeCategoryNames };
+    }
+    
+    // Search filter
     if (search) {
         query.$or = [
             { name: { $regex: search, $options: 'i' } },
             { brand: { $regex: search, $options: 'i' } }
         ];
     }
+    
+    // Status filter
     if (status) {
         query.status = status;
     }
+    
+    // Category filter (specific category selected)
     if (category) {
         query.category = category;
+    }
+    
+    // Brand filter
+    if (brand) {
+        query.brand = brand;
     }
     
     // Price range filter
@@ -29,38 +64,35 @@ export async function getProducts(filters = {}) {
     }
     
     const skip = (page - 1) * limit;
+    
+    // Sort options
     let sortOption = {};
-    switch (sort) {
-        case 'newest':
-            sortOption = { createdAt: -1 };
-            break;
-        case 'oldest':
-            sortOption = { createdAt: 1 };
-            break;
-        case 'name-asc':
-            sortOption = { name: 1 };
-            break;
-        case 'name-desc':
-            sortOption = { name: -1 };
-            break;
-        case 'price-asc':
-            sortOption = { 'variants.price': 1 };
-            break;
-        case 'price-desc':
-            sortOption = { 'variants.price': -1 };
-            break;
-        default:
-            sortOption = { createdAt: -1 };
+    if (sort === 'newest') {
+        sortOption = { createdAt: -1 };
+    } else if (sort === 'oldest') {
+        sortOption = { createdAt: 1 };
+    } else if (sort === 'name-asc') {
+        sortOption = { name: 1 };
+    } else if (sort === 'name-desc') {
+        sortOption = { name: -1 };
+    } else if (sort === 'price-asc') {
+        sortOption = { 'variants.price': 1 };
+    } else if (sort === 'price-desc') {
+        sortOption = { 'variants.price': -1 };
+    } else {
+        sortOption = { createdAt: -1 };
     }
+    
     const products = await Product.find(query)
         .sort(sortOption)
         .skip(skip)
         .limit(parseInt(limit));
+        
     const total = await Product.countDocuments(query);
     
     return {
-        products,
-        total,
+        products: products,
+        total: total,
         page: parseInt(page),
         totalPages: Math.ceil(total / limit)
     };
@@ -74,11 +106,45 @@ export async function createProduct(productData) {
     return await product.save();
 }
 export async function updateProduct(productId, updateData) {
-    return await Product.findByIdAndUpdate(
-        productId,
-        updateData,
-        { returnDocument: 'after', runValidators: true }
-    );
+    const product = await Product.findById(productId);
+    
+    if (!product) {
+        return null;
+    }
+    
+    // If variants are being updated, preserve existing variant IDs
+    if (updateData.variants) {
+        const updatedVariants = updateData.variants.map(newVariant => {
+            // If variant has _id, find and update the existing variant
+            if (newVariant._id) {
+                const existingVariant = product.variants.id(newVariant._id);
+                if (existingVariant) {
+                    // Update existing variant properties
+                    existingVariant.color = newVariant.color;
+                    existingVariant.price = newVariant.price;
+                    existingVariant.stock = newVariant.stock;
+                    existingVariant.images = newVariant.images;
+                    return existingVariant;
+                }
+            }
+            // If no _id or variant not found, create new variant
+            return newVariant;
+        });
+        
+        product.variants = updatedVariants;
+    }
+    
+    // Update other fields
+    if (updateData.name) product.name = updateData.name;
+    if (updateData.brand) product.brand = updateData.brand;
+    if (updateData.category) product.category = updateData.category;
+    if (updateData.description !== undefined) product.description = updateData.description;
+    if (updateData.offer !== undefined) product.offer = updateData.offer;
+    if (updateData.status) product.status = updateData.status;
+    if (updateData.premium) product.premium = updateData.premium;
+    
+    await product.save();
+    return product;
 }
 export async function deleteProduct(productId) {
     return await Product.findByIdAndUpdate(
@@ -129,4 +195,14 @@ export async function deleteVariant(productId, variantId) {
     
     product.variants.pull(variantId);
     return await product.save();
+}
+
+// Get all unique brands
+export async function getAllBrands() {
+    const brands = await Product.distinct('brand', { 
+        isDeleted: false, 
+        status: 'active' 
+    });
+    
+    return brands.sort();
 }
