@@ -290,7 +290,7 @@ export const adminLogout = (req, res) => {
 export const getUsers = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 4
+        const limit = 6
         const skip = (page - 1) * limit;
         const search = req.query.search || '';
         const status = req.query.status || 'all';

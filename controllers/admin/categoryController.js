@@ -13,8 +13,6 @@ export async function getCategoriesPage(req, res) {
         };
         
         const result = await categoryService.getCategories(filters);
-
-
         res.render('admin/category', {
             admin: req.session.user,
             currentPage: 'category',

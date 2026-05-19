@@ -567,7 +567,7 @@
                         <span>₹<%= subtotal.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
                     </div>
                     
-                    <button class="checkout-btn" <%= hasOutOfStock ? 'disabled' : '' %>>
+                    <button class="checkout-btn" <%= hasOutOfStock ? 'disabled' : '' %> onclick="window.location.href='/checkout'">
                         <i class="fas fa-lock"></i>
                         <%= hasOutOfStock ? 'Remove Out of Stock Items' : 'Proceed to Checkout' %>
                     </button>

@@ -15,8 +15,7 @@ export async function getProducts(filters = {}) {
     const hideInactiveCategories = filters.hideInactiveCategories || false;
     
     const query = { isDeleted: false };
-    
-    // If we need to hide products from inactive categories (for user side)
+
     if (hideInactiveCategories) {
         const activeCategories = await Category.find({ 
             status: 'active', 
@@ -24,8 +23,6 @@ export async function getProducts(filters = {}) {
         }).select('name');
         
         const activeCategoryNames = activeCategories.map(cat => cat.name);
-        
-        // Only show products from active categories
         query.category = { $in: activeCategoryNames };
     }
     
@@ -36,23 +33,17 @@ export async function getProducts(filters = {}) {
             { brand: { $regex: search, $options: 'i' } }
         ];
     }
-    
-    // Status filter
     if (status) {
         query.status = status;
     }
-    
-    // Category filter (specific category selected)
+
     if (category) {
         query.category = category;
     }
-    
-    // Brand filter
     if (brand) {
         query.brand = brand;
     }
-    
-    // Price range filter
+
     if (minPrice !== undefined || maxPrice !== undefined) {
         query['variants.price'] = {};
         if (minPrice !== undefined) {
@@ -112,14 +103,12 @@ export async function updateProduct(productId, updateData) {
         return null;
     }
     
-    // If variants are being updated, preserve existing variant IDs
     if (updateData.variants) {
         const updatedVariants = updateData.variants.map(newVariant => {
-            // If variant has _id, find and update the existing variant
             if (newVariant._id) {
                 const existingVariant = product.variants.id(newVariant._id);
                 if (existingVariant) {
-                    // Update existing variant properties
+             
                     existingVariant.color = newVariant.color;
                     existingVariant.price = newVariant.price;
                     existingVariant.stock = newVariant.stock;
@@ -127,7 +116,6 @@ export async function updateProduct(productId, updateData) {
                     return existingVariant;
                 }
             }
-            // If no _id or variant not found, create new variant
             return newVariant;
         });
         
@@ -206,3 +194,5 @@ export async function getAllBrands() {
     
     return brands.sort();
 }
+
+

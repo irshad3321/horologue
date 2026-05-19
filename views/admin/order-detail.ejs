@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details - Admin Panel</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .admin-main-content {
+            margin-left: 250px;
+            margin-top: 70px;
+            padding: 0;
+            width: calc(100% - 250px);
+            min-height: calc(100vh - 70px);
+        }
+
+        .dashboard-container {
+            width: 100%;
+            padding: 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            padding: 10px 16px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            background: #545b62;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .order-number {
+            font-family: 'Courier New', monospace;
+            color: #007bff;
+            font-size: 16px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f1f3f5;
+        }
+
+        .order-item {
+            display: grid;
+            grid-template-columns: 80px 1fr auto;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-info h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .item-info p {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .item-price {
+            text-align: right;
+            font-size: 16px;
+            font-weight: 600;
+            color: #28a745;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .info-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .address-box {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .address-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-control {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .status-select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: 700;
+            padding-top: 1rem;
+            margin-top: 1rem;
+            border-top: 2px solid #dee2e6;
+        }
+
+        @media (max-width: 968px) {
+            .admin-main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/admin-navbar') %>
+    <%- include('../partials/admin-sidebar', { currentPage: 'orders' }) %>
+    
+    <div class="admin-main-content">
+        <div class="dashboard-container">
+            <div class="page-header">
+                <div class="header-left">
+                    <button class="back-btn" onclick="window.location.href='/admin/orders'">
+                        <i class="fas fa-arrow-left"></i>
+                        Back
+                    </button>
+                    <div>
+                        <h1 class="page-title">Order Details</h1>
+                        <p class="order-number">#<%= order.orderNumber %></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-grid">
+                <div>
+                    <!-- Order Items -->
+                    <div class="card">
+                        <h2 class="card-title">Order Items</h2>
+                        <% order.items.forEach(item => { %>
+                            <% 
+                            const variant = item.product.variants.find(v => v._id.toString() === item.variantId.toString());
+                            const variantImage = variant && variant.images && variant.images.length > 0 ? variant.images[0].url : 'https://via.placeholder.com/80';
+                            %>
+                            <div class="order-item">
+                                <div class="item-image">
+                                    <img src="<%= variantImage %>" alt="<%= item.product.name %>">
+                                </div>
+                                <div class="item-info">
+                                    <h4><%= item.product.name %></h4>
+                                    <p>Color: <%= item.color %></p>
+                                    <p>Quantity: <%= item.quantity %> × ₹<%= item.price.toLocaleString('en-IN') %></p>
+                                </div>
+                                <div class="item-price">
+                                    ₹<%= item.itemTotal.toLocaleString('en-IN') %>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+
+                    <!-- Customer Details -->
+                    <div class="card">
+                        <h2 class="card-title">Customer Details</h2>
+                        <div class="info-row">
+                            <span class="info-label">Name</span>
+                            <span class="info-value"><%= order.userId.firstName %> <%= order.userId.lastName %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email</span>
+                            <span class="info-value"><%= order.userId.email %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Phone</span>
+                            <span class="info-value"><%= order.shippingAddress.phone %></span>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Address -->
+                    <div class="card">
+                        <h2 class="card-title">Shipping Address</h2>
+                        <div class="address-box">
+                            <div class="address-name"><%= order.shippingAddress.fullName %></div>
+                            <%= order.shippingAddress.addressLine1 %><% if (order.shippingAddress.addressLine2) { %>, <%= order.shippingAddress.addressLine2 %><% } %><br>
+                            <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> - <%= order.shippingAddress.pincode %><br>
+                            Phone: <%= order.shippingAddress.phone %>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <!-- Order Status -->
+                    <div class="card">
+                        <h2 class="card-title">Order Status</h2>
+                        <div class="status-control">
+                            <select id="statusSelect" class="status-select">
+                                <option value="Pending" <%= order.orderStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                <option value="Confirmed" <%= order.orderStatus === 'Confirmed' ? 'selected' : '' %>>Confirmed</option>
+                                <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                <option value="Delivered" <%= order.orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="updateStatus()">
+                                Update
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Order Info -->
+                    <div class="card">
+                        <h2 class="card-title">Order Information</h2>
+                        <div class="info-row">
+                            <span class="info-label">Order Date</span>
+                            <span class="info-value"><%= new Date(order.orderDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Payment Method</span>
+                            <span class="info-value"><%= order.paymentMethod %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Payment Status</span>
+                            <span class="info-value"><%= order.paymentStatus %></span>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="card">
+                        <h2 class="card-title">Order Summary</h2>
+                        <div class="info-row">
+                            <span class="info-label">Subtotal</span>
+                            <span class="info-value">₹<%= order.subtotal.toLocaleString('en-IN') %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Discount</span>
+                            <span class="info-value" style="color: #28a745;">-₹<%= order.discount.toLocaleString('en-IN') %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Shipping</span>
+                            <span class="info-value">₹<%= order.shippingCharge.toLocaleString('en-IN') %></span>
+                        </div>
+                        <div class="summary-total">
+                            <span>Total</span>
+                            <span>₹<%= order.totalAmount.toLocaleString('en-IN') %></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/session-protection.js"></script>
+    <script>
+        async function updateStatus() {
+            const newStatus = document.getElementById('statusSelect').value;
+            
+            try {
+                const response = await fetch('/admin/api/orders/<%= order._id %>/status', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Updated!',
+                        text: 'Order status updated successfully',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Failed to update status', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

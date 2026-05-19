@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Horologue</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            padding-top: 80px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 32px;
+        }
+
+        .checkout-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 32px;
+        }
+
+        .checkout-main {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title i {
+            color: #667eea;
+        }
+
+        .address-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .address-card {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .address-card:hover {
+            border-color: #667eea;
+        }
+
+        .address-card.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .address-card input[type="radio"] {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+        }
+
+        .address-type {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .address-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111;
+            margin-bottom: 4px;
+        }
+
+        .address-details {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .add-address-btn {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-address-btn:hover {
+            background: #f8f9ff;
+        }
+
+        .order-item {
+            display: grid;
+            grid-template-columns: 80px 1fr auto;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111;
+            margin-bottom: 4px;
+        }
+
+        .item-info p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .item-price {
+            text-align: right;
+        }
+
+        .item-price .price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .item-price .qty {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .order-summary {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .summary-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .summary-label {
+            color: #666;
+        }
+
+        .summary-value {
+            font-weight: 600;
+            color: #111;
+        }
+
+        .summary-divider {
+            height: 1px;
+            background: #e9ecef;
+            margin: 16px 0;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 22px;
+            font-weight: 900;
+            color: #111;
+            margin: 20px 0;
+        }
+
+        .place-order-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .place-order-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .place-order-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .payment-method {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .payment-method label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        @media (max-width: 968px) {
+            .checkout-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .order-summary {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <div class="container">
+        <h1 class="page-title">Checkout</h1>
+
+        <div class="checkout-layout">
+            <div class="checkout-main">
+                <!-- Shipping Address -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Shipping Address
+                    </h2>
+                    
+                    <div class="address-list">
+                        <% if (addresses && addresses.length > 0) { %>
+                            <% addresses.forEach((address, index) => { %>
+                                <label class="address-card <%= address.isDefault ? 'selected' : '' %>">
+                                    <input type="radio" name="address" value="<%= address._id %>" <%= address.isDefault ? 'checked' : '' %>>
+                                    <span class="address-type"><%= address.addressType %></span>
+                                    <div class="address-name"><%= address.fullName %></div>
+                                    <div class="address-details">
+                                        <%= address.addressLine1 %><% if (address.addressLine2) { %>, <%= address.addressLine2 %><% } %><br>
+                                        <%= address.city %>, <%= address.state %> - <%= address.pincode %><br>
+                                        Phone: <%= address.phone %>
+                                    </div>
+                                </label>
+                            <% }); %>
+                        <% } else { %>
+                            <p style="color: #666; text-align: center; padding: 20px;">No addresses found. Please add an address.</p>
+                        <% } %>
+                        
+                        <button class="add-address-btn" onclick="window.location.href='/profile/addresses'">
+                            <i class="fas fa-plus"></i> Add New Address
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <i class="fas fa-shopping-bag"></i>
+                        Order Items (<%= cart.items.length %>)
+                    </h2>
+                    
+                    <% cart.items.forEach(item => { %>
+                        <% 
+                        const product = item.product;
+                        const variant = product.variants.id(item.variantId);
+                        let variantImage = 'https://via.placeholder.com/80';
+                        if (variant && variant.images && variant.images.length > 0) {
+                            variantImage = variant.images[0].url;
+                        }
+                        let itemPrice = variant.price;
+                        if (product.offer > 0) {
+                            itemPrice = variant.price - (variant.price * product.offer / 100);
+                        }
+                        const itemTotal = itemPrice * item.quantity;
+                        %>
+                        
+                        <div class="order-item">
+                            <div class="item-image">
+                                <img src="<%= variantImage %>" alt="<%= product.name %>">
+                            </div>
+                            <div class="item-info">
+                                <h4><%= product.name %></h4>
+                                <p>Color: <%= variant.color %> | Qty: <%= item.quantity %></p>
+                            </div>
+                            <div class="item-price">
+                                <div class="price">₹<%= itemTotal.toLocaleString('en-IN') %></div>
+                                <div class="qty">₹<%= itemPrice.toLocaleString('en-IN') %> × <%= item.quantity %></div>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="order-summary">
+                <h3 class="summary-title">Order Summary</h3>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Subtotal</span>
+                    <span class="summary-value">₹<%= subtotal.toLocaleString('en-IN') %></span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Discount</span>
+                    <span class="summary-value" style="color: #28a745;">-₹<%= discount.toLocaleString('en-IN') %></span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Shipping</span>
+                    <span class="summary-value" style="color: #28a745;">FREE</span>
+                </div>
+                
+                <div class="summary-divider"></div>
+                
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span>₹<%= total.toLocaleString('en-IN') %></span>
+                </div>
+                
+                <div class="payment-method">
+                    <label>
+                        <input type="radio" name="payment" value="COD" checked>
+                        <i class="fas fa-money-bill-wave"></i>
+                        Cash on Delivery
+                    </label>
+                </div>
+                
+                <button class="place-order-btn" onclick="placeOrder()" <%= addresses.length === 0 ? 'disabled' : '' %>>
+                    <i class="fas fa-check-circle"></i>
+                    Place Order
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+    <%- include('../partials/toast') %>
+    <script src="/js/session-protection.js"></script>
+
+    <script>
+        document.querySelectorAll('.address-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.address-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                this.querySelector('input[type="radio"]').checked = true;
+            });
+        });
+
+        async function placeOrder() {
+            const selectedAddress = document.querySelector('input[name="address"]:checked');
+            
+            if (!selectedAddress) {
+                toastManager.error('Please select a shipping address');
+                return;
+            }
+            
+            const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+            
+            Swal.fire({
+                title: 'Confirm Order',
+                text: 'Are you sure you want to place this order?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Place Order',
+                cancelButtonText: 'Cancel'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        Swal.fire({
+                            title: 'Processing...',
+                            text: 'Please wait while we process your order',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        
+                        const response = await fetch('/api/orders/place', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                addressId: selectedAddress.value,
+                                paymentMethod: paymentMethod
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            window.location.href = '/order-success?orderId=' + data.orderId;
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    } catch (error) {
+                        Swal.fire('Error', 'Failed to place order', 'error');
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

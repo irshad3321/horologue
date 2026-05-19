@@ -78,8 +78,6 @@ export const showProductDetail = async (req, res) => {
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
         res.set('Pragma', 'no-cache');
         res.set('Expires', '0');
-        
-        // Render product detail page
         res.render('user/product-detail', {
             user: req.session.user || null,
             product: product
@@ -97,6 +95,7 @@ export const showWishlist = async (req, res) => {
         if (req.session.userId) {
             wishlist = await wishlistService.getUserWishlist(req.session.userId);
         }
+        
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
         res.set('Pragma', 'no-cache');
         res.set('Expires', '0');
@@ -118,7 +117,7 @@ export const showCart = async (req, res) => {
         if (req.session.userId) {
             cart = await cartService.getUserCart(req.session.userId);
         }
-
+         
         
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
         res.set('Pragma', 'no-cache');
@@ -133,7 +132,7 @@ export const showCart = async (req, res) => {
     }
 };
 
-// Add to cart API
+// Add to cart
 export const addToCart = async (req, res) => {
     try {
         if (!req.session.userId) {
@@ -234,7 +233,7 @@ export const removeFromCart = async (req, res) => {
     }
 };
 
-// Add to wishlist API
+// Add to wishlis
 export const addToWishlist = async (req, res) => {
     try {
         if (!req.session.userId) {
