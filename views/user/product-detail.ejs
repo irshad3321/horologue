@@ -578,12 +578,12 @@
                         <i class="fas fa-shopping-cart"></i>
                         Add to Cart
                     </button>
-                    <button class="btn btn-secondary">
+                    <button class="btn btn-secondary" id="buyNowBtn">
                         <i class="fas fa-bolt"></i>
                         Buy Now
                     </button>
                     <button class="btn-wishlist" id="addToWishlistBtn">
-                        <i class="far fa-heart"></i>
+                        <i class="<%= isInWishlist ? 'fas' : 'far' %> fa-heart" style="<%= isInWishlist ? 'color: #ff6b6b;' : '' %>"></i>
                     </button>
                 </div>
 
@@ -815,13 +815,17 @@
             }
         });
 
-        // Add to wishlist
+        // Add/Remove wishlist toggle
         document.getElementById('addToWishlistBtn').addEventListener('click', async function() {
             const icon = this.querySelector('i');
+            const isInWishlist = icon.classList.contains('fas');
             
             try {
-                const response = await fetch('/api/wishlist/add', {
-                    method: 'POST',
+                const url = isInWishlist ? '/api/wishlist/remove' : '/api/wishlist/add';
+                const method = isInWishlist ? 'DELETE' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ productId: productId })
                 });
@@ -829,12 +833,20 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    icon.classList.remove('far');
-                    icon.classList.add('fas');
-                    toastManager.success('"' + productName + '" added to wishlist!');
+                    if (isInWishlist) {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        icon.style.color = '';
+                        toastManager.success('"' + productName + '" removed from wishlist!');
+                    } else {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        icon.style.color = '#ff6b6b';
+                        toastManager.success('"' + productName + '" added to wishlist!');
+                    }
                 } else {
                     if (response.status === 401) {
-                        toastManager.warning('Please login to add items to wishlist');
+                        toastManager.warning('Please login to manage wishlist');
                         setTimeout(() => {
                             window.location.href = '/login';
                         }, 2000);
@@ -843,7 +855,46 @@
                     }
                 }
             } catch (error) {
-                toastManager.error('Error adding to wishlist');
+                toastManager.error('Error updating wishlist');
+            }
+        });
+
+        // Buy Now - Add to cart and redirect to checkout
+        document.getElementById('buyNowBtn').addEventListener('click', async function() {
+            const quantity = parseInt(qtyInput.value);
+            
+            if (currentMaxStock === 0) {
+                toastManager.error('This product is out of stock');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productId: productId,
+                        variantId: currentVariantId,
+                        quantity: quantity
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = '/checkout';
+                } else {
+                    if (response.status === 401) {
+                        toastManager.warning('Please login to continue');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 2000);
+                    } else {
+                        toastManager.error(data.message);
+                    }
+                }
+            } catch (error) {
+                toastManager.error('Error processing request');
             }
         });
     </script>

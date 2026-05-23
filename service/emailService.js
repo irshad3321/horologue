@@ -198,10 +198,8 @@ export const sendOTPEmail = async (email, otp, purpose) => {
 // Test email configuration
 export const testEmailConnection = async () => {
     try {
-        console.log('Testing email connection...');
         const transporter = createTransporter();
         await transporter.verify();
-        console.log('Email connection verified successfully');
         return { success: true, message: 'Email server connection verified' };
     } catch (error) {
         console.error('Email connection test failed:', error);

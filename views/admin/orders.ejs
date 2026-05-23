@@ -219,6 +219,49 @@
             background: #0056b3;
         }
 
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-confirmed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-shipped {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-return-requested {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-returned {
+            background: #fff3cd;
+            color: #856404;
+        }
+
         .pagination {
             display: flex;
             justify-content: center;
@@ -294,6 +337,7 @@
                                 <option value="Shipped" <%= status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
                                 <option value="Delivered" <%= status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
                                 <option value="Cancelled" <%= status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                <option value="Returned" <%= status === 'Returned' ? 'selected' : '' %>>Returned</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -344,13 +388,9 @@
                                     <td><%= order.items.length %> item<%= order.items.length > 1 ? 's' : '' %></td>
                                     <td>₹<%= order.totalAmount.toLocaleString('en-IN') %></td>
                                     <td>
-                                        <select class="status-select" onchange="updateOrderStatus('<%= order._id %>', this.value)">
-                                            <option value="Pending" <%= order.orderStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
-                                            <option value="Confirmed" <%= order.orderStatus === 'Confirmed' ? 'selected' : '' %>>Confirmed</option>
-                                            <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                                            <option value="Delivered" <%= order.orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                                            <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
-                                        </select>
+                                        <span class="status-badge status-<%= order.orderStatus.toLowerCase().replace(' ', '-') %>">
+                                            <%= order.orderStatus %>
+                                        </span>
                                     </td>
                                     <td>
                                         <a href="/admin/orders/<%= order._id %>" class="action-btn">

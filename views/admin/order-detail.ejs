@@ -253,15 +253,16 @@
                         <h2 class="card-title">Order Items</h2>
                         <% order.items.forEach(item => { %>
                             <% 
-                            const variant = item.product.variants.find(v => v._id.toString() === item.variantId.toString());
+                            const variant = item.product && item.product.variants ? item.product.variants.find(v => v._id.toString() === item.variantId.toString()) : null;
                             const variantImage = variant && variant.images && variant.images.length > 0 ? variant.images[0].url : 'https://via.placeholder.com/80';
+                            const productName = item.product ? item.product.name : 'Product';
                             %>
                             <div class="order-item">
                                 <div class="item-image">
-                                    <img src="<%= variantImage %>" alt="<%= item.product.name %>">
+                                    <img src="<%= variantImage %>" alt="<%= productName %>">
                                 </div>
                                 <div class="item-info">
-                                    <h4><%= item.product.name %></h4>
+                                    <h4><%= productName %></h4>
                                     <p>Color: <%= item.color %></p>
                                     <p>Quantity: <%= item.quantity %> × ₹<%= item.price.toLocaleString('en-IN') %></p>
                                 </div>
@@ -305,18 +306,44 @@
                     <!-- Order Status -->
                     <div class="card">
                         <h2 class="card-title">Order Status</h2>
-                        <div class="status-control">
-                            <select id="statusSelect" class="status-select">
-                                <option value="Pending" <%= order.orderStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
-                                <option value="Confirmed" <%= order.orderStatus === 'Confirmed' ? 'selected' : '' %>>Confirmed</option>
-                                <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                                <option value="Delivered" <%= order.orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                                <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
-                            </select>
-                            <button class="btn btn-primary" onclick="updateStatus()">
-                                Update
-                            </button>
-                        </div>
+                        
+                        <% if (order.orderStatus === 'Return Requested') { %>
+                            <!-- Return Request Section -->
+                            <div style="background: #fff3cd; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                                <h3 style="color: #856404; font-size: 16px; margin-bottom: 8px;">
+                                    <i class="fas fa-exclamation-triangle"></i> Return Request Pending
+                                </h3>
+                                <% if (order.cancellationReason) { %>
+                                    <p style="font-size: 14px; color: #856404; margin-bottom: 12px;">
+                                        <strong>Reason:</strong> <%= order.cancellationReason %>
+                                    </p>
+                                <% } %>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn" style="background: #28a745; color: white;" onclick="approveReturn()">
+                                        <i class="fas fa-check"></i> Approve Return
+                                    </button>
+                                    <button class="btn" style="background: #dc3545; color: white;" onclick="declineReturn()">
+                                        <i class="fas fa-times"></i> Decline Return
+                                    </button>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <!-- Status Dropdown -->
+                            <% const isFinalState = ['Cancelled', 'Delivered', 'Returned'].includes(order.orderStatus); %>
+                            <div class="status-control">
+                                <select id="statusSelect" class="status-select" <%= isFinalState ? 'disabled' : '' %>>
+                                    <option value="Pending" <%= order.orderStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                    <option value="Confirmed" <%= order.orderStatus === 'Confirmed' ? 'selected' : '' %>>Confirmed</option>
+                                    <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                    <option value="Delivered" <%= order.orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                    <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                    <option value="Returned" <%= order.orderStatus === 'Returned' ? 'selected' : '' %>>Returned</option>
+                                </select>
+                                <button class="btn btn-primary" onclick="updateStatus()" <%= isFinalState ? 'disabled' : '' %>>
+                                    Update
+                                </button>
+                            </div>
+                        <% } %>
                     </div>
 
                     <!-- Order Info -->
@@ -390,6 +417,101 @@
                 }
             } catch (error) {
                 Swal.fire('Error', 'Failed to update status', 'error');
+            }
+        }
+
+        async function approveReturn() {
+            const result = await Swal.fire({
+                title: 'Approve Return?',
+                text: 'Stock will be restored and order marked as returned',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, Approve',
+                cancelButtonText: 'Cancel'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch('/admin/api/orders/<%= order._id %>/status', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'Returned' })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Approved!',
+                            text: 'Return request approved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'Failed to approve return', 'error');
+                }
+            }
+        }
+
+        async function declineReturn() {
+            // First ask for reason
+            const { value: reason } = await Swal.fire({
+                title: 'Decline Return Request',
+                input: 'textarea',
+                inputLabel: 'Reason for declining (required)',
+                inputPlaceholder: 'Enter reason for declining the return request...',
+                inputAttributes: {
+                    'aria-label': 'Enter reason for declining'
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Decline Return',
+                cancelButtonText: 'Cancel',
+                inputValidator: (value) => {
+                    if (!value || value.trim() === '') {
+                        return 'Please provide a reason for declining!'
+                    }
+                }
+            });
+
+            if (reason) {
+                try {
+                    const response = await fetch('/admin/api/orders/<%= order._id %>/status', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            status: 'Return Declined',
+                            declineReason: reason
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Declined!',
+                            text: 'Return request declined',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'Failed to decline return', 'error');
+                }
             }
         }
     </script>

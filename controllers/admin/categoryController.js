@@ -1,10 +1,10 @@
 import Product from '../../models/Product.js';
-import * as categoryService from '../../service/categoryService.js';
+import * as categoryService from '../../service/categoryService.js'
 export async function getCategoriesPage(req, res) {
     try {
         const { search, status, page = 1 } = req.query;
         
-        const filters = {
+        const filters={
             search,
             status,
             page,
@@ -22,13 +22,12 @@ export async function getCategoriesPage(req, res) {
             currentPageNum: result.page,
             totalPages: result.totalPages,
             total: result.total
-        });
+        })
     } catch (error) {
         console.error('Error fetching categories:', error);
         res.status(500).render('error/500');
     }
 }
-
 // Create category
 export async function createCategory(req, res) {
     try {
@@ -63,7 +62,7 @@ export async function createCategory(req, res) {
         res.status(500).json({ 
             success: false, 
             message: 'Failed to create category' 
-        });
+        })
     }
 }
 
@@ -114,7 +113,6 @@ export async function updateCategory(req, res) {
         });
     }
 }
-
 // Delete category
 export async function deleteCategory(req, res) {
     try {

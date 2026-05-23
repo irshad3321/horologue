@@ -270,7 +270,7 @@ export const adminLogout = (req, res) => {
     // Destroy the entire admin session since it's separate
     req.session.destroy((err) => {
         if (err) {
-            console.log('Admin session destroy error:', err);
+            // Session destroy error - ignore
         }
         
         // Clear admin session cookies

@@ -12,6 +12,7 @@ import { getLatestOTPCreationTime } from '../service/otpService.js';
 import { isAdmin, isNotAuthenticatedAdmin, adminSessionCheck, handleAdminLoginErrors } from '../middlewares/adminAuth.js';
 import * as categoryController from '../controllers/admin/categoryController.js';
 import * as productController from '../controllers/admin/productController.js';
+import * as orderController from '../controllers/admin/orderController.js';
 import upload from '../config/multer.js';
 const router = express.Router();
 
@@ -99,85 +100,10 @@ router.get('/logout', adminLogout);
 // Toggle user status - protected route
 router.post('/users/toggle-status/:userId', isAdmin, toggleUserStatus);
 
-// Orders routes (dummy)
-router.get('/orders', isAdmin, async (req, res) => {
-    const User = (await import('../models/User.js')).default;
-    const Product = (await import('../models/Product.js')).default;
-    
-    const users = await User.find().limit(2);
-    const products = await Product.find().populate('variants').limit(2);
-    
-    const dummyOrders = users.map((user, idx) => ({
-        _id: `order${idx + 1}`,
-        orderNumber: `ORD${Date.now() + idx}`,
-        orderDate: new Date(Date.now() - idx * 24 * 60 * 60 * 1000),
-        orderStatus: idx === 0 ? 'Pending' : 'Delivered',
-        userId: user,
-        items: products.slice(0, 1).map(p => ({
-            product: p,
-            variantId: p.variants[0]._id,
-            color: p.variants[0].color,
-            price: p.variants[0].price,
-            quantity: 1,
-            itemTotal: p.variants[0].price
-        })),
-        totalAmount: products[0]?.variants[0]?.price || 25000
-    }));
-    
-    res.render('admin/orders', {
-        admin: req.session.user,
-        orders: dummyOrders,
-        search: req.query.search || '',
-        status: req.query.status || '',
-        sort: req.query.sort || 'newest',
-        currentPage: 1,
-        totalPages: 1
-    });
-});
-
-router.get('/orders/:id', isAdmin, async (req, res) => {
-    const User = (await import('../models/User.js')).default;
-    const Product = (await import('../models/Product.js')).default;
-    
-    const user = await User.findOne();
-    const products = await Product.find().populate('variants').limit(2);
-    
-    const dummyOrder = {
-        _id: req.params.id,
-        orderNumber: 'ORD1234567890',
-        orderDate: new Date(),
-        orderStatus: 'Pending',
-        userId: user,
-        items: products.map(p => ({
-            product: p,
-            variantId: p.variants[0]._id,
-            color: p.variants[0].color,
-            price: p.variants[0].price,
-            quantity: 1,
-            itemTotal: p.variants[0].price
-        })),
-        shippingAddress: {
-            fullName: user.firstName + ' ' + user.lastName,
-            phone: user.phone || '1234567890',
-            addressLine1: '123 Main St',
-            addressLine2: 'Apt 4B',
-            city: 'Mumbai',
-            state: 'Maharashtra',
-            pincode: '400001'
-        },
-        subtotal: products.reduce((sum, p) => sum + p.variants[0].price, 0),
-        discount: 0,
-        shippingCharge: 0,
-        totalAmount: products.reduce((sum, p) => sum + p.variants[0].price, 0),
-        paymentMethod: 'COD',
-        paymentStatus: 'Pending'
-    };
-    
-    res.render('admin/order-detail', {
-        admin: req.session.user,
-        order: dummyOrder
-    });
-});
+// Orders routes
+router.get('/orders', isAdmin, orderController.showOrders);
+router.get('/orders/:id', isAdmin, orderController.showOrderDetail);
+router.patch('/api/orders/:id/status', isAdmin, orderController.updateOrderStatus);
 
 // Inventory routes (dummy)
 router.get('/inventory', isAdmin, async (req, res) => {

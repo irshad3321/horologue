@@ -41,6 +41,18 @@ export const showProducts = async (req, res) => {
         
         // Get all brands
         const brands = await productService.getAllBrands();
+        
+        // Get user's wishlist
+        let wishlistProductIds = [];
+        if (req.session.userId) {
+            const wishlist = await wishlistService.getUserWishlist(req.session.userId);
+            wishlistProductIds = wishlist.items.map(item => {
+                // Handle both populated and non-populated product references
+                const productId = item.product._id || item.product;
+                return productId.toString();
+            });
+        }
+        
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
         res.set('Pragma', 'no-cache');
         res.set('Expires', '0');
@@ -56,7 +68,8 @@ export const showProducts = async (req, res) => {
             sort: sort || 'newest',
             currentPage: result.page,
             totalPages: result.totalPages,
-            total: result.total
+            total: result.total,
+            wishlistProductIds: wishlistProductIds
         });
     } catch (error) {
         res.status(500).render('error/500');
@@ -75,12 +88,20 @@ export const showProductDetail = async (req, res) => {
         if (product.status !== 'active') {
             return res.status(404).render('error/404');
         }
+        
+        // Check if product is in wishlist
+        let isInWishlist = false;
+        if (req.session.userId) {
+            isInWishlist = await wishlistService.isInWishlist(req.session.userId, productId);
+        }
+        
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
         res.set('Pragma', 'no-cache');
         res.set('Expires', '0');
         res.render('user/product-detail', {
             user: req.session.user || null,
-            product: product
+            product: product,
+            isInWishlist: isInWishlist
         });
     } catch (error) {
         res.status(500).render('error/500');
@@ -233,6 +254,30 @@ export const removeFromCart = async (req, res) => {
     }
 };
 
+// Clear entire cart
+export const clearCart = async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Please login'
+            });
+        }
+        
+        await cartService.clearCart(req.session.userId);
+        
+        res.json({
+            success: true,
+            message: 'Cart cleared successfully'
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 // Add to wishlis
 export const addToWishlist = async (req, res) => {
     try {
@@ -274,16 +319,42 @@ export const removeFromWishlist = async (req, res) => {
         }
         
         const productId = req.body.productId;
+        const variantId = req.body.variantId;
         
         const wishlist = await wishlistService.removeFromWishlist(
             req.session.userId,
-            productId
+            productId,
+            variantId
         );
         
         res.json({
             success: true,
             message: 'Product removed from wishlist',
-            wishlistCount: wishlist.items.length
+            wishlistCount: wishlist ? wishlist.items.length : 0
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Clear entire wishlist
+export const clearWishlist = async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Please login'
+            });
+        }
+        
+        await wishlistService.clearWishlist(req.session.userId);
+        
+        res.json({
+            success: true,
+            message: 'Wishlist cleared successfully'
         });
     } catch (error) {
         res.status(400).json({

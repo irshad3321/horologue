@@ -304,14 +304,22 @@
                     <div class="address-list">
                         <% if (addresses && addresses.length > 0) { %>
                             <% addresses.forEach((address, index) => { %>
-                                <label class="address-card <%= address.isDefault ? 'selected' : '' %>">
+                                <label class="address-card <%= address.isDefault ? 'selected' : '' %>" style="position: relative;">
                                     <input type="radio" name="address" value="<%= address._id %>" <%= address.isDefault ? 'checked' : '' %>>
+                                    <button onclick="event.preventDefault(); event.stopPropagation(); openEditAddressModal('<%= address._id %>', '<%= address.fullName %>', '<%= address.phoneNumber %>', '<%= address.addressLine1 %>', '<%= address.addressLine2 || '' %>', '<%= address.city %>', '<%= address.state %>', '<%= address.pincode %>', '<%= address.addressType %>', <%= address.isDefault %>)" style="position: absolute; top: 16px; right: 50px; background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
                                     <span class="address-type"><%= address.addressType %></span>
+                                    <% if (address.isDefault) { %>
+                                        <span style="display: inline-block; padding: 4px 12px; background: #28a745; color: white; border-radius: 6px; font-size: 12px; font-weight: 600; margin-left: 8px;">
+                                            <i class="fas fa-check-circle"></i> Default
+                                        </span>
+                                    <% } %>
                                     <div class="address-name"><%= address.fullName %></div>
                                     <div class="address-details">
                                         <%= address.addressLine1 %><% if (address.addressLine2) { %>, <%= address.addressLine2 %><% } %><br>
                                         <%= address.city %>, <%= address.state %> - <%= address.pincode %><br>
-                                        Phone: <%= address.phone %>
+                                        Phone: <%= address.phoneNumber %>
                                     </div>
                                 </label>
                             <% }); %>
@@ -319,7 +327,7 @@
                             <p style="color: #666; text-align: center; padding: 20px;">No addresses found. Please add an address.</p>
                         <% } %>
                         
-                        <button class="add-address-btn" onclick="window.location.href='/profile/addresses'">
+                        <button class="add-address-btn" onclick="openAddAddressModal()">
                             <i class="fas fa-plus"></i> Add New Address
                         </button>
                     </div>
@@ -408,6 +416,143 @@
 
     <%- include('../partials/footer') %>
     <%- include('../partials/toast') %>
+    
+    <!-- Add Address Modal -->
+    <div id="addressModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 24px; font-weight: 700; color: #111;">Add New Address</h2>
+                <button onclick="closeAddressModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+            </div>
+            
+            <form id="addAddressForm" style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Full Name *</label>
+                    <input type="text" id="fullName" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Phone Number *</label>
+                    <input type="tel" id="phoneNumber" required pattern="[0-9]{10}" maxlength="10" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Address Line 1 *</label>
+                    <input type="text" id="addressLine1" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Address Line 2</label>
+                    <input type="text" id="addressLine2" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">City *</label>
+                        <input type="text" id="city" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">State *</label>
+                        <input type="text" id="state" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                    </div>
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Pincode *</label>
+                    <input type="text" id="pincode" required pattern="[0-9]{6}" maxlength="6" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Address Type *</label>
+                    <select id="addressType" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                        <option value="home">Home</option>
+                        <option value="work">Work</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="isDefault" style="width: 18px; height: 18px;">
+                    <label for="isDefault" style="font-weight: 600; color: #333;">Set as default address</label>
+                </div>
+                
+                <button type="submit" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px;">
+                    Save Address
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Edit Address Modal -->
+    <div id="editAddressModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 24px; font-weight: 700; color: #111;">Edit Address</h2>
+                <button onclick="closeEditAddressModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+            </div>
+            
+            <form id="editAddressForm" style="display: flex; flex-direction: column; gap: 16px;">
+                <input type="hidden" id="editAddressId">
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Full Name *</label>
+                    <input type="text" id="editFullName" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Phone Number *</label>
+                    <input type="tel" id="editPhoneNumber" required pattern="[0-9]{10}" maxlength="10" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Address Line 1 *</label>
+                    <input type="text" id="editAddressLine1" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Address Line 2</label>
+                    <input type="text" id="editAddressLine2" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">City *</label>
+                        <input type="text" id="editCity" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">State *</label>
+                        <input type="text" id="editState" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                    </div>
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Pincode *</label>
+                    <input type="text" id="editPincode" required pattern="[0-9]{6}" maxlength="6" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Address Type *</label>
+                    <select id="editAddressType" required style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px;">
+                        <option value="home">Home</option>
+                        <option value="work">Work</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="editIsDefault" style="width: 18px; height: 18px;">
+                    <label for="editIsDefault" style="font-weight: 600; color: #333;">Set as default address</label>
+                </div>
+                
+                <button type="submit" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px;">
+                    Update Address
+                </button>
+            </form>
+        </div>
+    </div>
+    
     <script src="/js/session-protection.js"></script>
 
     <script>
@@ -470,6 +615,107 @@
                 }
             });
         }
+
+        function openAddAddressModal() {
+            document.getElementById('addressModal').style.display = 'flex';
+        }
+
+        function closeAddressModal() {
+            document.getElementById('addressModal').style.display = 'none';
+            document.getElementById('addAddressForm').reset();
+        }
+
+        document.getElementById('addAddressForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const addressData = {
+                fullName: document.getElementById('fullName').value,
+                phoneNumber: document.getElementById('phoneNumber').value,
+                addressLine1: document.getElementById('addressLine1').value,
+                addressLine2: document.getElementById('addressLine2').value,
+                city: document.getElementById('city').value,
+                state: document.getElementById('state').value,
+                pincode: document.getElementById('pincode').value,
+                addressType: document.getElementById('addressType').value,
+                isDefault: document.getElementById('isDefault').checked
+            };
+            
+            try {
+                const response = await fetch('/api/addresses', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(addressData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    toastManager.success('Address added successfully!');
+                    closeAddressModal();
+                    location.reload();
+                } else {
+                    toastManager.error(data.message || 'Failed to add address');
+                }
+            } catch (error) {
+                toastManager.error('Error adding address');
+            }
+        });
+
+        function openEditAddressModal(id, fullName, phoneNumber, addressLine1, addressLine2, city, state, pincode, addressType, isDefault) {
+            document.getElementById('editAddressId').value = id;
+            document.getElementById('editFullName').value = fullName;
+            document.getElementById('editPhoneNumber').value = phoneNumber;
+            document.getElementById('editAddressLine1').value = addressLine1;
+            document.getElementById('editAddressLine2').value = addressLine2;
+            document.getElementById('editCity').value = city;
+            document.getElementById('editState').value = state;
+            document.getElementById('editPincode').value = pincode;
+            document.getElementById('editAddressType').value = addressType;
+            document.getElementById('editIsDefault').checked = isDefault;
+            document.getElementById('editAddressModal').style.display = 'flex';
+        }
+
+        function closeEditAddressModal() {
+            document.getElementById('editAddressModal').style.display = 'none';
+            document.getElementById('editAddressForm').reset();
+        }
+
+        document.getElementById('editAddressForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const addressId = document.getElementById('editAddressId').value;
+            const addressData = {
+                fullName: document.getElementById('editFullName').value,
+                phoneNumber: document.getElementById('editPhoneNumber').value,
+                addressLine1: document.getElementById('editAddressLine1').value,
+                addressLine2: document.getElementById('editAddressLine2').value,
+                city: document.getElementById('editCity').value,
+                state: document.getElementById('editState').value,
+                pincode: document.getElementById('editPincode').value,
+                addressType: document.getElementById('editAddressType').value,
+                isDefault: document.getElementById('editIsDefault').checked
+            };
+            
+            try {
+                const response = await fetch(`/api/addresses/${addressId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(addressData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    toastManager.success('Address updated successfully!');
+                    closeEditAddressModal();
+                    location.reload();
+                } else {
+                    toastManager.error(data.message || 'Failed to update address');
+                }
+            } catch (error) {
+                toastManager.error('Error updating address');
+            }
+        });
     </script>
 </body>
 </html>

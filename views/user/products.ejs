@@ -733,8 +733,11 @@
                                         <i class="fas fa-eye"></i>
                                         View
                                     </button>
-                                    <button class="quick-btn" onclick="event.stopPropagation();">
-                                        <i class="fas fa-heart"></i>
+                                    <% 
+                                    const isInWishlist = wishlistProductIds.includes(product._id.toString());
+                                    %>
+                                    <button class="quick-btn" onclick="event.stopPropagation(); toggleWishlistFromListing('<%= product._id %>', '<%= product.name %>', this)" data-in-wishlist="<%= isInWishlist %>">
+                                        <i class="<%= isInWishlist ? 'fas' : 'far' %> fa-heart" style="<%= isInWishlist ? 'color: #e74c3c;' : '' %>"></i>
                                         Save
                                     </button>
                                 </div>
@@ -832,5 +835,52 @@
 
     <!-- Session Protection Script -->
     <script src="/js/session-protection.js"></script>
+    
+    <script>
+        async function toggleWishlistFromListing(productId, productName, button) {
+            const icon = button.querySelector('i');
+            const isInWishlist = button.dataset.inWishlist === 'true';
+            
+            try {
+                const url = isInWishlist ? '/api/wishlist/remove' : '/api/wishlist/add';
+                const method = isInWishlist ? 'DELETE' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: productId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (isInWishlist) {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        icon.style.color = '';
+                        button.dataset.inWishlist = 'false';
+                        toastManager.success('"' + productName + '" removed from wishlist!');
+                    } else {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        icon.style.color = '#e74c3c';
+                        button.dataset.inWishlist = 'true';
+                        toastManager.success('"' + productName + '" added to wishlist!');
+                    }
+                } else {
+                    if (response.status === 401) {
+                        toastManager.warning('Please login to manage wishlist');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 2000);
+                    } else {
+                        toastManager.error(data.message);
+                    }
+                }
+            } catch (error) {
+                toastManager.error('Error updating wishlist');
+            }
+        }
+    </script>
 </body>
 </html>

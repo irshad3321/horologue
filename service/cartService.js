@@ -113,6 +113,26 @@ export async function addToCart(userId, productId, variantId, quantity = 1) {
     }
     
     await cart.save();
+    
+    // Remove from wishlist if exists
+    try {
+        const Wishlist = (await import('../models/Wishlist.js')).default;
+        const wishlist = await Wishlist.findOne({ user: userId });
+        
+        if (wishlist) {
+            const originalLength = wishlist.items.length;
+            wishlist.items = wishlist.items.filter(
+                item => item.product.toString() !== productId
+            );
+            
+            if (wishlist.items.length < originalLength) {
+                await wishlist.save();
+            }
+        }
+    } catch (error) {
+        // Ignore wishlist errors, cart operation succeeded
+    }
+    
     return cart;
 }
 

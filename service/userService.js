@@ -128,13 +128,11 @@ export const checkEmailExists=async(email,userId)=>{
 // Update user avatar
 export const updateUserAvatar = async (userId, avatarUrl) => {
     try {
-        console.log('Updating user avatar in database:', userId, avatarUrl);
         const user = await User.findByIdAndUpdate(
             userId,
             { profileImage: avatarUrl },
             { returnDocument: 'after' }
         );
-        console.log('User updated:', user ? 'Success' : 'Failed');
         return user;
     } catch (error) {
         console.error('Error updating user avatar:', error);

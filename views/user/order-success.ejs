@@ -1,248 +1,311 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Success - Horologue</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Successful</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-        }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f4f4f8;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2rem 1rem;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .success-container {
-            max-width: 600px;
-            width: 100%;
-            background: white;
-            border-radius: 24px;
-            padding: 60px 40px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
+    canvas#confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        .success-icon {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 32px;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: scaleIn 0.5s ease;
-        }
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      opacity: 0;
+      transform: scale(0.85) translateY(30px);
+      transition: opacity 0.6s cubic-bezier(.34,1.56,.64,1),
+                  transform 0.6s cubic-bezier(.34,1.56,.64,1);
+    }
 
-        .success-icon i {
-            font-size: 60px;
-            color: white;
-        }
+    .card.visible {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
 
-        @keyframes scaleIn {
-            from {
-                transform: scale(0);
-            }
-            to {
-                transform: scale(1);
-            }
-        }
+    .check-wrap {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #e6f9f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      transform: scale(0);
+      transition: transform 0.5s cubic-bezier(.34,1.8,.64,1) 0.4s;
+    }
 
-        .success-title {
-            font-size: 36px;
-            font-weight: 900;
-            color: #111;
-            margin-bottom: 16px;
-        }
+    .check-wrap.visible {
+      transform: scale(1);
+    }
 
-        .success-message {
-            font-size: 18px;
-            color: #666;
-            margin-bottom: 32px;
-            line-height: 1.6;
-        }
+    .check-wrap i {
+      font-size: 40px;
+      color: #1D9E75;
+    }
 
-        .order-info {
-            background: #f8f9fa;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 32px;
-        }
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 0.4rem;
+    }
 
-        .order-number {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 8px;
-        }
+    .subtitle {
+      font-size: 15px;
+      color: #6b7280;
+      margin-bottom: 1.8rem;
+      line-height: 1.6;
+    }
 
-        .order-id {
-            font-size: 24px;
-            font-weight: 700;
-            color: #667eea;
-            font-family: 'Courier New', monospace;
-        }
+    .order-summary {
+      background: #f9f9fb;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
 
-        .order-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-top: 20px;
-            text-align: left;
-        }
+    .order-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+    }
 
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-        }
+    .order-row:last-child {
+      margin-bottom: 0;
+    }
 
-        .detail-label {
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
+    .order-row .label {
+      font-size: 13px;
+      color: #6b7280;
+    }
 
-        .detail-value {
-            font-size: 16px;
-            font-weight: 600;
-            color: #111;
-        }
+    .order-row .value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
 
-        .action-buttons {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-        }
+    .order-row .value.green {
+      color: #1D9E75;
+    }
 
-        .btn {
-            padding: 14px 28px;
-            border: none;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
+    .btn {
+      flex: 1;
+      padding: 11px;
+      font-size: 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      border: 1.5px solid #e5e7eb;
+      background: #fff;
+      color: #1a1a2e;
+      transition: background 0.2s, transform 0.1s;
+    }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
+    .btn:hover {
+      background: #f3f4f6;
+    }
 
-        .btn-secondary {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
+    .btn:active {
+      transform: scale(0.97);
+    }
 
-        .btn-secondary:hover {
-            background: #f8f9ff;
-        }
+    .btn.primary {
+      background: #1D9E75;
+      color: #fff;
+      border-color: #1D9E75;
+    }
 
-        .illustration {
-            margin: 32px 0;
-            font-size: 80px;
-            opacity: 0.1;
-        }
-
-        @media (max-width: 768px) {
-            .success-container {
-                padding: 40px 24px;
-            }
-
-            .success-title {
-                font-size: 28px;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .order-details {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    .btn.primary:hover {
+      background: #179067;
+    }
+  </style>
 </head>
 <body>
-    <div class="success-container">
-        <div class="success-icon">
-            <i class="fas fa-check"></i>
-        </div>
 
-        <h1 class="success-title">Order Placed Successfully!</h1>
-        
-        <p class="success-message">
-            Thank you for your order! We've received your order and will start processing it soon. 
-            You'll receive a confirmation email shortly.
-        </p>
+  <canvas id="confetti-canvas"></canvas>
 
-        <div class="order-info">
-            <div class="order-number">Order Number</div>
-            <div class="order-id">#<%= order.orderNumber %></div>
-            
-            <div class="order-details">
-                <div class="detail-item">
-                    <span class="detail-label">Order Date</span>
-                    <span class="detail-value"><%= new Date(order.orderDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Total Amount</span>
-                    <span class="detail-value">₹<%= order.totalAmount.toLocaleString('en-IN') %></span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Payment Method</span>
-                    <span class="detail-value"><%= order.paymentMethod %></span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Order Status</span>
-                    <span class="detail-value"><%= order.orderStatus %></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="illustration">
-            <i class="fas fa-box-open"></i>
-        </div>
-
-        <div class="action-buttons">
-            <a href="/orders/<%= order._id %>" class="btn btn-primary">
-                <i class="fas fa-receipt"></i>
-                View Order Details
-            </a>
-            <a href="/products" class="btn btn-secondary">
-                <i class="fas fa-shopping-bag"></i>
-                Continue Shopping
-            </a>
-        </div>
+  <div class="card" id="card">
+    <div class="check-wrap" id="checkWrap">
+      <i class="ti ti-check"></i>
     </div>
+
+    <h2>Order Placed!</h2>
+    <p class="subtitle">
+      Thank you for your purchase. Your items are being packed
+      and will be on their way soon.
+    </p>
+
+    <div class="order-summary">
+      <div class="order-row">
+        <span class="label">Order ID</span>
+        <span class="value">#<%= order.orderNumber %></span>
+      </div>
+      <div class="order-row">
+        <span class="label">Order Date</span>
+        <span class="value"><%= new Date(order.orderDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+      </div>
+      <div class="order-row">
+        <span class="label">Total Paid</span>
+        <span class="value green">₹<%= order.totalAmount.toLocaleString('en-IN') %></span>
+      </div>
+      <div class="order-row">
+        <span class="label">Payment Method</span>
+        <span class="value"><%= order.paymentMethod %></span>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn primary" onclick="window.location.href='/orders/<%= order._id %>'">
+        Track Order
+      </button>
+      <button class="btn" onclick="window.location.href='/products'">
+        Continue Shopping
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ---- Animate card in ----
+    const card = document.getElementById('card');
+    const checkWrap = document.getElementById('checkWrap');
+
+    setTimeout(() => card.classList.add('visible'), 100);
+    setTimeout(() => checkWrap.classList.add('visible'), 400);
+
+    // ---- Success Sound ----
+    function playSuccess() {
+      try {
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [523, 659, 784, 1047];
+        notes.forEach((freq, i) => {
+          const osc = ac.createOscillator();
+          const gain = ac.createGain();
+          osc.connect(gain);
+          gain.connect(ac.destination);
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          const t = ac.currentTime + i * 0.13;
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.2, t + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          osc.start(t);
+          osc.stop(t + 0.4);
+        });
+      } catch (e) {
+        console.warn('Audio not supported');
+      }
+    }
+
+    // ---- Confetti ----
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    const colors = ['#7F77DD','#1D9E75','#EF9F27','#D4537E','#378ADD','#D85A30'];
+    let pieces = [];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function spawnConfetti() {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      for (let i = 0; i < 150; i++) {
+        pieces.push({
+          x: cx + (Math.random() - 0.5) * 100,
+          y: cy - 50,
+          vx: (Math.random() - 0.5) * 10,
+          vy: -(Math.random() * 12 + 4),
+          r: Math.random() * 6 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * Math.PI * 2,
+          rotV: (Math.random() - 0.5) * 0.2,
+          shape: Math.random() > 0.5 ? 'rect' : 'circle',
+          life: 1
+        });
+      }
+    }
+
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = pieces.length - 1; i >= 0; i--) {
+        const p = pieces[i];
+        p.x += p.vx;
+        p.vy += 0.3;
+        p.y += p.vy;
+        p.rot += p.rotV;
+        p.vx *= 0.99;
+        p.life -= 0.012;
+
+        if (p.life <= 0 || p.y > canvas.height + 20) {
+          pieces.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = Math.min(p.life, 1);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+
+        if (p.shape === 'rect') {
+          ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+        } else {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      if (pieces.length > 0) requestAnimationFrame(loop);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    // ---- Trigger everything ----
+    setTimeout(() => {
+      playSuccess();
+      spawnConfetti();
+      loop();
+    }, 700);
+  </script>
 </body>
 </html>

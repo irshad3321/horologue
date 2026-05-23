@@ -46,6 +46,35 @@
             padding: 0 40px;
             position: relative;
             z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header-left {
+            flex: 1;
+        }
+
+        .btn-clear {
+            padding: 12px 24px;
+            background: white;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-clear:hover {
+            background: #dc3545;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
         }
 
         .page-title {
@@ -301,6 +330,13 @@
 
             .page-header-content {
                 padding: 0 20px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .btn-clear {
+                width: 100%;
             }
 
             .page-title {
@@ -319,8 +355,16 @@
 
     <div class="page-header">
         <div class="page-header-content">
-            <h1 class="page-title">My Wishlist</h1>
-            <p class="page-subtitle"><%= wishlist.items.length %> item<%= wishlist.items.length !== 1 ? 's' : '' %> saved for later</p>
+            <div class="page-header-left">
+                <h1 class="page-title">My Wishlist</h1>
+                <p class="page-subtitle"><%= wishlist.items.length %> item<%= wishlist.items.length !== 1 ? 's' : '' %> saved for later</p>
+            </div>
+            <% if (wishlist.items && wishlist.items.length > 0) { %>
+                <button class="btn-clear" onclick="clearWishlist()">
+                    <i class="fas fa-trash-alt"></i>
+                    Clear Wishlist
+                </button>
+            <% } %>
         </div>
     </div>
 
@@ -331,14 +375,24 @@
                 <% wishlist.items.forEach(item => { %>
                     <% 
                     const product = item.product;
+                    const variantId = item.variantId;
+                    const variantColor = item.variantColor || '';
                     
-                    // Get first variant for display
-                    const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+                    // Handle old wishlist items without variantId - use first variant
+                    let variant = null;
+                    if (variantId && product.variants && product.variants.length > 0) {
+                        variant = product.variants.find(v => v._id.toString() === variantId.toString());
+                    }
+                    
+                    // If variant not found, use first variant as fallback
+                    if (!variant && product.variants && product.variants.length > 0) {
+                        variant = product.variants[0];
+                    }
                     
                     // Handle missing variant
-                    if (!firstVariant) { %>
-                    <div class="wishlist-card" data-product-id="<%= product._id %>">
-                        <button class="remove-btn" onclick="removeFromWishlist('<%= product._id %>')">
+                    if (!variant) { %>
+                    <div class="wishlist-card" data-product-id="<%= product._id %>" data-variant-id="<%= variantId || '' %>">
+                        <button class="remove-btn" onclick="removeFromWishlist('<%= product._id %>', '<%= variantId || '' %>')">
                             <i class="fas fa-times"></i>
                         </button>
                         <div class="product-image-container">
@@ -347,7 +401,7 @@
                         </div>
                         <div class="product-info">
                             <div class="product-category"><%= product.category %></div>
-                            <h3 class="product-name"><%= product.name %></h3>
+                            <h3 class="product-name"><%= product.name %><%= variantColor ? ' - ' + variantColor : '' %></h3>
                             <div class="product-price">
                                 <span class="current-price">₹0</span>
                             </div>
@@ -365,29 +419,29 @@
                     <% return; } %>
                     
                     <% 
-                    // Get product image
+                    // Get variant image
                     let productImage = 'https://via.placeholder.com/400?text=No+Image';
-                    if (firstVariant.images && firstVariant.images.length > 0) {
-                        productImage = firstVariant.images[0].url;
+                    if (variant.images && variant.images.length > 0) {
+                        productImage = variant.images[0].url;
                     }
-                    
-                    // Calculate min price
-                    let minPrice = Math.min(...product.variants.map(v => v.price));
                     
                     // Calculate price with offer
-                    let finalPrice = minPrice;
+                    let variantPrice = variant.price;
+                    let finalPrice = variantPrice;
                     let hasDiscount = product.offer > 0;
                     if (hasDiscount) {
-                        finalPrice = minPrice - (minPrice * product.offer / 100);
+                        finalPrice = variantPrice - (variantPrice * product.offer / 100);
                     }
                     
-                    // Check if any variant is in stock
-                    const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
-                    const isOutOfStock = totalStock === 0;
+                    // Check variant stock
+                    const isOutOfStock = variant.stock === 0;
+                    
+                    // Display color - use stored color or variant color
+                    const displayColor = variantColor || variant.color;
                     %>
                     
-                    <div class="wishlist-card" data-product-id="<%= product._id %>">
-                        <button class="remove-btn" onclick="removeFromWishlist('<%= product._id %>')">
+                    <div class="wishlist-card" data-product-id="<%= product._id %>" data-variant-id="<%= variant._id %>">
+                        <button class="remove-btn" onclick="removeFromWishlist('<%= product._id %>', '<%= variant._id %>')">
                             <i class="fas fa-times"></i>
                         </button>
                         <div class="product-image-container">
@@ -395,16 +449,16 @@
                             <% if (isOutOfStock) { %>
                                 <div class="stock-badge out-of-stock">Out of Stock</div>
                             <% } else { %>
-                                <div class="stock-badge">In Stock</div>
+                                <div class="stock-badge">In Stock (<%= variant.stock %>)</div>
                             <% } %>
                         </div>
                         <div class="product-info">
                             <div class="product-category"><%= product.category %></div>
-                            <h3 class="product-name"><%= product.name %></h3>
+                            <h3 class="product-name"><%= product.name %> - <%= displayColor %></h3>
                             <div class="product-price">
                                 <span class="current-price">₹<%= finalPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
                                 <% if (hasDiscount) { %>
-                                    <span class="original-price">₹<%= minPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
+                                    <span class="original-price">₹<%= variantPrice.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %></span>
                                 <% } %>
                             </div>
                             <div class="action-buttons">
@@ -414,7 +468,7 @@
                                         Out of Stock
                                     </button>
                                 <% } else { %>
-                                    <button class="btn btn-primary" onclick="addToCartFromWishlist('<%= product._id %>', '<%= firstVariant._id %>')">
+                                    <button class="btn btn-primary" onclick="addToCartFromWishlist('<%= product._id %>', '<%= variant._id %>')">
                                         <i class="fas fa-shopping-cart"></i>
                                         Add to Cart
                                     </button>
@@ -452,7 +506,7 @@
     <script src="/js/session-protection.js"></script>
     <script>
         // Remove from wishlist
-        async function removeFromWishlist(productId) {
+        async function removeFromWishlist(productId, variantId) {
             const result = await Swal.fire({
                 title: 'Remove from Wishlist?',
                 text: 'Are you sure you want to remove this item from your wishlist?',
@@ -468,7 +522,7 @@
                 const response = await fetch('/api/wishlist/remove', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productId })
+                    body: JSON.stringify({ productId, variantId })
                 });
                 
                 const data = await response.json();
@@ -481,6 +535,39 @@
                 }
             } catch (error) {
                 toastManager.error('Error removing item from wishlist');
+            }
+        }
+
+        // Clear entire wishlist
+        async function clearWishlist() {
+            const result = await Swal.fire({
+                title: 'Clear Wishlist?',
+                text: 'Are you sure you want to remove all items from your wishlist?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, clear it',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#dc3545'
+            });
+            
+            if (!result.isConfirmed) return;
+            
+            try {
+                const response = await fetch('/api/wishlist/clear', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    toastManager.success('Wishlist cleared successfully');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    toastManager.error(data.message);
+                }
+            } catch (error) {
+                toastManager.error('Error clearing wishlist');
             }
         }
 

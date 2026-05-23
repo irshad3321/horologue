@@ -98,3 +98,15 @@ export async function getWishlistCount(userId) {
     
     return wishlist.items.length;
 }
+
+// Clear entire wishlist
+export async function clearWishlist(userId) {
+    const wishlist = await Wishlist.findOne({ user: userId });
+    
+    if (wishlist) {
+        wishlist.items = [];
+        await wishlist.save();
+    }
+    
+    return wishlist;
+}

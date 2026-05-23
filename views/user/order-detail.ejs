@@ -50,6 +50,17 @@
             align-items: center;
             justify-content: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #f8f9fa;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateX(-2px);
+        }
+
+        .back-btn:active {
+            transform: translateX(-2px) scale(0.95);
         }
 
         .page-title {
@@ -339,7 +350,7 @@
     <div class="container">
         <div class="page-header">
             <div class="header-left">
-                <button class="back-btn" onclick="window.history.back()">
+                <button class="back-btn" onclick="window.location.href='/orders'">
                     <i class="fas fa-arrow-left"></i>
                 </button>
                 <div>
@@ -414,39 +425,140 @@
                         <i class="fas fa-truck"></i>
                         Order Status
                     </h2>
-                    <div class="status-timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-dot active"></div>
-                            <div class="timeline-line"></div>
-                            <div class="timeline-content">
-                                <h4>Order Placed</h4>
-                                <p><%= new Date(order.orderDate).toLocaleString('en-IN') %></p>
+                    
+                    <!-- Return Request Declined Notification -->
+                    <% if (order.orderStatus === 'Delivered' && order.declineReason) { %>
+                        <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="color: #721c24; font-size: 16px; margin-bottom: 8px;">
+                                <i class="fas fa-times-circle"></i> Return Request Declined
+                            </h4>
+                            <p style="color: #721c24; font-size: 14px; margin-bottom: 4px;">
+                                Your return request has been declined by the admin.
+                            </p>
+                            <p style="color: #721c24; font-size: 13px; margin-top: 8px;">
+                                <strong>Reason:</strong> <%= order.declineReason %>
+                            </p>
+                        </div>
+                    <% } %>
+                    
+                    <% if (order.orderStatus === 'Cancelled') { %>
+                        <!-- Cancelled Order Timeline -->
+                        <div class="status-timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-dot active"></div>
+                                <div class="timeline-line"></div>
+                                <div class="timeline-content">
+                                    <h4>Order Placed</h4>
+                                    <p><%= new Date(order.orderDate).toLocaleString('en-IN') %></p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot active" style="background: #dc3545;"></div>
+                                <div class="timeline-content">
+                                    <h4 style="color: #dc3545;">Order Cancelled</h4>
+                                    <p><%= order.cancelledDate ? new Date(order.cancelledDate).toLocaleString('en-IN') : 'Cancelled' %></p>
+                                    <% if (order.cancellationReason) { %>
+                                        <p style="font-size: 12px; margin-top: 4px;"><strong>Reason:</strong> <%= order.cancellationReason %></p>
+                                    <% } %>
+                                </div>
                             </div>
                         </div>
-                        <div class="timeline-item">
-                            <div class="timeline-dot <%= ['Confirmed', 'Shipped', 'Delivered'].includes(order.orderStatus) ? 'active' : '' %>"></div>
-                            <div class="timeline-line"></div>
-                            <div class="timeline-content">
-                                <h4>Confirmed</h4>
-                                <p>Order confirmed</p>
+                    <% } else if (order.orderStatus === 'Return Requested') { %>
+                        <!-- Return Requested Timeline -->
+                        <div class="status-timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-dot active"></div>
+                                <div class="timeline-line"></div>
+                                <div class="timeline-content">
+                                    <h4>Order Placed</h4>
+                                    <p><%= new Date(order.orderDate).toLocaleString('en-IN') %></p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot active"></div>
+                                <div class="timeline-line"></div>
+                                <div class="timeline-content">
+                                    <h4>Delivered</h4>
+                                    <p><%= order.deliveryDate ? new Date(order.deliveryDate).toLocaleString('en-IN') : 'Delivered' %></p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot active" style="background: #ffc107;"></div>
+                                <div class="timeline-content">
+                                    <h4 style="color: #856404;">Return Requested</h4>
+                                    <p>Waiting for admin approval</p>
+                                    <% if (order.cancellationReason) { %>
+                                        <p style="font-size: 12px; margin-top: 4px;"><strong>Reason:</strong> <%= order.cancellationReason %></p>
+                                    <% } %>
+                                </div>
                             </div>
                         </div>
-                        <div class="timeline-item">
-                            <div class="timeline-dot <%= ['Shipped', 'Delivered'].includes(order.orderStatus) ? 'active' : '' %>"></div>
-                            <div class="timeline-line"></div>
-                            <div class="timeline-content">
-                                <h4>Shipped</h4>
-                                <p>Out for delivery</p>
+                    <% } else if (order.orderStatus === 'Returned') { %>
+                        <!-- Returned Order Timeline -->
+                        <div class="status-timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-dot active"></div>
+                                <div class="timeline-line"></div>
+                                <div class="timeline-content">
+                                    <h4>Order Placed</h4>
+                                    <p><%= new Date(order.orderDate).toLocaleString('en-IN') %></p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot active"></div>
+                                <div class="timeline-line"></div>
+                                <div class="timeline-content">
+                                    <h4>Delivered</h4>
+                                    <p><%= order.deliveryDate ? new Date(order.deliveryDate).toLocaleString('en-IN') : 'Delivered' %></p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot active" style="background: #ffc107;"></div>
+                                <div class="timeline-content">
+                                    <h4 style="color: #856404;">Order Returned</h4>
+                                    <p>Return request processed</p>
+                                    <% if (order.cancellationReason) { %>
+                                        <p style="font-size: 12px; margin-top: 4px;"><strong>Reason:</strong> <%= order.cancellationReason %></p>
+                                    <% } %>
+                                </div>
                             </div>
                         </div>
-                        <div class="timeline-item">
-                            <div class="timeline-dot <%= order.orderStatus === 'Delivered' ? 'active' : '' %>"></div>
-                            <div class="timeline-content">
-                                <h4>Delivered</h4>
-                                <p><% if (order.deliveryDate) { %><%= new Date(order.deliveryDate).toLocaleString('en-IN') %><% } else { %>Pending<% } %></p>
+                    <% } else { %>
+                        <!-- Normal Order Timeline -->
+                        <div class="status-timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-dot active"></div>
+                                <div class="timeline-line"></div>
+                                <div class="timeline-content">
+                                    <h4>Order Placed</h4>
+                                    <p><%= new Date(order.orderDate).toLocaleString('en-IN') %></p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot <%= ['Confirmed', 'Shipped', 'Delivered'].includes(order.orderStatus) ? 'active' : '' %>"></div>
+                                <div class="timeline-line"></div>
+                                <div class="timeline-content">
+                                    <h4>Confirmed</h4>
+                                    <p>Order confirmed</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot <%= ['Shipped', 'Delivered'].includes(order.orderStatus) ? 'active' : '' %>"></div>
+                                <div class="timeline-line"></div>
+                                <div class="timeline-content">
+                                    <h4>Shipped</h4>
+                                    <p>Out for delivery</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot <%= order.orderStatus === 'Delivered' ? 'active' : '' %>"></div>
+                                <div class="timeline-content">
+                                    <h4>Delivered</h4>
+                                    <p><% if (order.deliveryDate) { %><%= new Date(order.deliveryDate).toLocaleString('en-IN') %><% } else { %>Pending<% } %></p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    <% } %>
                 </div>
 
                 <!-- Order Summary -->
