@@ -90,7 +90,6 @@ export const verifyEmailChangeOTP = async (req, res) => {
         if (otpResult.isValid) {
             const updatedUser = await updateUserEmail(userId, newEmail);
             if (updatedUser) {
-                // Update session with plain object, not Mongoose document
                 req.session.user = {
                     id: updatedUser._id,
                     firstName: updatedUser.firstName,
@@ -156,7 +155,6 @@ export const uploadAvatar = async (req, res) => {
         // Get current user to check if they have an existing avatar
         const currentUser = await getUserById(userId);
         
-        // If user has existing avatar, delete it from Cloudinary
         if (currentUser && currentUser.profileImage) {
             try {
                 const urlParts = currentUser.profileImage.split('/');
@@ -172,7 +170,6 @@ export const uploadAvatar = async (req, res) => {
         const updatedUser = await updateUserAvatar(userId, req.file.path);
         
         if (updatedUser) {
-            // Update session with fresh user data
             req.session.user = {
                 id: updatedUser._id,
                 firstName: updatedUser.firstName,
@@ -213,7 +210,6 @@ export const deleteAvatar = async (req, res) => {
         
         if (currentUser && currentUser.profileImage) {
             try {
-                // Extract public_id from Cloudinary URL
                 const urlParts = currentUser.profileImage.split('/');
                 const publicIdWithExtension = urlParts[urlParts.length - 1];
                 const publicId = `horologue/avatars/${publicIdWithExtension.split('.')[0]}`;

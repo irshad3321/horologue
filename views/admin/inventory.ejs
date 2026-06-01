@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - Admin Panel</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .admin-main-content {
+            margin-left: 250px;
+            margin-top: 70px;
+            padding: 2rem;
+            min-height: calc(100vh - 70px);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-input, .filter-select {
+            padding: 10px 16px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .btn-filter {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-filter:hover {
+            background: #5568d3;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+
+        .pagination-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .inventory-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f3f5;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .product-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .stock-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stock-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .stock-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .stock-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stock-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stock-input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .btn-update {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .btn-update:hover {
+            background: #0056b3;
+        }
+
+        @media (max-width: 768px) {
+            .admin-main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/admin-navbar') %>
+    <%- include('../partials/admin-sidebar', { currentPage: 'inventory' }) %>
+    
+    <div class="admin-main-content">
+        <div class="page-header">
+            <h1 class="page-title">Inventory Management</h1>
+        </div>
+
+        <div class="filters">
+            <form method="GET" action="/admin/inventory" style="display: flex; gap: 1rem; flex-wrap: wrap; width: 100%;">
+                <input type="text" name="search" class="filter-input" placeholder="Search products..." value="<%= search %>">
+                <select name="brand" class="filter-select">
+                    <option value="">All Brands</option>
+                    <% brands.forEach(b => { %>
+                        <option value="<%= b %>" <%= brand === b ? 'selected' : '' %>><%= b %></option>
+                    <% }); %>
+                </select>
+                <button type="submit" class="btn-filter">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+                <% if (search || brand) { %>
+                    <a href="/admin/inventory" class="btn-filter" style="background: #6c757d; text-decoration: none; display: flex; align-items: center;">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                <% } %>
+            </form>
+        </div>
+
+        <div class="inventory-table">
+            <table id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Variant</th>
+                        <th>Current Stock</th>
+                        <th>Status</th>
+                        <th>New Stock</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% products.forEach(product => { %>
+                        <% product.variants.forEach(variant => { %>
+                            <% 
+                            const image = variant.images && variant.images.length > 0 ? variant.images[0].url : 'https://via.placeholder.com/50';
+                            let stockClass = 'stock-high';
+                            let stockLabel = 'In Stock';
+                            if (variant.stock === 0) {
+                                stockClass = 'stock-out';
+                                stockLabel = 'Out of Stock';
+                            } else if (variant.stock < 10) {
+                                stockClass = 'stock-low';
+                                stockLabel = 'Low Stock';
+                            } else if (variant.stock <= 50) {
+                                stockClass = 'stock-medium';
+                                stockLabel = 'Medium Stock';
+                            }
+                            %>
+                            <tr data-stock="<%= variant.stock %>" data-name="<%= product.name.toLowerCase() %> <%= variant.color.toLowerCase() %>">
+                                <td>
+                                    <div class="product-info">
+                                        <img src="<%= image %>" alt="<%= product.name %>" class="product-image">
+                                        <div>
+                                            <div class="product-name"><%= product.name %></div>
+                                            <div style="font-size: 12px; color: #6c757d;"><%= product.brand %></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><%= variant.color %></td>
+                                <td><strong><%= variant.stock %></strong></td>
+                                <td>
+                                    <span class="stock-badge <%= stockClass %>"><%= stockLabel %></span>
+                                </td>
+                                <td>
+                                    <input type="number" class="stock-input" id="stock-<%= product._id %>-<%= variant._id %>" min="0"  placeholder="<%= variant.stock %>">
+                                </td>
+                                <td>
+                                    <button class="btn-update" onclick="updateStock('<%= product._id %>', '<%= variant._id %>')">
+                                        <i class="fas fa-save"></i> Update
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <% if (totalPages > 1) { %>
+            <div class="pagination">
+                <a href="?page=<%= prevPage %>&search=<%= search %>&brand=<%= brand %>" class="pagination-btn" <%= !hasPrevPage ? 'style="pointer-events: none; opacity: 0.5;"' : '' %>>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+                <span class="pagination-info">Page <%= currentPageNum %> of <%= totalPages %></span>
+                <a href="?page=<%= nextPage %>&search=<%= search %>&brand=<%= brand %>" class="pagination-btn" <%= !hasNextPage ? 'style="pointer-events: none; opacity: 0.5;"' : '' %>>
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+        <% } %>
+    </div>
+
+    <script src="/js/session-protection.js"></script>
+    <script>
+        async function updateStock(productId, variantId) {
+            const input = document.getElementById(`stock-${productId}-${variantId}`);
+            const newStock = parseInt(input.value);
+            
+            if (!newStock && newStock !== 0) {
+                Swal.fire('Error', 'Please enter a valid stock quantity', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/admin/inventory/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productId: productId,
+                        variantId: variantId,
+                        stock: newStock
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    Swal.fire('Success', 'Stock updated successfully', 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Failed to update stock', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

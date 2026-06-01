@@ -47,10 +47,17 @@ export const showProducts = async (req, res) => {
         if (req.session.userId) {
             const wishlist = await wishlistService.getUserWishlist(req.session.userId);
             wishlistProductIds = wishlist.items.map(item => {
-                // Handle both populated and non-populated product references
                 const productId = item.product._id || item.product;
                 return productId.toString();
             });
+        }
+        
+        // Get cart and wishlist counts
+        let cartCount = 0;
+        let wishlistCount = 0;
+        if (req.session.userId) {
+            cartCount = await cartService.getCartCount(req.session.userId);
+            wishlistCount = await wishlistService.getWishlistCount(req.session.userId);
         }
         
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -69,7 +76,9 @@ export const showProducts = async (req, res) => {
             currentPage: result.page,
             totalPages: result.totalPages,
             total: result.total,
-            wishlistProductIds: wishlistProductIds
+            wishlistProductIds: wishlistProductIds,
+            cartCount: cartCount,
+            wishlistCount: wishlistCount
         });
     } catch (error) {
         res.status(500).render('error/500');
@@ -89,10 +98,33 @@ export const showProductDetail = async (req, res) => {
             return res.status(404).render('error/404');
         }
         
-        // Check if product is in wishlist
-        let isInWishlist = false;
+        // Get user's wishlist items with variant info
+        let wishlistVariants = [];
         if (req.session.userId) {
-            isInWishlist = await wishlistService.isInWishlist(req.session.userId, productId);
+            const wishlist = await wishlistService.getUserWishlist(req.session.userId);
+            wishlistVariants = wishlist.items.map(item => ({
+                productId: (item.product._id || item.product).toString(),
+                variantId: item.variantId ? item.variantId.toString() : null
+            }));
+        }
+        
+        // Get related products from same category
+        const relatedProducts = await productService.getRelatedProducts(productId, product.category, 4)
+        let wishlistProductIds = [];
+        if (req.session.userId) {
+            const wishlist = await wishlistService.getUserWishlist(req.session.userId);
+            wishlistProductIds = wishlist.items.map(item => {
+                const productId = item.product._id || item.product;
+                return productId.toString();
+            });
+        }
+        
+        // Get cart and wishlist counts
+        let cartCount = 0;
+        let wishlistCount = 0;
+        if (req.session.userId) {
+            cartCount = await cartService.getCartCount(req.session.userId);
+            wishlistCount = await wishlistService.getWishlistCount(req.session.userId);
         }
         
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -101,7 +133,11 @@ export const showProductDetail = async (req, res) => {
         res.render('user/product-detail', {
             user: req.session.user || null,
             product: product,
-            isInWishlist: isInWishlist
+            wishlistVariants: wishlistVariants,
+            relatedProducts: relatedProducts,
+            wishlistProductIds: wishlistProductIds,
+            cartCount: cartCount,
+            wishlistCount: wishlistCount
         });
     } catch (error) {
         res.status(500).render('error/500');
@@ -112,9 +148,13 @@ export const showProductDetail = async (req, res) => {
 export const showWishlist = async (req, res) => {
     try {
         let wishlist = { items: [] };
+        let cartCount = 0;
+        let wishlistCount = 0;
         
         if (req.session.userId) {
             wishlist = await wishlistService.getUserWishlist(req.session.userId);
+            cartCount = await cartService.getCartCount(req.session.userId);
+            wishlistCount = await wishlistService.getWishlistCount(req.session.userId);
         }
         
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -123,7 +163,9 @@ export const showWishlist = async (req, res) => {
         
         res.render('user/wishlist', {
             user: req.session.user || null,
-            wishlist: wishlist
+            wishlist: wishlist,
+            cartCount: cartCount,
+            wishlistCount: wishlistCount
         });
     } catch (error) {
         res.status(500).render('error/500');
@@ -133,12 +175,18 @@ export const showWishlist = async (req, res) => {
 // Show cart page
 export const showCart = async (req, res) => {
     try {
-        let cart = { items: [] };
+        const page = parseInt(req.query.page) || 1;
+        const limit = 5;
+        
+        let cart = { items: [], allItems: [], page: 1, totalPages: 0, total: 0 };
+        let cartCount = 0;
+        let wishlistCount = 0;
         
         if (req.session.userId) {
-            cart = await cartService.getUserCart(req.session.userId);
+            cart = await cartService.getUserCart(req.session.userId, page, limit);
+            cartCount = await cartService.getCartCount(req.session.userId);
+            wishlistCount = await wishlistService.getWishlistCount(req.session.userId);
         }
-         
         
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
         res.set('Pragma', 'no-cache');
@@ -146,7 +194,12 @@ export const showCart = async (req, res) => {
         
         res.render('user/cart', {
             user: req.session.user || null,
-            cart: cart
+            cart: cart,
+            currentPage: cart.page,
+            totalPages: cart.totalPages,
+            totalItems: cart.total,
+            cartCount: cartCount,
+            wishlistCount: wishlistCount
         });
     } catch (error) {
         res.status(500).render('error/500');

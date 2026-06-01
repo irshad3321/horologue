@@ -634,9 +634,21 @@
             
             // Collect variants data
             const variants = [];
+            const colors = [];
             let hasError = false;
+            let errorMessage = '';
             
-            variantCards.forEach((card) => {
+            // Check if at least one variant exists
+            if (variantCards.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No Variants',
+                    text: 'Please add at least one product variant with color, price, stock, and images.'
+                });
+                return;
+            }
+            
+            variantCards.forEach((card, index) => {
                 const color = card.querySelector('.variant-color').value.trim();
                 const price = card.querySelector('.variant-price').value;
                 const stock = card.querySelector('.variant-stock').value;
@@ -650,27 +662,83 @@
                     });
                 });
                 
-                if (!color || !price || !stock) {
-                    hasError = true;
-                    return;
-                }
-                
-                // Check minimum and maximum images
-                if (images.length < 3) {
+                // Validate color
+                if (!color) {
                     Swal.fire({
-                        icon: 'warning',
-                        title: 'Insufficient Images',
-                        text: 'Each variant must have at least 3 images'
+                        icon: 'error',
+                        title: 'Missing Color',
+                        text: `Variant #${index + 1}: Please enter a color name.`
                     });
                     hasError = true;
                     return;
                 }
                 
+                // Validate color length
+                if (color.length < 2) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Color',
+                        text: `Variant "${color}": Color name must be at least 2 characters long.`
+                    });
+                    hasError = true;
+                    return;
+                }
+                
+                // Validate price
+                if (!price || price <= 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Price',
+                        text: `Variant "${color}": Please enter a valid price greater than 0.`
+                    });
+                    hasError = true;
+                    return;
+                }
+                
+                // Validate stock
+                if (!stock || stock < 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Stock',
+                        text: `Variant "${color}": Please enter a valid stock quantity (0 or greater).`
+                    });
+                    hasError = true;
+                    return;
+                }
+                
+                // Check for duplicate colors (case-insensitive)
+                const colorLower = color.toLowerCase();
+                if (colors.includes(colorLower)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Duplicate Color',
+                        text: `Color "${color}" is already added. Each variant must have a unique color.`,
+                        footer: 'Please use different color names for each variant.'
+                    });
+                    hasError = true;
+                    return;
+                }
+                colors.push(colorLower);
+                
+                // Validate images - minimum 3
+                if (images.length < 3) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Insufficient Images',
+                        text: `Variant "${color}" has only ${images.length} image(s).`,
+                        footer: 'Please add at least 3 images for each variant.'
+                    });
+                    hasError = true;
+                    return;
+                }
+                
+                // Validate images - maximum 5
                 if (images.length > 5) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Too Many Images',
-                        text: 'Each variant can have maximum 5 images'
+                        text: `Variant "${color}" has ${images.length} images.`,
+                        footer: 'Maximum 5 images allowed per variant.'
                     });
                     hasError = true;
                     return;
@@ -685,11 +753,6 @@
             });
             
             if (hasError) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validation Error',
-                    text: 'Please fill all variant fields (color, price, stock)'
-                });
                 return;
             }
             

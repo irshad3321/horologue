@@ -1,6 +1,7 @@
 import * as productService from '../../service/productService.js';
 import * as categoryService from '../../service/categoryService.js';
-import { uploadToCloudinary, deleteFromCloudinary } from '../../config/cloudinary.js'
+import { uploadToCloudinary, deleteFromCloudinary } from '../../config/cloudinary.js';
+import Product from '../../models/Product.js';
 export async function getProductsPage(req, res) {
     try {
         const { search, status, category, page = 1, sort = 'newest' } = req.query
@@ -308,3 +309,120 @@ export async function deleteVariantImage(req, res) {
         });
     }
 }
+
+
+// Show inventory management page
+export const showInventory = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10; // 10 variants per page
+        const search = req.query.search || '';
+        const brand = req.query.brand || '';
+        
+        // Get all unique brands for filter
+        const allBrands = await Product.distinct('brand', { isDeleted: false });
+        
+        // Build query for products
+        const query = { isDeleted: false };
+        
+        if (search) {
+            query.name = { $regex: search, $options: 'i' };
+        }
+        
+        if (brand) {
+            query.brand = brand;
+        }
+        
+        // Get all matching products with their variants
+        const allProducts = await Product.find(query).sort({ name: 1 });
+        
+        // Flatten to get all variants
+        const allVariants = [];
+        allProducts.forEach(product => {
+            product.variants.forEach(variant => {
+                allVariants.push({
+                    product: product,
+                    variant: variant
+                });
+            });
+        });
+        
+        // Calculate pagination
+        const totalVariants = allVariants.length;
+        const totalPages = Math.ceil(totalVariants / limit);
+        const skip = (page - 1) * limit;
+        
+        // Get variants for current page
+        const paginatedVariants = allVariants.slice(skip, skip + limit);
+        
+        // Convert back to product format for the view
+        const productsForView = paginatedVariants.map(item => ({
+            _id: item.product._id,
+            name: item.product.name,
+            brand: item.product.brand,
+            variants: [item.variant]
+        }));
+        
+        res.render('admin/inventory', {
+            admin: req.session.user,
+            currentPage: 'inventory',
+            products: productsForView,
+            currentPageNum: page,
+            totalPages: totalPages,
+            search,
+            brand,
+            brands: allBrands.sort(),
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+            nextPage: page + 1,
+            prevPage: page - 1
+        });
+    } catch (error) {
+        console.error('Inventory page error:', error);
+        res.status(500).render('error/500');
+    }
+};
+
+// Update stock API
+export const updateStock = async (req, res) => {
+    try {
+        const { productId, variantId, stock } = req.body;
+        
+        if (!productId || !variantId || stock === undefined) {
+            return res.json({
+                success: false,
+                message: 'Missing required fields'
+            });
+        }
+
+        const product = await productService.getProductById(productId);
+        if (!product) {
+            return res.json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+        
+        const variant = product.variants.id(variantId);
+        if (!variant) {
+            return res.json({
+                success: false,
+                message: 'Variant not found'
+            });
+        }
+        
+        variant.stock = parseInt(stock);
+        await product.save();
+        
+        res.json({
+            success: true,
+            message: 'Stock updated successfully'
+        });
+    } catch (error) {
+        console.error('Update stock error:', error);
+        res.json({
+            success: false,
+            message: 'Failed to update stock'
+        });
+    }
+};

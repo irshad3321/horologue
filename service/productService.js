@@ -196,3 +196,15 @@ export async function getAllBrands() {
 }
 
 
+
+// Get related products by category
+export async function getRelatedProducts(productId, category, limit = 4) {
+    return await Product.find({
+        _id: { $ne: productId },
+        category: category,
+        status: 'active',
+        isDeleted: false
+    })
+    .limit(limit)
+    .sort({ createdAt: -1 });
+}

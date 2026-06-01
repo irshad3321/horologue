@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Horologue</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #fff;
+            padding-top: 80px;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .section {
+            margin-bottom: 80px;
+        }
+
+        .section-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .section-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #555;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            text-align: center;
+        }
+
+        .story-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .story-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .story-text p {
+            margin-bottom: 20px;
+        }
+
+        .story-image {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+            color: white;
+        }
+
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 48px;
+        }
+
+        .value-card {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 40px 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .value-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+        }
+
+        .value-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 36px;
+            color: white;
+        }
+
+        .value-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 12px;
+        }
+
+        .value-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #666;
+        }
+
+        .stats-section {
+            background: #f8f9fa;
+            padding: 80px 40px;
+            margin: 80px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stat-card {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .team-section {
+            text-align: center;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+            margin-top: 48px;
+        }
+
+        .team-member {
+            text-align: center;
+        }
+
+        .member-avatar {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            font-weight: 700;
+        }
+
+        .member-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 4px;
+        }
+
+        .member-role {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 40px;
+            text-align: center;
+            border-radius: 20px;
+            margin: 80px 40px;
+        }
+
+        .cta-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .cta-text {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 16px 48px;
+            background: white;
+            color: #667eea;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 968px) {
+            .hero-title {
+                font-size: 36px;
+            }
+
+            .story-content {
+                grid-template-columns: 1fr;
+            }
+
+            .values-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .team-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                padding: 40px 20px;
+            }
+
+            .hero-title {
+                font-size: 28px;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <% if (user) { %>
+        <%- include('../partials/navbar') %>
+    <% } else { %>
+        <%- include('../partials/navbar-landing') %>
+    <% } %>
+
+    <div class="hero-section">
+        <h1 class="hero-title">About Horologue</h1>
+        <p class="hero-subtitle">Crafting timeless elegance since our inception, bringing you the finest collection of luxury watches</p>
+    </div>
+
+    <div class="container">
+        <!-- Our Story Section -->
+        <div class="section">
+            <div class="story-content">
+                <div class="story-text">
+                    <h2 class="section-title" style="text-align: left;">Our Story</h2>
+                    <p>Founded with a passion for precision and elegance, Horologue has become a trusted destination for watch enthusiasts worldwide. Our journey began with a simple vision: to make luxury timepieces accessible to everyone who appreciates fine craftsmanship.</p>
+                    <p>Over the years, we've curated an exceptional collection of watches from renowned brands, each piece selected for its quality, design, and heritage. We believe that a watch is more than just a time-telling device—it's a statement of style, a mark of achievement, and a companion for life's most important moments.</p>
+                    <p>Today, we continue to serve our customers with dedication, offering not just products, but an experience that celebrates the art of horology.</p>
+                </div>
+                <div class="story-image">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Our Values Section -->
+        <div class="section">
+            <h2 class="section-title">Our Values</h2>
+            <p class="section-text">The principles that guide everything we do</p>
+            
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <h3 class="value-title">Quality First</h3>
+                    <p class="value-text">We source only authentic timepieces from authorized dealers, ensuring every watch meets the highest standards of quality and craftsmanship.</p>
+                </div>
+
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="value-title">Trust & Authenticity</h3>
+                    <p class="value-text">Every watch comes with a certificate of authenticity and warranty, giving you complete peace of mind with your purchase.</p>
+                </div>
+
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3 class="value-title">Customer Satisfaction</h3>
+                    <p class="value-text">Your satisfaction is our priority. We provide exceptional service, from browsing to after-sales support.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">10K+</div>
+                <div class="stat-label">Happy Customers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">500+</div>
+                <div class="stat-label">Watch Models</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">Premium Brands</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">99%</div>
+                <div class="stat-label">Satisfaction Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Team Section -->
+        <div class="section team-section">
+            <h2 class="section-title">Meet Our Team</h2>
+            <p class="section-text">The passionate people behind Horologue</p>
+            
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-avatar">JD</div>
+                    <h3 class="member-name">John Doe</h3>
+                    <p class="member-role">Founder & CEO</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-avatar">JS</div>
+                    <h3 class="member-name">Jane Smith</h3>
+                    <p class="member-role">Head of Operations</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-avatar">MB</div>
+                    <h3 class="member-name">Mike Brown</h3>
+                    <p class="member-role">Chief Curator</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-avatar">SD</div>
+                    <h3 class="member-name">Sarah Davis</h3>
+                    <p class="member-role">Customer Experience</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-section">
+        <h2 class="cta-title">Ready to Find Your Perfect Watch?</h2>
+        <p class="cta-text">Explore our curated collection of luxury timepieces</p>
+        <a href="/products" class="cta-button">Shop Now</a>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <script src="/js/session-protection.js"></script>
+</body>
+</html>

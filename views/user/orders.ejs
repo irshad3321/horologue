@@ -262,7 +262,23 @@
             color: #dc3545;
             border: 2px solid #dc3545;
         }
+                 .breadcrumb {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 40px;
+            font-size: 14px;
+            color: #666;
+        }
 
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: #764ba2;
+        }
         .btn-danger:hover {
             background: #fff5f5;
         }
@@ -336,7 +352,15 @@
 
     <div class="container">
         <div class="page-header">
-            <h1 class="page-title">My Orders</h1>
+            
+            <h1 class="page-title">My Orders</h1>   
+            <div class="breadcrumb">
+            <a href="/home">Home</a>
+            <span>/</span>
+            <a href="/profile">profile</a>
+            <span>/</span>
+            <span>orders</span>
+        </div>
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Search orders..." onkeyup="searchOrders()">
                 <i class="fas fa-search"></i>
@@ -360,6 +384,10 @@
                                 <div class="info-item">
                                     <span class="info-label">Items</span>
                                     <span class="info-value"><%= order.items.length %> item<%= order.items.length > 1 ? 's' : '' %></span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Payment</span>
+                                    <span class="info-value"><%= order.paymentMethod %></span>
                                 </div>
                             </div>
                             <span class="order-status status-<%= order.orderStatus.toLowerCase() %>">
@@ -428,6 +456,29 @@
                 </div>
             <% } %>
         </div>
+        <!-- Add this after orders-list div closes -->
+<% if (totalPages > 1) { %>
+<div style="display: flex; justify-content: center; gap: 8px; margin-top: 32px;">
+    <% if (currentPage > 1) { %>
+        <a href="/orders?page=<%= currentPage - 1 %>" style="padding: 10px 16px; background: white; border: 2px solid #667eea; color: #667eea; border-radius: 8px; text-decoration: none; font-weight: 600;">
+            Previous
+        </a>
+    <% } %>
+    
+    <% for (let i = 1; i <= totalPages; i++) { %>
+        <a href="/orders?page=<%= i %>" style="padding: 10px 16px; background: <%= i === currentPage ? '#667eea' : 'white' %>; border: 2px solid #667eea; color: <%= i === currentPage ? 'white' : '#667eea' %>; border-radius: 8px; text-decoration: none; font-weight: 600;">
+            <%= i %>
+        </a>
+    <% } %>
+    
+    <% if (currentPage < totalPages) { %>
+        <a href="/orders?page=<%= currentPage + 1 %>" style="padding: 10px 16px; background: white; border: 2px solid #667eea; color: #667eea; border-radius: 8px; text-decoration: none; font-weight: 600;">
+            Next
+        </a>
+    <% } %>
+</div>
+<% } %>
+
     </div>
 
     <%- include('../partials/footer') %>
@@ -512,7 +563,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ reason: reason })
                     });
-
+                    
                     const data = await response.json();
 
                     if (data.success) {

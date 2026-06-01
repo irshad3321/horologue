@@ -8,13 +8,10 @@ export const showOrders = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = 10;
         const skip = (page - 1) * limit;
-        
-        // Get filters from query
         const status = req.query.status || '';
         const search = req.query.search || '';
         const sortBy = req.query.sort || 'newest';
         
-        // Build query
         let query = {};
         
         if (status) {
@@ -26,8 +23,6 @@ export const showOrders = async (req, res) => {
                 { orderNumber: { $regex: search, $options: 'i' } }
             ];
         }
-        
-        // Build sort
         let sort = {};
         if (sortBy === 'newest') {
             sort.orderDate = -1;
@@ -39,7 +34,6 @@ export const showOrders = async (req, res) => {
             sort.totalAmount = 1;
         }
         
-        // Get orders with pagination
         const orders = await Order.find(query)
             .populate('userId', 'firstName lastName email phone')
             .populate('items.product', 'name images variants')
@@ -133,6 +127,17 @@ export const updateOrderStatus = async (req, res) => {
                         await product.save();
                     }
                 }
+            }
+            
+            // Refund to wallet when return is approved
+            if (status === 'Returned') {
+                const { refundToWallet } = await import('../../service/walletService.js');
+                await refundToWallet(
+                    order.userId, 
+                    order.totalAmount, 
+                    `Refund for returned order #${order.orderNumber}`, 
+                    order._id
+                );
             }
         }
         

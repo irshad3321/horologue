@@ -46,8 +46,16 @@ import {
     showEditProfile,
     showLanding,
     showAddresses,
-    showChangePassword
+    showChangePassword,
+    showAbout,
+    showContact
 } from '../controllers/pageController.js';
+
+import {
+    showWallet,
+    addMoney,
+    getBalance
+} from '../controllers/user/walletController.js';
 
 import {
     showProducts,
@@ -72,7 +80,11 @@ import {
     cancelOrder,
     cancelOrderItem,
     returnOrder,
-    downloadInvoice
+    downloadInvoice,
+    createRazorpayOrder,
+    verifyRazorpayPayment,
+    validateCouponController,
+    getAvailableCoupons
 } from '../controllers/user/orderController.js';
 
 import { syncUserSession, isAuthenticated, isNotAuthenticated, preventCache, redirectAuthenticatedUsers, userSessionCheck } from '../middlewares/sessionAuth.js';
@@ -86,6 +98,8 @@ router.use(syncUserSession);
 // Page routes
 router.get('/', redirectAuthenticatedUsers, showLanding);
 router.get('/home', isAuthenticated, showHome);
+router.get('/about', showAbout);
+router.get('/contact', showContact);
 router.get('/products', showProducts);
 router.get('/collection', showProducts);
 router.get('/product/:id', showProductDetail);
@@ -96,10 +110,32 @@ router.get('/edit-profile', isAuthenticated, showEditProfile);
 router.get('/addresses', isAuthenticated, showAddresses);
 router.get('/password', isAuthenticated, showChangePassword);
 
+// Wallet route
+router.get('/wallet', isAuthenticated, showWallet);
+router.post('/api/wallet/add-money', isAuthenticated, addMoney);
+router.get('/api/wallet/balance', isAuthenticated, getBalance);
+
 // Checkout routes
 router.get('/checkout', isAuthenticated, showCheckout);
 router.post('/api/orders/place', isAuthenticated, placeOrder);
 router.get('/order-success', isAuthenticated, showOrderSuccess);
+router.get('/payment-failure', isAuthenticated, (req, res) => {
+    res.render('user/payment-failure', {
+        user: req.session.user,
+        orderId: req.query.orderId || null,
+        amount: req.query.amount || 0,
+        paymentMethod: req.query.method || 'Online Payment',
+        reason: req.query.reason || 'Payment gateway error'
+    });
+});
+
+// Payment routes
+router.post('/api/payment/create-order', isAuthenticated, createRazorpayOrder);
+router.post('/api/payment/verify', isAuthenticated, verifyRazorpayPayment);
+
+// Coupon routes
+router.post('/api/coupon/validate', isAuthenticated, validateCouponController);
+router.get('/api/coupons/available', isAuthenticated, getAvailableCoupons);
 
 // Orders routes
 router.get('/orders', isAuthenticated, showOrders);

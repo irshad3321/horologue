@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - <%= order.orderNumber %></title>
+    <style>
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                margin: 0;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+
+        .company-name {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .company-tagline {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .invoice-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        .invoice-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .detail-section h3 {
+            font-size: 14px;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .detail-section p {
+            font-size: 13px;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 5px;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+
+        .items-table thead {
+            background: #667eea;
+            color: white;
+        }
+
+        .items-table th {
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .items-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .items-table tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .totals-section {
+            margin-left: auto;
+            width: 300px;
+            margin-top: 20px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .total-row.grand-total {
+            border-top: 2px solid #667eea;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .invoice-footer {
+            margin-top: 50px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .invoice-footer p {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .print-button:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">
+        <i class="fas fa-print"></i> Print / Save as PDF
+    </button>
+
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="company-name">HOROLOGUE</div>
+            <div class="company-tagline">Premium Watch Store</div>
+            <div class="invoice-title">INVOICE</div>
+        </div>
+
+        <!-- Invoice Details -->
+        <div class="invoice-details">
+            <div class="detail-section">
+                <h3>Invoice Details</h3>
+                <p><strong>Invoice Number:</strong> <%= order.orderNumber %></p>
+                <p><strong>Order Date:</strong> <%= new Date(order.orderDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %></p>
+                <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
+                <p><strong>Payment Status:</strong> <%= order.paymentStatus %></p>
+            </div>
+
+            <div class="detail-section">
+                <h3>Bill To</h3>
+                <p><strong><%= order.shippingAddress.fullName %></strong></p>
+                <p><%= order.shippingAddress.phone %></p>
+                <p><%= order.userId.email %></p>
+            </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="detail-section">
+            <h3>Shipping Address</h3>
+            <p><%= order.shippingAddress.addressLine1 %></p>
+            <% if (order.shippingAddress.addressLine2) { %>
+                <p><%= order.shippingAddress.addressLine2 %></p>
+            <% } %>
+            <p><%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> - <%= order.shippingAddress.pincode %></p>
+        </div>
+
+        <!-- Items Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Color</th>
+                    <th class="text-right">Qty</th>
+                    <th class="text-right">Price</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% order.items.forEach(item => { %>
+                    <tr>
+                        <td><%= item.product.name %></td>
+                        <td><%= item.color %></td>
+                        <td class="text-right"><%= item.quantity %></td>
+                        <td class="text-right">₹<%= item.price.toLocaleString('en-IN') %></td>
+                        <td class="text-right">₹<%= item.itemTotal.toLocaleString('en-IN') %></td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="totals-section">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>₹<%= order.subtotal.toLocaleString('en-IN') %></span>
+            </div>
+            <% if (order.discount > 0) { %>
+                <div class="total-row">
+                    <span>Discount:</span>
+                    <span style="color: #28a745;">-₹<%= order.discount.toLocaleString('en-IN') %></span>
+                </div>
+            <% } %>
+            <% if (order.tax > 0) { %>
+                <div class="total-row">
+                    <span>Tax:</span>
+                    <span>₹<%= order.tax.toLocaleString('en-IN') %></span>
+                </div>
+            <% } %>
+            <div class="total-row">
+                <span>Shipping:</span>
+                <span>₹<%= order.shippingCharge.toLocaleString('en-IN') %></span>
+            </div>
+            <div class="total-row grand-total">
+                <span>Total Amount:</span>
+                <span>₹<%= order.totalAmount.toLocaleString('en-IN') %></span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="invoice-footer">
+            <p><strong>Thank you for your business!</strong></p>
+            <p>For any queries, contact us at support@horologue.com</p>
+            <p style="margin-top: 15px; font-size: 11px;">This is a computer-generated invoice and does not require a signature.</p>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</body>
+</html>

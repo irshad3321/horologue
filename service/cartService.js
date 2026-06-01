@@ -1,12 +1,18 @@
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
 
-// Get user cart with product details
-export async function getUserCart(userId) {
+// Get user cart with product details and pagination
+export async function getUserCart(userId, page = 1, limit = 5) {
     const cart = await Cart.findOne({ user: userId }).populate('items.product');
     
     if (!cart) {
-        return { items: [] };
+        return { 
+            items: [], 
+            allItems: [],
+            page: 1, 
+            totalPages: 0, 
+            total: 0 
+        };
     }
     
     // Fix cart items with invalid variant IDs by matching color
@@ -40,7 +46,20 @@ export async function getUserCart(userId) {
         await cart.save();
     }
     
-    return cart;
+    // Pagination logic
+    const total = cart.items.length;
+    const totalPages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedItems = cart.items.slice(startIndex, endIndex);
+    
+    return {
+        items: paginatedItems,
+        allItems: cart.items,
+        page: page,
+        totalPages: totalPages,
+        total: total
+    };
 }
 
 // Add product to cart
@@ -211,5 +230,5 @@ export async function getCartCount(userId) {
         return 0;
     }
     
-    return cart.items.length;
+    return cart.items.length;   
 }

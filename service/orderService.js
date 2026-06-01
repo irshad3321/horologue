@@ -9,7 +9,7 @@ function generateOrderNumber(){
     return `ORD${timestamp}${random}`;
 }
 // palcing the ordder 
-export async function placeOrder(userId, addressId, paymentMethod) {
+export async function placeOrder(userId, addressId, paymentMethod, couponCode = null, couponDiscount = 0, razorpayOrderId = null, razorpayPaymentId = null, razorpaySignature = null) {
     try {
         const cart = await Cart.findOne({ user: userId }).populate('items.product');
         
@@ -22,6 +22,7 @@ export async function placeOrder(userId, addressId, paymentMethod) {
         if (!address) {
             throw new Error('Address not found');
         }
+        
         let subtotal = 0;
         const orderItems = [];
         
@@ -57,7 +58,28 @@ export async function placeOrder(userId, addressId, paymentMethod) {
         const discount = 0;
         const tax = 0;
         const shippingCharge = 0;
-        const totalAmount = subtotal - discount + tax + shippingCharge;
+        const totalAmount = subtotal - discount - couponDiscount + tax + shippingCharge;
+        
+        // Handle wallet payment
+        if (paymentMethod === 'Wallet') {
+            const { hasSufficientBalance, deductMoneyFromWallet } = await import('./walletService.js');
+            
+            const hasBalance = await hasSufficientBalance(userId, totalAmount);
+            if (!hasBalance) {
+                throw new Error('Insufficient wallet balance');
+            }
+        }
+        
+        // If coupon is applied, increment usage count
+        if (couponCode) {
+            const { applyCoupon } = await import('./couponService.js');
+            const Coupon = (await import('../models/Coupon.js')).default;
+            const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
+            if (coupon) {
+                await applyCoupon(coupon._id);
+            }
+        }
+        
         const order = new Order({
             userId: userId,
             orderNumber: generateOrderNumber(),
@@ -79,10 +101,22 @@ export async function placeOrder(userId, addressId, paymentMethod) {
             totalAmount: totalAmount,
             paymentMethod: paymentMethod,
             paymentStatus: paymentMethod === 'COD' ? 'Pending' : 'Paid',
-            orderStatus: 'Pending'
+            orderStatus: 'Pending',
+            couponCode: couponCode,
+            couponDiscount: couponDiscount,
+            razorpayOrderId: razorpayOrderId,
+            razorpayPaymentId: razorpayPaymentId,
+            razorpaySignature: razorpaySignature
         });
         
         await order.save();
+        
+        // Deduct from wallet if wallet payment
+        if (paymentMethod === 'Wallet') {
+            const { deductMoneyFromWallet } = await import('./walletService.js');
+            await deductMoneyFromWallet(userId, totalAmount, `Order payment for #${order.orderNumber}`, order._id);
+        }
+        
         cart.items = [];
         await cart.save();
         
@@ -155,6 +189,13 @@ export async function cancelOrder(orderId, userId, reason) {
                 await product.save();
             }
         }
+        
+        // Refund to wallet if payment was made
+        if (order.paymentMethod !== 'COD' && order.paymentStatus === 'Paid') {
+            const { refundToWallet } = await import('./walletService.js');
+            await refundToWallet(userId, order.totalAmount, `Refund for cancelled order #${order.orderNumber}`, order._id);
+        }
+        
         order.orderStatus = 'Cancelled';
         order.cancelledDate = new Date();
         order.cancellationReason = reason || '';
@@ -187,6 +228,8 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
             throw new Error('Item not found');
         }
         
+        const itemTotal = item.itemTotal;
+        
         // Restore stock
         const product = await Product.findById(item.product._id);
         const variant = product.variants.id(item.variantId);
@@ -195,6 +238,13 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
             variant.stock += item.quantity;
             await product.save();
         }
+        
+        // Refund item amount to wallet if payment was made
+        if (order.paymentMethod !== 'COD' && order.paymentStatus === 'Paid') {
+            const { refundToWallet } = await import('./walletService.js');
+            await refundToWallet(userId, itemTotal, `Refund for cancelled item from order #${order.orderNumber}`, order._id);
+        }
+        
         order.items.pull(itemId);
         let subtotal = 0;
         order.items.forEach(item => {
