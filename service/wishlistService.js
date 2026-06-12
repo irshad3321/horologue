@@ -9,6 +9,13 @@ export async function getUserWishlist(userId) {
         return { items: [] };
     }
     
+    // Filter out inactive/deleted products
+    wishlist.items = wishlist.items.filter(item => 
+        item.product && 
+        item.product.status === 'active' && 
+        !item.product.isDeleted
+    );
+    
     return wishlist;
 }
 

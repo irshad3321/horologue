@@ -72,7 +72,8 @@ export const showProfile = async (req, res) => {
             phone: user.phone,
             profileImage: user.profileImage,
             isAdmin: user.isAdmin,
-            createdAt: user.createdAt
+            createdAt: user.createdAt,
+            googleId: user.googleId  // Include googleId for checking
         };
     }
     
@@ -105,7 +106,8 @@ export const showEditProfile = async (req, res) => {
             phone: user.phone,
             profileImage: user.profileImage,
             isAdmin: user.isAdmin,
-            createdAt: user.createdAt
+            createdAt: user.createdAt,
+            googleId: user.googleId  // Include googleId for checking
         };
     }
     
@@ -117,7 +119,8 @@ export const showEditProfile = async (req, res) => {
         user: req.session.user,
         currentPage: 'edit-profile',
         cartCount: cartCount,
-        wishlistCount: wishlistCount
+        wishlistCount: wishlistCount,
+        isGoogleUser: !!req.session.user?.googleId  // Pass to view based on googleId
     });
 };
 
@@ -138,7 +141,8 @@ export const showAddresses = async (req, res) => {
             phone: user.phone,
             profileImage: user.profileImage,
             isAdmin: user.isAdmin,
-            createdAt: user.createdAt
+            createdAt: user.createdAt,
+            googleId: user.googleId  // Include googleId for checking
         };
     }
     
@@ -175,7 +179,8 @@ export const showChangePassword = async (req, res) => {
             phone: user.phone,
             profileImage: user.profileImage,
             isAdmin: user.isAdmin,
-            createdAt: user.createdAt
+            createdAt: user.createdAt,
+            googleId: user.googleId  // Include googleId for checking
         };
     }
     

@@ -16,6 +16,9 @@ export const getAddresses = async (req, res) => {
         }
         
         const addresses = await getUserAddresses(userId);
+        const arr=[]
+     
+    
         res.json({ success: true, addresses });
         
     } catch (error) {

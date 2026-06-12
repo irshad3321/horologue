@@ -227,10 +227,6 @@
   </div>
 
   <script>
-    // Debug: Log the values passed from server
-    console.log('OTP Created At:', '<%= typeof otpCreatedAt !== "undefined" ? otpCreatedAt : "undefined" %>');
-    console.log('Resend Timer Start:', '<%= typeof resendTimerStart !== "undefined" ? resendTimerStart : "undefined" %>');
-    
     let resendCooldown = 60; // 1 minute cooldown
     let canResend = false; // Always start with false for 60-second cooldown
     let resendTimer = null; // Store timer reference
@@ -242,12 +238,10 @@
       const elapsedResendTime = Math.floor((currentTime - resendStartTime) / 1000);
       resendCooldown = Math.max(0, 60 - elapsedResendTime);
       canResend = resendCooldown <= 0;
-      console.log('Resend timer calculated - Elapsed:', elapsedResendTime, 'Remaining:', resendCooldown, 'Can resend:', canResend);
     <% } else { %>
       // First time loading, start with 60-second cooldown
       canResend = false;
       resendCooldown = 60;
-      console.log('First time loading, starting 60-second resend cooldown');
     <% } %>
     
     // Initialize resend link state
@@ -257,12 +251,10 @@
         resendLink.textContent = 'Resend Code';
         resendLink.style.opacity = '1';
         resendLink.style.cursor = 'pointer';
-        console.log('Resend link: CLICKABLE');
       } else {
         resendLink.textContent = `Resend Code (${resendCooldown}s)`;
         resendLink.style.opacity = '0.5';
         resendLink.style.cursor = 'not-allowed';
-        console.log('Resend link: COUNTDOWN -', resendCooldown, 'seconds');
       }
     }
     
@@ -272,11 +264,8 @@
       if (canResend) return; // Don't start if can already resend
       if (resendCooldown <= 0) return; // Don't start if no time left
       
-      console.log('Starting resend cooldown timer with', resendCooldown, 'seconds remaining');
-      
       resendTimer = setInterval(() => {
         resendCooldown--;
-        console.log('Resend countdown:', resendCooldown);
         updateResendLink();
         
         if (resendCooldown <= 0) {
@@ -285,7 +274,6 @@
           canResend = true;
           resendCooldown = 60; // Reset for next time
           updateResendLink();
-          console.log('Resend cooldown completed - button now clickable');
         }
       }, 1000);
     }
@@ -364,35 +352,38 @@
     let timeLeft = 300; // Default 5 minutes
     const countdown = document.getElementById('countdown');
     
-    // Try to get actual remaining time from server if available
+    // Calculate actual remaining time from server BEFORE starting timer
     <% if (typeof otpCreatedAt !== 'undefined' && otpCreatedAt) { %>
       try {
         const otpCreatedTime = new Date('<%= otpCreatedAt %>').getTime();
         const currentTime = Date.now();
         const elapsedTime = Math.floor((currentTime - otpCreatedTime) / 1000);
         timeLeft = Math.max(0, 300 - elapsedTime); // 5 minutes minus elapsed time
-        console.log('OTP timer calculated - Created:', new Date('<%= otpCreatedAt %>'), 'Elapsed:', elapsedTime, 'Remaining:', timeLeft);
       } catch (error) {
         console.error('Error calculating OTP time:', error);
         timeLeft = 300; // Fallback to 5 minutes
       }
-    <% } else { %>
-      console.log('No OTP creation time available, using default 5 minutes');
     <% } %>
+    
+    // Set initial display IMMEDIATELY before starting countdown
+    const initialMinutes = Math.floor(timeLeft / 60);
+    const initialSeconds = timeLeft % 60;
+    countdown.textContent = `${initialMinutes.toString().padStart(2, '0')}:${initialSeconds.toString().padStart(2, '0')}`;
     
     // Start the expiration countdown
     function startExpirationTimer() {
       const expirationTimer = setInterval(() => {
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        countdown.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        timeLeft--;
         
         if (timeLeft <= 0) {
           clearInterval(expirationTimer);
           countdown.textContent = 'Expired';
-          console.log('OTP expired');
+          return;
         }
-        timeLeft--;
+        
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        countdown.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       }, 1000);
     }
     

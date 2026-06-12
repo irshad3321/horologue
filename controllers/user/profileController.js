@@ -27,7 +27,8 @@ export const updateProfile = async (req, res) => {
                 phone: updatedUser.phone,
                 profileImage: updatedUser.profileImage,
                 isAdmin: updatedUser.isAdmin,
-                createdAt: updatedUser.createdAt
+                createdAt: updatedUser.createdAt,
+                googleId: updatedUser.googleId  // Include googleId
             };
             res.json({ success: true, message: 'Profile updated successfully' });
         } else {

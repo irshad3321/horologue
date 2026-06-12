@@ -267,6 +267,14 @@
             border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
+        .product-card.unavailable {
+            opacity: 0.7;
+        }
+
+        .product-card.unavailable .product-image {
+            filter: grayscale(30%);
+        }
+
         .product-card:hover {
             transform: translateY(-12px);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
@@ -288,6 +296,11 @@
 
         .product-badge.premium {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .product-badge.unavailable {
+            background: linear-gradient(135deg, #636363 0%, #3f3f3f 100%);
+            box-shadow: 0 4px 15px rgba(99, 99, 99, 0.4);
         }
 
         .product-image-container {
@@ -718,8 +731,12 @@
                     }
                     %>
                     
-                    <div class="product-card" onclick="window.location.href='/product/<%= product._id %>'">
-                        <% if (product.offer > 0) { %>
+                    <div class="product-card <%= product.status !== 'active' || product.brandStatus === 'inactive' ? 'unavailable' : '' %>" onclick="window.location.href='/product/<%= product._id %>'">
+                        <% if (product.brandStatus === 'inactive') { %>
+                            <div class="product-badge unavailable">Brand Deactivated</div>
+                        <% } else if (product.status !== 'active') { %>
+                            <div class="product-badge unavailable">Unavailable</div>
+                        <% } else if (product.offer > 0) { %>
                             <div class="product-badge">-<%= product.offer %>%</div>
                         <% } else if (product.premium === 'Yes') { %>
                             <div class="product-badge premium">Premium</div>

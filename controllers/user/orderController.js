@@ -50,13 +50,45 @@ export const placeOrder = async (req, res) => {
     try {
         const userId = req.session.userId;
         const { addressId, paymentMethod, couponCode, couponDiscount, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
-        
+       
         if (!addressId) {
             return res.status(400).json({
                 success: false,
                 message: 'Please select a shipping address'
             })
-        } 
+        }
+        
+        // Get cart to calculate total
+        const cart = await cartService.getUserCart(userId);
+        if (!cart || cart.items.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Your cart is empty'
+            });
+        }
+        
+        // Calculate total amount
+        let totalAmount = 0;
+        cart.items.forEach(item => {
+            const variant = item.product.variants.id(item.variantId);
+            let price = variant.price;
+            if (item.product.offer > 0) {
+                price = price - (price * item.product.offer / 100);
+            }
+            totalAmount += price * item.quantity;
+        });
+        
+        if (couponDiscount) {
+            totalAmount -= couponDiscount;
+        }
+        
+        if (paymentMethod === 'COD' && totalAmount > 2000) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cash on Delivery is not available for orders above ₹2,000. Please choose another payment method.'
+            });
+        }
+        
         const order = await orderService.placeOrder(
             userId, 
             addressId, 
@@ -68,6 +100,7 @@ export const placeOrder = async (req, res) => {
             razorpaySignature || null
         );
         
+
         res.json({
             success: true,
             message: 'Order placed successfully',
@@ -114,7 +147,6 @@ export const showOrders = async (req, res) => {
         const page = parseInt(req.query.page) || 1
         
         const result = await orderService.getUserOrders(userId, page, 10)
-        // Get cart and wishlist counts
         const cartCount = await cartService.getCartCount(userId)
         const wishlistCount = await wishlistService.getWishlistCount(userId)
         
@@ -163,7 +195,6 @@ export const cancelOrder = async (req, res) => {
         const orderId = req.params.id;
         const userId = req.session.userId;
         const { reason } = req.body;
-        
         const order = await orderService.cancelOrder(orderId, userId, reason);
         
         res.json({
@@ -187,7 +218,6 @@ export const cancelOrderItem = async (req, res) => {
         const { reason } = req.body
         
         const order = await orderService.cancelOrderItem(orderId, itemId, userId, reason)
-        
         res.json({
             success: true,
             message: 'Item cancelled successfully'
@@ -353,6 +383,70 @@ export const getAvailableCoupons = async (req, res) => {
         res.json({
             success: false,
             message: 'Failed to fetch coupons'
+        });
+    }
+};
+
+// Validate stock before placing order
+export const validateStock = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        const cart = await cartService.getUserCart(userId);
+        
+        if (!cart || cart.items.length === 0) {
+            return res.json({
+                success: false,
+                message: 'Your cart is empty'
+            });
+        }
+        
+        // Check each item for availability and stock
+        for (const item of cart.items) {
+            const product = item.product;
+            
+            // Check if product is active
+            if (product.status !== 'active' || product.isDeleted) {
+                return res.json({
+                    success: false,
+                    message: `${product.name} is no longer available`
+                });
+            }
+            
+            // Check variant and stock
+            const variant = product.variants.id(item.variantId);
+            
+            if (!variant) {
+                return res.json({
+                    success: false,
+                    message: `Variant not found for ${product.name}`
+                });
+            }
+            
+            if (variant.stock < item.quantity) {
+                if (variant.stock === 0) {
+                    return res.json({
+                        success: false,
+                        message: `${product.name} - ${variant.color} is out of stock`
+                    });
+                }
+                return res.json({
+                    success: false,
+                    message: `Only ${variant.stock} items available for ${product.name} - ${variant.color}`
+                });
+            }
+        }
+        
+        // All items are available
+        res.json({
+            success: true,
+            message: 'All items are available'
+        });
+        
+    } catch (error) {
+        console.error('Stock validation error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to validate stock'
         });
     }
 };

@@ -223,8 +223,14 @@
             </thead>
             <tbody>
                 <% order.items.forEach(item => { %>
-                    <tr>
-                        <td><%= item.product.name %></td>
+                    <% const itemStatus = item.itemStatus || 'Active'; %>
+                    <tr style="<%= itemStatus === 'Cancelled' ? 'text-decoration: line-through; color: #999;' : '' %>">
+                        <td>
+                            <%= item.product.name %>
+                            <% if (itemStatus === 'Cancelled') { %>
+                                <span style="color: #dc3545; font-size: 11px; font-weight: bold;"> (CANCELLED)</span>
+                            <% } %>
+                        </td>
                         <td><%= item.color %></td>
                         <td class="text-right"><%= item.quantity %></td>
                         <td class="text-right">₹<%= item.price.toLocaleString('en-IN') %></td>

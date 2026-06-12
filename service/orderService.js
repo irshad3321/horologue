@@ -11,6 +11,7 @@ function generateOrderNumber(){
 // palcing the ordder 
 export async function placeOrder(userId, addressId, paymentMethod, couponCode = null, couponDiscount = 0, razorpayOrderId = null, razorpayPaymentId = null, razorpaySignature = null) {
     try {
+             
         const cart = await Cart.findOne({ user: userId }).populate('items.product');
         
         if (!cart || cart.items.length === 0) {
@@ -28,14 +29,25 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
         
         for (const item of cart.items) {
             const product = item.product;
+            
+            // Validate product status
+            if (product.status !== 'active' || product.isDeleted) {
+                throw new Error(`${product.name} is no longer available`);
+            }
+            
             const variant = product.variants.id(item.variantId);
             
             if (!variant) {
                 throw new Error(`Variant not found for product ${product.name}`);
             }
+            
             if (variant.stock < item.quantity) {
-                throw new Error(`Insufficient stock for ${product.name} - ${variant.color}`);
+                if (variant.stock === 0) {
+                    throw new Error(`${product.name} - ${variant.color} is out of stock`);
+                }
+                throw new Error(`Only ${variant.stock} items available for ${product.name} - ${variant.color}`);
             }
+            
             let price = variant.price;
             if (product.offer > 0) {
                 price = price - (price * product.offer / 100);
@@ -129,6 +141,7 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
 // Get user orders
 export async function getUserOrders(userId, page = 1, limit = 10) {
     try {
+
         const skip = (page - 1) * limit;
         
         const orders = await Order.find({ userId })
@@ -138,12 +151,15 @@ export async function getUserOrders(userId, page = 1, limit = 10) {
             .limit(limit);
         
         const total = await Order.countDocuments({ userId });
-        
+         
+   
+       
         return {
             orders: orders,
             currentPage: page,
             totalPages: Math.ceil(total / limit),
             total: total
+           
         };
     } catch (error) {
         throw error;
@@ -170,16 +186,24 @@ export async function getOrderById(orderId, userId) {
 // Cancel order
 export async function cancelOrder(orderId, userId, reason) {
     try {
+
+        const count = await Order.countDocuments({userId,orderStatus:'Cancelled'})
+        if(count>3){
+            throw new Error('you have cancelled 3 ')
+        }
         const order = await Order.findOne({ _id: orderId, userId })
             .populate('items.product');
         
+
         if (!order) {
             throw new Error('Order not found');
         }
-        
+         
+
         if (order.orderStatus === 'Delivered' || order.orderStatus === 'Cancelled') {
             throw new Error('Cannot cancel this order');
         }
+        
         for (const item of order.items) {
             const product = await Product.findById(item.product._id);
             const variant = product.variants.id(item.variantId);
@@ -199,10 +223,10 @@ export async function cancelOrder(orderId, userId, reason) {
         order.orderStatus = 'Cancelled';
         order.cancelledDate = new Date();
         order.cancellationReason = reason || '';
-        
         await order.save();
         
-        return order;
+        return order,
+        count ;
     } catch (error) {
         throw error;
     }
@@ -228,6 +252,10 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
             throw new Error('Item not found');
         }
         
+        if (item.itemStatus === 'Cancelled') {
+            throw new Error('Item already cancelled');
+        }
+        
         const itemTotal = item.itemTotal;
         
         // Restore stock
@@ -238,22 +266,28 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
             variant.stock += item.quantity;
             await product.save();
         }
-        
-        // Refund item amount to wallet if payment was made
         if (order.paymentMethod !== 'COD' && order.paymentStatus === 'Paid') {
             const { refundToWallet } = await import('./walletService.js');
             await refundToWallet(userId, itemTotal, `Refund for cancelled item from order #${order.orderNumber}`, order._id);
         }
         
-        order.items.pull(itemId);
+        // Mark item as cancelled instead of removing it
+        item.itemStatus = 'Cancelled';
+        item.cancelledDate = new Date();
+        item.cancellationReason = reason || '';
+        
+        // Recalculate totals based on active items only
         let subtotal = 0;
         order.items.forEach(item => {
-            subtotal += item.itemTotal;
+            if (item.itemStatus === 'Active') {
+                subtotal += item.itemTotal;
+            }
         });
         
         order.subtotal = subtotal;
         order.totalAmount = subtotal - order.discount + order.tax + order.shippingCharge;
-        if (order.items.length === 0) {
+        const activeItems = order.items.filter(item => item.itemStatus === 'Active');
+        if (activeItems.length === 0) {
             order.orderStatus = 'Cancelled';
             order.cancelledDate = new Date();
             order.cancellationReason = reason || 'All items cancelled';
@@ -313,3 +347,5 @@ export async function searchOrders(userId, searchTerm) {
         throw error;
     }
 }
+
+

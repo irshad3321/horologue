@@ -14,12 +14,14 @@ import * as categoryController from '../controllers/admin/categoryController.js'
 import * as productController from '../controllers/admin/productController.js';
 import * as orderController from '../controllers/admin/orderController.js';
 import * as couponController from '../controllers/admin/couponController.js';
+import * as brandController from '../controllers/admin/brandController.js';
 import upload from '../config/multer.js';
 const router = express.Router();
 
 router.get('/login', isNotAuthenticatedAdmin, handleAdminLoginErrors, (req, res) => {
     res.render('admin/login', { error: req.adminLoginError, success: null });
 });
+
 
 // Admin login POST route
 router.post('/login', adminLogin)
@@ -126,6 +128,14 @@ router.delete('/api/coupons/:id', isAdmin, couponController.deleteCoupon);
 router.get('/sales-report', isAdmin, showSalesReport);
 router.get('/api/sales-report', isAdmin, getSalesReportData);
 router.get('/api/sales-report/download', isAdmin, downloadSalesReport);
+
+// Brand routes
+router.get('/brands', isAdmin, brandController.showBrands);
+router.get('/brands/:id', isAdmin, brandController.getBrandById);
+router.post('/brands', isAdmin, brandController.createBrand);
+router.put('/brands/:id', isAdmin, brandController.updateBrand);
+router.delete('/brands/:id', isAdmin, brandController.deleteBrand);
+router.patch('/brands/:id/toggle', isAdmin, brandController.toggleBrandStatus);
 
 router.get('/api/session-check', adminSessionCheck);
 

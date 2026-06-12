@@ -24,7 +24,14 @@ const orderSchema = new mongoose.Schema({
         color: String,
         price: Number,
         quantity: Number,
-        itemTotal: Number
+        itemTotal: Number,
+        itemStatus: {
+            type: String,
+            enum: ['Active', 'Cancelled', 'Returned'],
+            default: 'Active'
+        },
+        cancelledDate: Date,
+        cancellationReason: String
     }],
     shippingAddress: {
         fullName: String,
@@ -91,6 +98,7 @@ const orderSchema = new mongoose.Schema({
         enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested', 'Returned', 'Return Declined'],
         default: 'Pending'
     },
+    
     orderDate: {
         type: Date,
         default: Date.now

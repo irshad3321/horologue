@@ -19,8 +19,7 @@ export const showProducts = async (req, res) => {
             sort: sort || 'newest',
             page: page,
             limit: 8,
-            status: 'active',
-            hideInactiveCategories: true 
+            hideInactiveCategories: false 
         };
         if (priceRange) {
             if (priceRange === '50000+') {
@@ -90,12 +89,29 @@ export const showProductDetail = async (req, res) => {
     try {
         const productId = req.params.id;
         const product = await productService.getProductById(productId);
+        
         if (!product) {
             return res.status(404).render('error/404');
         }
+
+        let isUnavailable = false;
+        let unavailableReason = '';
         
         if (product.status !== 'active') {
-            return res.status(404).render('error/404');
+            isUnavailable = true;
+            unavailableReason = 'This product is currently unavailable';
+        } else if (product.category) {
+            try {
+                const Category = (await import('../../models/Category.js')).default;
+                const category = await Category.findOne({ name: product.category, isDeleted: false });
+                if (category && category.status !== 'active') {
+                    isUnavailable = true;
+                    unavailableReason = 'This product category is currently unavailable';
+                }
+            } catch (categoryError) {
+                console.error('Category check error:', categoryError);
+                
+            }
         }
         
         // Get user's wishlist items with variant info
@@ -119,7 +135,6 @@ export const showProductDetail = async (req, res) => {
             });
         }
         
-        // Get cart and wishlist counts
         let cartCount = 0;
         let wishlistCount = 0;
         if (req.session.userId) {
@@ -137,9 +152,12 @@ export const showProductDetail = async (req, res) => {
             relatedProducts: relatedProducts,
             wishlistProductIds: wishlistProductIds,
             cartCount: cartCount,
-            wishlistCount: wishlistCount
+            wishlistCount: wishlistCount,
+            isUnavailable: isUnavailable,
+            unavailableReason: unavailableReason
         });
     } catch (error) {
+        console.error('Show product detail error:', error);
         res.status(500).render('error/500');
     }
 };
@@ -182,9 +200,12 @@ export const showCart = async (req, res) => {
         let cartCount = 0;
         let wishlistCount = 0;
         
+        const cartIdentifier = req.session.userId || req.sessionID;
+        
+        cart = await cartService.getUserCart(cartIdentifier, page, limit);
+        cartCount = await cartService.getCartCount(cartIdentifier);
+        
         if (req.session.userId) {
-            cart = await cartService.getUserCart(req.session.userId, page, limit);
-            cartCount = await cartService.getCartCount(req.session.userId);
             wishlistCount = await wishlistService.getWishlistCount(req.session.userId);
         }
         
@@ -202,6 +223,7 @@ export const showCart = async (req, res) => {
             wishlistCount: wishlistCount
         });
     } catch (error) {
+        console.error('Show cart error:', error);
         res.status(500).render('error/500');
     }
 };
@@ -209,24 +231,25 @@ export const showCart = async (req, res) => {
 // Add to cart
 export const addToCart = async (req, res) => {
     try {
-        if (!req.session.userId) {
-            return res.status(401).json({
-                success: false,
-                message: 'Please login to add items to cart'
-            });
-        }
-        
         const productId = req.body.productId;
         const variantId = req.body.variantId;
         const quantity = parseInt(req.body.quantity) || 1;
+        
+        const cartIdentifier = req.session.userId || req.sessionID;
+        
+       
+        
         const cart = await cartService.addToCart(
-            req.session.userId,
+            cartIdentifier,
             productId,
             variantId,
             quantity
         );
         
-        await wishlistService.removeFromWishlist(req.session.userId, productId);
+        // Only remove from wishlist if user is logged in
+        if (req.session.userId) {
+            await wishlistService.removeFromWishlist(req.session.userId, productId);
+        }
         
         res.json({
             success: true,
@@ -234,6 +257,7 @@ export const addToCart = async (req, res) => {
             cartCount: cart.items.length
         });
     } catch (error) {
+        console.error('Add to cart error:', error);
         res.status(400).json({
             success: false,
             message: error.message
@@ -246,22 +270,17 @@ export const addToCart = async (req, res) => {
 // Update cart quanti
 export const updateCartQuantity = async (req, res) => {
     try {
-        if (!req.session.userId) {
-            return res.status(401).json({
-                success: false,
-                message: 'Please login'
-            });
-        }
-        const productId = req.body.productId;
-        const variantId = req.body.variantId;
-        const quantity = parseInt(req.body.quantity);
+        const { productId, variantId, quantity } = req.body;
         
-        const cart = await cartService.updateCartQuantity(
-            req.session.userId,
+        // Use userId if logged in, otherwise use session ID for guest cart
+        const cartIdentifier = req.session.userId || req.sessionID;
+        
+        await cartService.updateCartQuantity(
+            cartIdentifier,
             productId,
             variantId,
-            quantity
-        )
+            parseInt(quantity)
+        );
         
         res.json({
             success: true,
@@ -271,25 +290,19 @@ export const updateCartQuantity = async (req, res) => {
         res.status(400).json({
             success: false,
             message: error.message
-        });
+        })
     }
-};
-
+}
 // Remove from cartt
 export const removeFromCart = async (req, res) => {
     try {
-        if (!req.session.userId) {
-            return res.status(401).json({
-                success: false,
-                message: 'Please login'
-            });
-        }
-        
         const productId = req.body.productId;
         const variantId = req.body.variantId;
+    
+        const cartIdentifier = req.session.userId || req.sessionID;
         
         const cart = await cartService.removeFromCart(
-            req.session.userId,
+            cartIdentifier,
             productId,
             variantId
         );
@@ -310,14 +323,10 @@ export const removeFromCart = async (req, res) => {
 // Clear entire cart
 export const clearCart = async (req, res) => {
     try {
-        if (!req.session.userId) {
-            return res.status(401).json({
-                success: false,
-                message: 'Please login'
-            });
-        }
+        // Use userId if logged in, otherwise use session ID for guest cart
+        const cartIdentifier = req.session.userId || req.sessionID;
         
-        await cartService.clearCart(req.session.userId);
+        await cartService.clearCart(cartIdentifier);
         
         res.json({
             success: true,

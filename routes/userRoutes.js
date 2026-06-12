@@ -84,10 +84,11 @@ import {
     createRazorpayOrder,
     verifyRazorpayPayment,
     validateCouponController,
-    getAvailableCoupons
+    getAvailableCoupons,
+    validateStock
 } from '../controllers/user/orderController.js';
 
-import { syncUserSession, isAuthenticated, isNotAuthenticated, preventCache, redirectAuthenticatedUsers, userSessionCheck } from '../middlewares/sessionAuth.js';
+import { syncUserSession, isAuthenticated, preventCache, redirectAuthenticatedUsers, userSessionCheck } from '../middlewares/sessionAuth.js';
 import upload, { handleMulterError } from '../config/multer.js';
 
 const router = express.Router();
@@ -142,16 +143,17 @@ router.get('/orders', isAuthenticated, showOrders);
 router.get('/orders/:id', isAuthenticated, showOrderDetail);
 
 // Order management API routes
+router.post('/api/orders/validate-stock', isAuthenticated, validateStock);
 router.post('/api/orders/:id/cancel', isAuthenticated, cancelOrder);
 router.post('/api/orders/:orderId/items/:itemId/cancel', isAuthenticated, cancelOrderItem);
 router.post('/api/orders/:id/return', isAuthenticated, returnOrder);
 router.get('/api/orders/:id/invoice', isAuthenticated, downloadInvoice);
 
 // Cart API routes
-router.post('/api/cart/add', isAuthenticated, addToCart);
-router.put('/api/cart/update', isAuthenticated, updateCartQuantity);
-router.delete('/api/cart/remove', isAuthenticated, removeFromCart);
-router.delete('/api/cart/clear', isAuthenticated, clearCart);
+router.post('/api/cart/add', addToCart);
+router.put('/api/cart/update', updateCartQuantity);
+router.delete('/api/cart/remove', removeFromCart);
+router.delete('/api/cart/clear', clearCart);
 
 // Wishlist API routes
 router.post('/api/wishlist/add', isAuthenticated, addToWishlist);
@@ -159,9 +161,9 @@ router.delete('/api/wishlist/remove', isAuthenticated, removeFromWishlist);
 router.delete('/api/wishlist/clear', isAuthenticated, clearWishlist);
 
 // Authentication routes
-router.get('/register', isNotAuthenticated,showRegister);
+router.get('/register',showRegister);
 router.post('/register', registerUser);
-router.get('/login', isNotAuthenticated,showLogin);
+router.get('/login',showLogin);
 router.post('/login', loginUser)
 router.get('/logout', logoutUser)
 router.get('/verify-otp-registration',showVerifyOTPRegistration)

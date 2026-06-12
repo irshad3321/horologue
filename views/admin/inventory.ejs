@@ -294,7 +294,7 @@
                                     <span class="stock-badge <%= stockClass %>"><%= stockLabel %></span>
                                 </td>
                                 <td>
-                                    <input type="number" class="stock-input" id="stock-<%= product._id %>-<%= variant._id %>" min="0"  placeholder="<%= variant.stock %>">
+                                    <input type="number" class="stock-input" id="stock-<%= product._id %>-<%= variant._id %>" min="0"  placeholder="<%= variant.stock %> " re>
                                 </td>
                                 <td>
                                     <button class="btn-update" onclick="updateStock('<%= product._id %>', '<%= variant._id %>')">

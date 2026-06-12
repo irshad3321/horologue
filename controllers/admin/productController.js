@@ -37,11 +37,14 @@ export async function getProductsPage(req, res) {
 export async function getAddProductPage(req, res) {
     try {
         const categories = await categoryService.getCategories({ limit: 100, status: 'active' });
+        const { getActiveBrands } = await import('../../service/brandService.js');
+        const brands = await getActiveBrands();
         
         res.render('admin/add-product', {
             admin: req.session.user,
             currentPage: 'products',
-            categories: categories.categories
+            categories: categories.categories,
+            brands: brands
         });
     } catch (error) {
         console.error('Error loading add product page:', error);
@@ -58,21 +61,22 @@ export async function getEditProductPage(req, res) {
         }
         
         const categories = await categoryService.getCategories({ limit: 100, status: 'active' });
+        const { getActiveBrands } = await import('../../service/brandService.js');
+        const brands = await getActiveBrands();
         
         res.render('admin/edit-product', {
             admin: req.session.user,
             currentPage: 'products',
             product,
             productId,
-            categories: categories.categories
+            categories: categories.categories,
+            brands: brands
         });
     } catch (error) {
         console.error('Error loading edit product page:', error);
         res.status(500).render('error/500');
     }
 }
-
-// Get product by ID (API endpoint)
 export async function getProductById(req, res) {
     try {
         const { productId } = req.params;
@@ -315,14 +319,12 @@ export async function deleteVariantImage(req, res) {
 export const showInventory = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 10; // 10 variants per page
+        const limit = 10; 
         const search = req.query.search || '';
         const brand = req.query.brand || '';
-        
-        // Get all unique brands for filter
+
         const allBrands = await Product.distinct('brand', { isDeleted: false });
-        
-        // Build query for products
+
         const query = { isDeleted: false };
         
         if (search) {
@@ -333,7 +335,6 @@ export const showInventory = async (req, res) => {
             query.brand = brand;
         }
         
-        // Get all matching products with their variants
         const allProducts = await Product.find(query).sort({ name: 1 });
         
         // Flatten to get all variants
@@ -352,10 +353,8 @@ export const showInventory = async (req, res) => {
         const totalPages = Math.ceil(totalVariants / limit);
         const skip = (page - 1) * limit;
         
-        // Get variants for current page
         const paginatedVariants = allVariants.slice(skip, skip + limit);
-        
-        // Convert back to product format for the view
+
         const productsForView = paginatedVariants.map(item => ({
             _id: item.product._id,
             name: item.product.name,
@@ -395,14 +394,15 @@ export const updateStock = async (req, res) => {
             });
         }
 
-        const product = await productService.getProductById(productId);
+        // Fetch product as Mongoose document (not lean) to use .id() method
+        const product = await Product.findOne({ _id: productId, isDeleted: false });
         if (!product) {
             return res.json({
                 success: false,
                 message: 'Product not found'
             });
         }
-        
+       
         const variant = product.variants.id(variantId);
         if (!variant) {
             return res.json({

@@ -1,6 +1,13 @@
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
+import Brand from '../models/Brand.js';
 import { deleteFromCloudinary } from '../config/cloudinary.js';
+
+// Helper function to get brand status
+async function getBrandStatus(brandName) {
+    const brand = await Brand.findOne({ name: brandName, isDeleted: false });
+    return brand ? brand.status : 'active'; // Default to active if brand not found
+}
 
 export async function getProducts(filters = {}) {
     const search = filters.search;
@@ -78,11 +85,22 @@ export async function getProducts(filters = {}) {
         .sort(sortOption)
         .skip(skip)
         .limit(parseInt(limit));
+    
+    // Add brand status to each product
+    const productsWithBrandStatus = await Promise.all(
+        products.map(async (product) => {
+            const brandStatus = await getBrandStatus(product.brand);
+            return {
+                ...product.toObject(),
+                brandStatus: brandStatus
+            };
+        })
+    );
         
     const total = await Product.countDocuments(query);
     
     return {
-        products: products,
+        products: productsWithBrandStatus,
         total: total,
         page: parseInt(page),
         totalPages: Math.ceil(total / limit)
@@ -90,7 +108,15 @@ export async function getProducts(filters = {}) {
 }
 
 export async function getProductById(productId) {
-    return await Product.findOne({ _id: productId, isDeleted: false });
+    const product = await Product.findOne({ _id: productId, isDeleted: false });
+    if (!product) return null;
+    
+    // Add brand status
+    const brandStatus = await getBrandStatus(product.brand);
+    return {
+        ...product.toObject(),
+        brandStatus: brandStatus
+    };
 }
 export async function createProduct(productData) {
     const product = new Product(productData);

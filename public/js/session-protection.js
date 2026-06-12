@@ -16,8 +16,45 @@
     // Detect if this is an admin page
     const isAdminPage = window.location.pathname.startsWith('/admin');
     
+    // Public pages that don't require authentication
+    const publicPages = [
+        '/',
+        '/products',
+        '/collection',
+        '/cart',
+        '/about',
+        '/contact',
+        '/login',
+        '/register',
+        '/forgot-password',
+        '/verify-otp-forgot',
+        '/reset-password'
+    ];
+    
+    // Check if current page is public or product detail page
+    function isPublicPage() {
+        const currentPath = window.location.pathname;
+        
+        // Check exact matches
+        if (publicPages.includes(currentPath)) {
+            return true;
+        }
+        
+        // Check if it's a product detail page (/product/:id)
+        if (currentPath.startsWith('/product/')) {
+            return true;
+        }
+        
+        return false;
+    }
+    
     // Session validation function
     function checkSession() {
+        // Skip session check for public pages
+        if (isPublicPage()) {
+            return;
+        }
+        
         const endpoint = isAdminPage ? config.adminSessionEndpoint : config.userSessionEndpoint;
         const loginUrl = isAdminPage ? config.adminLoginUrl : config.userLoginUrl;
 
@@ -150,20 +187,23 @@
 
     // Initialize protection
     function initializeProtection() {
-        // Start session checking more frequently
-        setInterval(checkSession, config.sessionCheckInterval);
+        // Only enable session protection on non-public pages
+        if (!isPublicPage()) {
+            // Start session checking more frequently
+            setInterval(checkSession, config.sessionCheckInterval);
+            
+            // Initial session check after a short delay
+            setTimeout(checkSession, 1000);
+            
+            // Additional session check on page load
+            setTimeout(checkSession, 3000);
+        }
         
-        // Prevent back button aggressively
+        // Prevent back button aggressively (for all pages)
         preventBackButton();
         
         // Handle page cache
         handlePageCache();
-        
-        // Initial session check after a short delay
-        setTimeout(checkSession, 1000);
-        
-        // Additional session check on page load
-        setTimeout(checkSession, 3000);
     }
 
     // Auto-initialize when DOM is ready

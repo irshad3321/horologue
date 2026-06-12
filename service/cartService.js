@@ -2,8 +2,12 @@ import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
 
 // Get user cart with product details and pagination
-export async function getUserCart(userId, page = 1, limit = 5) {
-    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+export async function getUserCart(identifier, page = 1, limit = 5) {
+    // Determine if identifier is userId (ObjectId) or guestId (session string)
+    const isUserId = identifier && identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier);
+    
+    const query = isUserId ? { user: identifier } : { guestId: identifier };
+    const cart = await Cart.findOne(query).populate('items.product');
     
     if (!cart) {
         return { 
@@ -46,6 +50,15 @@ export async function getUserCart(userId, page = 1, limit = 5) {
         await cart.save();
     }
     
+    // Add brand status to each cart item's product
+    const Brand = (await import('../models/Brand.js')).default;
+    
+    for (const item of cart.items) {
+        const product = item.product;
+        const brand = await Brand.findOne({ name: product.brand, isDeleted: false });
+        product.brandStatus = brand ? brand.status : 'active';
+    }
+    
     // Pagination logic
     const total = cart.items.length;
     const totalPages = Math.ceil(total / limit);
@@ -63,7 +76,7 @@ export async function getUserCart(userId, page = 1, limit = 5) {
 }
 
 // Add product to cart
-export async function addToCart(userId, productId, variantId, quantity = 1) {
+export async function addToCart(identifier, productId, variantId, quantity = 1) {
     // Check if product exists and is active
     const product = await Product.findById(productId);
     
@@ -73,6 +86,13 @@ export async function addToCart(userId, productId, variantId, quantity = 1) {
     
     if (product.status !== 'active' || product.isDeleted) {
         throw new Error('Product is not available');
+    }
+    
+    // Check brand status
+    const Brand = (await import('../models/Brand.js')).default;
+    const brand = await Brand.findOne({ name: product.brand, isDeleted: false });
+    if (brand && brand.status === 'inactive') {
+        throw new Error('This brand is currently deactivated');
     }
     
     // Find the variant
@@ -87,11 +107,15 @@ export async function addToCart(userId, productId, variantId, quantity = 1) {
         throw new Error('Insufficient stock');
     }
     
+    // Determine if identifier is userId or guestId
+    const isUserId = identifier && identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier);
+    const query = isUserId ? { user: identifier } : { guestId: identifier };
+    
     // Find or create cart
-    let cart = await Cart.findOne({ user: userId });
+    let cart = await Cart.findOne(query);
     
     if (!cart) {
-        cart = new Cart({ user: userId, items: [] });
+        cart = new Cart(isUserId ? { user: identifier, items: [] } : { guestId: identifier, items: [] });
     }
     
     // Check if product variant already in cart
@@ -156,8 +180,11 @@ export async function addToCart(userId, productId, variantId, quantity = 1) {
 }
 
 // Update cart item quantity
-export async function updateCartQuantity(userId, productId, variantId, quantity) {
-    const cart = await Cart.findOne({ user: userId });
+export async function updateCartQuantity(identifier, productId, variantId, quantity) {
+    const isUserId = identifier && identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier);
+    const query = isUserId ? { user: identifier } : { guestId: identifier };
+    
+    const cart = await Cart.findOne(query);
     
     if (!cart) {
         throw new Error('Cart not found');
@@ -178,12 +205,28 @@ export async function updateCartQuantity(userId, productId, variantId, quantity)
         throw new Error('Maximum 5 quantities allowed per product');
     }
     
-    // Check stock
+    // Check product status and stock
     const product = await Product.findById(productId);
+    
+    if (!product) {
+        throw new Error('Product not found');
+    }
+    
+    if (product.status !== 'active' || product.isDeleted) {
+        throw new Error('Product is not available');
+    }
+    
     const variant = product.variants.id(variantId);
     
+    if (!variant) {
+        throw new Error('Variant not found');
+    }
+    
     if (variant.stock < quantity) {
-        throw new Error('Insufficient stock');
+        if (variant.stock === 0) {
+            throw new Error(`${product.name} - ${variant.color} is out of stock`);
+        }
+        throw new Error(`Only ${variant.stock} items available for ${product.name} - ${variant.color}`);
     }
     
     item.quantity = quantity;
@@ -193,8 +236,11 @@ export async function updateCartQuantity(userId, productId, variantId, quantity)
 }
 
 // Remove item from cart
-export async function removeFromCart(userId, productId, variantId) {
-    const cart = await Cart.findOne({ user: userId });
+export async function removeFromCart(identifier, productId, variantId) {
+    const isUserId = identifier && identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier);
+    const query = isUserId ? { user: identifier } : { guestId: identifier };
+    
+    const cart = await Cart.findOne(query);
     
     if (!cart) {
         throw new Error('Cart not found');
@@ -211,8 +257,11 @@ export async function removeFromCart(userId, productId, variantId) {
 }
 
 // Clear entire cart
-export async function clearCart(userId) {
-    const cart = await Cart.findOne({ user: userId });
+export async function clearCart(identifier) {
+    const isUserId = identifier && identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier);
+    const query = isUserId ? { user: identifier } : { guestId: identifier };
+    
+    const cart = await Cart.findOne(query);
     
     if (cart) {
         cart.items = [];
@@ -223,8 +272,11 @@ export async function clearCart(userId) {
 }
 
 // Get cart item count
-export async function getCartCount(userId) {
-    const cart = await Cart.findOne({ user: userId });
+export async function getCartCount(identifier) {
+    const isUserId = identifier && identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier);
+    const query = isUserId ? { user: identifier } : { guestId: identifier };
+    
+    const cart = await Cart.findOne(query);
     
     if (!cart) {
         return 0;

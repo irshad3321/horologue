@@ -57,8 +57,7 @@ export async function deleteCategory(categoryId) {
 // Toggle category status
 export async function toggleCategoryStatus(categoryId) {
     const category = await Category.findById(categoryId);
-    if (!category) return null;
-    
+    if (!category) return null
     category.status = category.status === 'active' ? 'inactive' : 'active';
     return await category.save();
 }

@@ -42,7 +42,6 @@ export const showOrders = async (req, res) => {
             .limit(limit);
         
         const total = await Order.countDocuments(query);
-        
         res.render('admin/orders', {
             admin: req.session.user,
             orders: orders,
@@ -106,18 +105,36 @@ export const updateOrderStatus = async (req, res) => {
             });
         }
         
+        // Define status progression ordere
+        const statusOrder = ['Pending', 'Confirmed', 'Shipped', 'Delivered'];
+        const currentStatusIndex = statusOrder.indexOf(order.orderStatus);
+        const newStatusIndex = statusOrder.indexOf(status);
+        
+        if (currentStatusIndex !== -1 && newStatusIndex !== -1 && newStatusIndex < currentStatusIndex) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot change status from ${order.orderStatus} back to ${status}`
+            });
+        }
+        if (['Delivered', 'Cancelled', 'Returned'].includes(order.orderStatus) && 
+            !['Return Requested', 'Returned', 'Return Declined'].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot change status from ${order.orderStatus}`
+            });
+        }
+        
+        // Store old status before updating
+        const oldStatus = order.orderStatus;
         order.orderStatus = status;
         
         if (status === 'Delivered') {
             order.deliveryDate = new Date();
         }
         
-        if (status === 'Cancelled' || status === 'Returned') {
-            if (status === 'Cancelled') {
-                order.cancelledDate = new Date();
-            }
-            
-            // Restore stock when admin cancels or approves return
+        // Restore stock only when approving return from 'Return Requested' status
+        if (status === 'Returned' && oldStatus === 'Return Requested') {
+            // Restore stock when admin approves return
             for (const item of order.items) {
                 const product = await Product.findById(item.product);
                 if (product) {
@@ -130,15 +147,13 @@ export const updateOrderStatus = async (req, res) => {
             }
             
             // Refund to wallet when return is approved
-            if (status === 'Returned') {
-                const { refundToWallet } = await import('../../service/walletService.js');
-                await refundToWallet(
-                    order.userId, 
-                    order.totalAmount, 
-                    `Refund for returned order #${order.orderNumber}`, 
-                    order._id
-                );
-            }
+            const { refundToWallet } = await import('../../service/walletService.js');
+            await refundToWallet(
+                order.userId, 
+                order.totalAmount, 
+                `Refund for returned order #${order.orderNumber}`, 
+                order._id
+            );
         }
         
         // If return is declined, change status back to Delivered and save reason

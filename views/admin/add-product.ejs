@@ -414,7 +414,12 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Brand <span class="required">*</span></label>
-                                <input type="text" id="productBrand" class="form-control" placeholder="Enter brand name" required>
+                                <select id="productBrand" class="form-control" required>
+                                    <option value="">Select Brand</option>
+                                    <% brands.forEach(brand => { %>
+                                        <option value="<%= brand.name %>"><%= brand.name %></option>
+                                    <% }); %>
+                                </select>
                                 <div class="error-message" id="brandError"></div>
                             </div>
                         </div>
@@ -592,7 +597,23 @@
 
         // Remove Variant Image
         function removeVariantImage(variantId, imageIndex) {
-            // Implementation for removing specific image
+            const variantCard = document.getElementById(variantId);
+            if (!variantCard) return;
+            
+            const imagesContainer = variantCard.querySelector('.variant-current-images');
+            if (!imagesContainer) return;
+            
+            const imageItems = imagesContainer.querySelectorAll('.variant-image-item');
+            
+            if (imageItems[imageIndex]) {
+                imageItems[imageIndex].remove();
+                
+                // Check if no images left
+                const remainingImages = imagesContainer.querySelectorAll('.variant-image-item');
+                if (remainingImages.length === 0) {
+                    imagesContainer.innerHTML = '<p style="color: #6c757d; font-size: 13px; margin: 0;">No images uploaded yet</p>';
+                }
+            }
         }
 
         // Form Submission
@@ -600,7 +621,7 @@
             e.preventDefault();
             
             const name = document.getElementById('productName').value.trim();
-            const brand = document.getElementById('productBrand').value.trim();
+            const brand = document.getElementById('productBrand').value;
             const category = document.getElementById('productCategory').value;
             const description = document.getElementById('productDescription').value.trim();
             const offer = document.getElementById('productOffer').value;
@@ -998,8 +1019,21 @@
             
             const imageDiv = document.createElement('div');
             imageDiv.className = 'variant-image-item';
-            imageDiv.innerHTML = '<img src="' + imageUrl + '" alt="Variant Image"><button type="button" class="variant-image-remove" onclick="this.parentElement.remove()">×</button>';
+            imageDiv.innerHTML = '<img src="' + imageUrl + '" alt="Variant Image"><button type="button" class="variant-image-remove" onclick="removeImageFromVariant(this)">×</button>';
             container.appendChild(imageDiv);
+        }
+        
+        // Remove image from variant (for newly added images)
+        function removeImageFromVariant(button) {
+            const imageItem = button.parentElement;
+            const container = imageItem.parentElement;
+            imageItem.remove();
+            
+            // Check if no images left
+            const remainingImages = container.querySelectorAll('.variant-image-item');
+            if (remainingImages.length === 0) {
+                container.innerHTML = '<p style="color: #6c757d; font-size: 13px; margin: 0;">No images uploaded yet</p>';
+            }
         }
     </script>
 </body>

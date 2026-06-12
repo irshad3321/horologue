@@ -353,7 +353,8 @@
     <div class="container">
         <div class="page-header">
             
-            <h1 class="page-title">My Orders</h1>   
+            <h1 class="page-title">My Orders</h1> 
+
             <div class="breadcrumb">
             <a href="/home">Home</a>
             <span>/</span>
@@ -397,20 +398,33 @@
 
                         <div class="order-items">
                             <% order.items.slice(0, 2).forEach(item => { %>
-                                <% 
-                                const variant = item.product.variants.find(v => v._id.toString() === item.variantId.toString());
-                                const variantImage = variant && variant.images && variant.images.length > 0 ? variant.images[0].url : 'https://via.placeholder.com/60';
-                                %>
-                                <div class="order-item">
-                                    <div class="item-image">
-                                        <img src="<%= variantImage %>" alt="<%= item.product.name %>">
+                                <% if (item.product) { %>
+                                    <% 
+                                    const variant = item.product.variants.find(v => v._id.toString() === item.variantId.toString());
+                                    const variantImage = variant && variant.images && variant.images.length > 0 ? variant.images[0].url : 'https://via.placeholder.com/60';
+                                    %>
+                                    <div class="order-item">
+                                        <div class="item-image">
+                                            <img src="<%= variantImage %>" alt="<%= item.product.name %>">
+                                        </div>
+                                        <div class="item-details">
+                                            <h4><%= item.product.name %></h4>
+                                            <p>Color: <%= item.color %> | Qty: <%= item.quantity %></p>
+                                        </div>
+                                        <div class="item-price">₹<%= item.itemTotal.toLocaleString('en-IN') %></div>
                                     </div>
-                                    <div class="item-details">
-                                        <h4><%= item.product.name %></h4>
-                                        <p>Color: <%= item.color %> | Qty: <%= item.quantity %></p>
+                                <% } else { %>
+                                    <div class="order-item">
+                                        <div class="item-image">
+                                            <img src="https://via.placeholder.com/60" alt="Product Not Available">
+                                        </div>
+                                        <div class="item-details">
+                                            <h4 style="color: #999;">Product No Longer Available</h4>
+                                            <p>Color: <%= item.color %> | Qty: <%= item.quantity %></p>
+                                        </div>
+                                        <div class="item-price">₹<%= item.itemTotal.toLocaleString('en-IN') %></div>
                                     </div>
-                                    <div class="item-price">₹<%= item.itemTotal.toLocaleString('en-IN') %></div>
-                                </div>
+                                <% } %>
                             <% }); %>
                             <% if (order.items.length > 2) { %>
                                 <p style="color: #666; font-size: 13px;">+ <%= order.items.length - 2 %> more item<%= order.items.length - 2 > 1 ? 's' : '' %></p>

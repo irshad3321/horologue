@@ -294,6 +294,16 @@
             accent-color: #667eea;
         }
 
+        .payment-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .payment-option.disabled:hover {
+            border-color: #e9ecef;
+            background: white;
+        }
+
         .payment-info {
             display: flex;
             align-items: center;
@@ -576,11 +586,14 @@
                         </div>
                     </label>
                     
-                    <label class="payment-option">
-                        <input type="radio" name="paymentMethod" value="cod">
+                    <label class="payment-option" id="codOption">
+                        <input type="radio" name="paymentMethod" value="cod" id="codRadio">
                         <div class="payment-info">
                             <i class="fas fa-money-bill-wave"></i>
                             <span>Cash on Delivery</span>
+                        </div>
+                        <div id="codRestriction" style="display: none; font-size: 12px; color: #dc3545; margin-top: 4px; margin-left: 32px;">
+                            COD not available for orders above ₹2,000
                         </div>
                     </label>
                     
@@ -785,6 +798,9 @@
         // Load coupons on page load
         loadAvailableCoupons();
         
+        // Check COD availability on page load
+        checkCODAvailability();
+        
         document.querySelectorAll('.address-card').forEach(card => {
             card.addEventListener('click', function() {
                 document.querySelectorAll('.address-card').forEach(c => c.classList.remove('selected'));
@@ -833,6 +849,9 @@
                     document.getElementById('couponCode').disabled = true;
                     
                     showCouponMessage('Coupon applied successfully!', 'success');
+                    
+                    // Re-check COD availability after coupon applied
+                    checkCODAvailability();
                 } else {
                     showCouponMessage(data.message, 'error');
                 }
@@ -860,6 +879,32 @@
             document.getElementById('couponCode').value = '';
             
             showCouponMessage('Coupon removed', 'info');
+            
+            // Re-check COD availability after coupon removal
+            checkCODAvailability();
+        }
+        
+        // Check COD Availability
+        function checkCODAvailability() {
+            const currentTotal = parseFloat(document.getElementById('total').textContent.replace('₹', '').replace(/,/g, ''));
+            const codRadio = document.getElementById('codRadio');
+            const codOption = document.getElementById('codOption');
+            const codRestriction = document.getElementById('codRestriction');
+            
+            if (currentTotal > 2000) {
+                codRadio.disabled = true;
+                codOption.classList.add('disabled');
+                codRestriction.style.display = 'block';
+                
+                // If COD is selected, switch to online payment
+                if (codRadio.checked) {
+                    document.querySelector('input[name="paymentMethod"][value="razorpay"]').checked = true;
+                }
+            } else {
+                codRadio.disabled = false;
+                codOption.classList.remove('disabled');
+                codRestriction.style.display = 'none';
+            }
         }
 
         // Show Coupon Message
@@ -1039,6 +1084,38 @@
                 couponCode: appliedCoupon ? appliedCoupon.code : null,
                 couponDiscount: couponDiscountValue
             };
+            
+            // Validate stock before payment
+            Swal.fire({
+                title: 'Validating Order...',
+                text: 'Checking product availability',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            try {
+                const stockCheckResponse = await fetch('/api/orders/validate-stock', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const stockCheckData = await stockCheckResponse.json();
+                
+                if (!stockCheckData.success) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Stock Unavailable',
+                        text: stockCheckData.message || 'Some items in your cart are out of stock',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Failed to validate stock availability', 'error');
+                return;
+            }
             
             if (paymentMethod === 'razorpay') {
                 Swal.fire({

@@ -2,8 +2,50 @@ import { validateRegistration, findUserByEmail, createUser, validateLogin, valid
 import { generateAndSaveOTP, verifyOTP, getLatestOTPCreationTime } from "../../service/otpService.js";
 import { sendOTPEmail } from "../../service/emailService.js";
 import { generateOTP } from "../../helper/utils.js";
+import Cart from "../../models/Cart.js";
 
 import OTP from "../../models/OTP.js";
+
+// Helper function to merge guest cart into user cart after login
+async function mergeGuestCart(guestSessionId, userId) {
+    try {
+        
+        const guestCart = await Cart.findOne({ guestId: guestSessionId });
+        
+        if (!guestCart || guestCart.items.length === 0) {
+            return; 
+        }
+        
+        let userCart = await Cart.findOne({ user: userId });
+        
+        if (!userCart) {
+            guestCart.user = userId;
+            guestCart.guestId = undefined;
+            await guestCart.save();
+            return;
+        }
+        
+        for (const guestItem of guestCart.items) {
+            const existingItem = userCart.items.find(
+                item => item.product.toString() === guestItem.product.toString() &&
+                        item.variantId.toString() === guestItem.variantId.toString()
+            );
+            
+            if (existingItem) {
+                existingItem.quantity = Math.min(existingItem.quantity + guestItem.quantity, 5);
+            } else {
+                userCart.items.push(guestItem);
+            }
+        }
+        
+        await userCart.save();
+        
+        await Cart.deleteOne({ _id: guestCart._id });
+    } catch (error) {
+        console.error('Error merging guest cart:', error);
+        throw error;
+    }
+}
 
 // Show pages
 export const showRegister = (req, res) => {
@@ -31,6 +73,7 @@ export const registerUser = async (req, res) => {
                 formData: req.body
             });
         }
+        
 
         const existingUser = await findUserByEmail(trimmedData.email);
         
@@ -45,6 +88,7 @@ export const registerUser = async (req, res) => {
 
         req.session.tempUserData = trimmedData;
         req.session.tempEmail = trimmedData.email;
+        req.session.resendTimerStart = Date.now(); // Initialize resend timer
         
         await generateAndSaveOTP(trimmedData.email, 'signup');
         
@@ -54,7 +98,8 @@ export const registerUser = async (req, res) => {
             error: null,
             success: 'OTP sent to your email address',
             email: trimmedData.email,
-            otpCreatedAt
+            otpCreatedAt,
+            resendTimerStart: req.session.resendTimerStart
         });
         
     } catch (error) {
@@ -97,7 +142,7 @@ export const verifyOTPRegistrationController = async (req, res) => {
                 error: otpVerification.message,
                 success: null,
                 email,
-                otpCreatedAt,
+               otpCreatedAt,
                 resendTimerStart: req.session.resendTimerStart
             });
         }
@@ -272,7 +317,21 @@ export const loginUser = async (req, res) => {
             firstName: user.firstName,
             message: `Welcome back, ${user.firstName}!`
         }
-        res.redirect('/home');
+        
+        // Merge guest cart into user cart
+        try {
+            const guestSessionId = req.sessionID;
+            await mergeGuestCart(guestSessionId, user._id);
+        } catch (mergeError) {
+            console.error('Guest cart merge error:', mergeError);
+            // Continue even if merge fails
+        }
+        
+        // Redirect to saved URL or default to home
+        const redirectTo = req.session.redirectTo || '/home';
+        delete req.session.redirectTo; // Clear the redirect URL
+        
+        res.redirect(redirectTo);
         
     } catch (error) {
         console.error('Login error:', error);
@@ -462,6 +521,9 @@ export const resendOTPRegistrationController = async (req, res) => {
         
         // Generate and send new OTP
         await generateAndSaveOTP(email, 'signup');
+        
+        // Reset resend timer for the new OTP
+        req.session.resendTimerStart = Date.now();
         
         res.json({
             success: true,

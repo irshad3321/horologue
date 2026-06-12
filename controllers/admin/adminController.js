@@ -274,8 +274,6 @@ export const adminLogout = (req, res) => {
         if (err) {
             // Session destroy error - ignore
         }
-        
-        // Clear admin session cookies
         res.clearCookie('horologue.admin.sid');
         
         // Set cache control headers
@@ -297,7 +295,6 @@ export const getUsers = async (req, res) => {
         const search = req.query.search || '';
         const status = req.query.status || 'all';
         let searchQuery = {};
-        // Search by name or email
         if (search) {
             searchQuery.$or = [
                 { firstName: { $regex: search, $options: 'i' } },
@@ -429,9 +426,12 @@ export const getDashboardStats = async (req, res) => {
         // Total orders
         const totalOrders = await Order.countDocuments();
         
-        // Total revenue (sum of all delivered orders)
+        // Total revenue (sum of paid orders, excluding Cancelled and Returned)
         const revenueResult = await Order.aggregate([
-            { $match: { paymentStatus: 'Paid' } },
+            { $match: { 
+                paymentStatus: 'Paid',
+                orderStatus: { $nin: ['Cancelled', 'Returned'] }
+            }},
             { $group: { _id: null, total: { $sum: '$totalAmount' } } }
         ]);
         const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
@@ -556,7 +556,7 @@ export const getSalesChartData = async (req, res) => {
 export const getTopProducts = async (req, res) => {
     try {
         const topProducts = await Order.aggregate([
-            { $match: { orderStatus: { $ne: 'Cancelled' } } },
+            { $match: { orderStatus: { $nin: ['Cancelled', 'Returned'] } } },
             { $unwind: '$items' },
             {
                 $group: {
@@ -598,7 +598,7 @@ export const getTopProducts = async (req, res) => {
 export const getTopCategories = async (req, res) => {
     try {
         const topCategories = await Order.aggregate([
-            { $match: { orderStatus: { $ne: 'Cancelled' } } },
+            { $match: { orderStatus: { $nin: ['Cancelled', 'Returned'] } } },
             { $unwind: '$items' },
             {
                 $lookup: {
@@ -638,7 +638,7 @@ export const getTopCategories = async (req, res) => {
 export const getTopBrands = async (req, res) => {
     try {
         const topBrands = await Order.aggregate([
-            { $match: { orderStatus: { $ne: 'Cancelled' } } },
+            { $match: { orderStatus: { $nin: ['Cancelled', 'Returned'] } } },
             { $unwind: '$items' },
             {
                 $lookup: {
@@ -723,11 +723,8 @@ export const getSalesReportData = async (req, res) => {
             dateFilter = { orderDate: { $gte: startOfYear } };
         }
         
-        // Get total count for pagination
-        const totalOrders = await Order.countDocuments({
-            ...dateFilter,
-            orderStatus: { $ne: 'Cancelled' }
-        });
+        // Get total count for pagination (include all orders)
+        const totalOrders = await Order.countDocuments(dateFilter);
         
         // Calculate pagination
         const currentPage = parseInt(page);
@@ -735,11 +732,8 @@ export const getSalesReportData = async (req, res) => {
         const skip = (currentPage - 1) * itemsPerPage;
         const totalPages = Math.ceil(totalOrders / itemsPerPage);
         
-        // Get orders with pagination
-        const orders = await Order.find({
-            ...dateFilter,
-            orderStatus: { $ne: 'Cancelled' }
-        })
+        // Get orders with pagination (include all statuses)
+        const orders = await Order.find(dateFilter)
         .populate('items.product')
         .sort({ orderDate: -1 })
         .skip(skip)
@@ -748,7 +742,7 @@ export const getSalesReportData = async (req, res) => {
         // Calculate summary statistics (for all orders, not just current page)
         const allOrders = await Order.find({
             ...dateFilter,
-            orderStatus: { $ne: 'Cancelled' }
+            orderStatus: { $nin: ['Cancelled', 'Returned'] }
         }).populate('items.product');
         
         let totalSalesCount = allOrders.length;
@@ -848,7 +842,7 @@ export const downloadSalesReport = async (req, res) => {
         // Get orders
         const orders = await Order.find({
             ...dateFilter,
-            orderStatus: { $ne: 'Cancelled' }
+            orderStatus: { $nin: ['Cancelled', 'Returned'] }
         }).populate('items.product').sort({ orderDate: -1 });
         
         // Calculate summary
@@ -1111,7 +1105,10 @@ export const downloadDashboardPDF = async (req, res) => {
         const totalUsers = await User.countDocuments({ isAdmin: false });
         const totalOrders = await Order.countDocuments();
         const revenueResult = await Order.aggregate([
-            { $match: { paymentStatus: 'Paid' } },
+            { $match: { 
+                paymentStatus: 'Paid',
+                orderStatus: { $nin: ['Cancelled', 'Returned'] }
+            }},
             { $group: { _id: null, total: { $sum: '$totalAmount' } } }
         ]);
         const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
@@ -1119,7 +1116,7 @@ export const downloadDashboardPDF = async (req, res) => {
         
         // Get top products
         const topProducts = await Order.aggregate([
-            { $match: { orderStatus: { $ne: 'Cancelled' } } },
+            { $match: { orderStatus: { $nin: ['Cancelled', 'Returned'] } } },
             { $unwind: '$items' },
             {
                 $group: {
@@ -1143,7 +1140,7 @@ export const downloadDashboardPDF = async (req, res) => {
         
         // Get top categories
         const topCategories = await Order.aggregate([
-            { $match: { orderStatus: { $ne: 'Cancelled' } } },
+            { $match: { orderStatus: { $nin: ['Cancelled', 'Returned'] } } },
             { $unwind: '$items' },
             {
                 $lookup: {
@@ -1167,7 +1164,7 @@ export const downloadDashboardPDF = async (req, res) => {
         
         // Get top brands
         const topBrands = await Order.aggregate([
-            { $match: { orderStatus: { $ne: 'Cancelled' } } },
+            { $match: { orderStatus: { $nin: ['Cancelled', 'Returned'] } } },
             { $unwind: '$items' },
             {
                 $lookup: {

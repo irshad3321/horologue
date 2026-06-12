@@ -376,16 +376,34 @@
                         <% 
                         const variant = item.product.variants.find(v => v._id.toString() === item.variantId.toString());
                         const variantImage = variant && variant.images && variant.images.length > 0 ? variant.images[0].url : 'https://via.placeholder.com/80';
+                        const itemStatus = item.itemStatus || 'Active';
                         %>
-                        <div class="order-item">
+                        <div class="order-item" style="<%= itemStatus === 'Cancelled' ? 'opacity: 0.7; background: #f8f9fa;' : '' %>">
                             <div class="item-image">
                                 <img src="<%= variantImage %>" alt="<%= item.product.name %>">
                             </div>
                             <div class="item-info">
-                                <h4><%= item.product.name %></h4>
+                                <h4>
+                                    <%= item.product.name %>
+                                    <% if (itemStatus === 'Cancelled') { %>
+                                        <span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-left: 8px;">
+                                            Cancelled
+                                        </span>
+                                    <% } %>
+                                </h4>
                                 <p>Color: <%= item.color %></p>
                                 <p>Quantity: <%= item.quantity %></p>
-                                <% if (order.orderStatus === 'Pending' || order.orderStatus === 'Confirmed') { %>
+                                <% if (itemStatus === 'Cancelled' && item.cancelledDate) { %>
+                                    <p style="color: #dc3545; font-size: 13px;">
+                                        Cancelled on <%= new Date(item.cancelledDate).toLocaleDateString('en-IN') %>
+                                    </p>
+                                    <% if (item.cancellationReason) { %>
+                                        <p style="color: #6c757d; font-size: 13px;">
+                                            Reason: <%= item.cancellationReason %>
+                                        </p>
+                                    <% } %>
+                                <% } %>
+                                <% if (itemStatus === 'Active' && (order.orderStatus === 'Pending' || order.orderStatus === 'Confirmed')) { %>
                                     <div class="item-actions">
                                         <button class="item-btn" onclick="cancelItem('<%= order._id %>', '<%= item._id %>')">
                                             <i class="fas fa-times"></i> Cancel Item
@@ -394,7 +412,9 @@
                                 <% } %>
                             </div>
                             <div class="item-price">
-                                <div class="price">₹<%= item.itemTotal.toLocaleString('en-IN') %></div>
+                                <div class="price" style="<%= itemStatus === 'Cancelled' ? 'text-decoration: line-through; color: #6c757d;' : '' %>">
+                                    ₹<%= item.itemTotal.toLocaleString('en-IN') %>
+                                </div>
                                 <div class="qty">₹<%= item.price.toLocaleString('en-IN') %> × <%= item.quantity %></div>
                             </div>
                         </div>
