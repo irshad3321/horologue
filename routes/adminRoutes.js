@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUsers, toggleUserStatus } from '../controllers/admin/adminController.js';
+import { getUsers, toggleUserStatus, showDashboard, getDashboardStats, getSalesChartData, getTopProducts, getTopCategories, getTopBrands, showSalesReport, getSalesReportData, downloadSalesReport, downloadDashboardPDF } from '../controllers/admin/adminController.js';
 import { 
     adminLogin, 
     adminLogout, 
@@ -13,12 +13,15 @@ import { isAdmin, isNotAuthenticatedAdmin, adminSessionCheck, handleAdminLoginEr
 import * as categoryController from '../controllers/admin/categoryController.js';
 import * as productController from '../controllers/admin/productController.js';
 import * as orderController from '../controllers/admin/orderController.js';
+import * as couponController from '../controllers/admin/couponController.js';
+import * as brandController from '../controllers/admin/brandController.js';
 import upload from '../config/multer.js';
 const router = express.Router();
 
 router.get('/login', isNotAuthenticatedAdmin, handleAdminLoginErrors, (req, res) => {
     res.render('admin/login', { error: req.adminLoginError, success: null });
 });
+
 
 // Admin login POST route
 router.post('/login', adminLogin)
@@ -62,12 +65,15 @@ router.post('/reset-password', adminResetPassword);
 router.post('/resend-otp-forgot', adminResendOTPForgot);
 
 // Admin dashboard - protected route
-router.get('/dashboard', isAdmin, (req, res) => {
-    res.render('admin/dashboard', { 
-        admin: req.session.user,
-        currentPage: 'dashboard'
-    })
-})
+router.get('/dashboard', isAdmin, showDashboard);
+
+// Dashboard API routes
+router.get('/api/dashboard/stats', isAdmin, getDashboardStats);
+router.get('/api/dashboard/sales-chart', isAdmin, getSalesChartData);
+router.get('/api/dashboard/top-products', isAdmin, getTopProducts);
+router.get('/api/dashboard/top-categories', isAdmin, getTopCategories);
+router.get('/api/dashboard/top-brands', isAdmin, getTopBrands);
+router.get('/api/dashboard/download-pdf', isAdmin, downloadDashboardPDF);
 
 // Admin users page - protected route
 router.get('/users', isAdmin, getUsers);
@@ -105,36 +111,31 @@ router.get('/orders', isAdmin, orderController.showOrders);
 router.get('/orders/:id', isAdmin, orderController.showOrderDetail);
 router.patch('/api/orders/:id/status', isAdmin, orderController.updateOrderStatus);
 
-// Inventory routes (dummy)
-router.get('/inventory', isAdmin, async (req, res) => {
-    const Product = (await import('../models/Product.js')).default;
-    const Category = (await import('../models/Category.js')).default;
-    
-    const products = await Product.find().populate('variants');
-    const categories = await Category.find({ isDeleted: false });
-    
-    let lowStockCount = 0;
-    let outOfStockCount = 0;
-    
-    products.forEach(p => {
-        p.variants.forEach(v => {
-            if (v.stock === 0) outOfStockCount++;
-            else if (v.stock < 10) lowStockCount++;
-        });
-    });
-    
-    res.render('admin/inventory', {
-        admin: req.session.user,
-        products: products,
-        categories: categories,
-        totalProducts: products.length,
-        lowStockCount: lowStockCount,
-        outOfStockCount: outOfStockCount,
-        search: req.query.search || '',
-        stockStatus: req.query.stockStatus || '',
-        category: req.query.category || ''
-    });
-});
+// Inventory routes
+router.get('/inventory', isAdmin, productController.showInventory);
+router.post('/inventory/update', isAdmin, productController.updateStock);
+
+// Coupon routes
+router.get('/coupons', isAdmin, couponController.showCoupons);
+router.get('/api/coupons', isAdmin, couponController.getAllCoupons);
+router.get('/api/coupons/:id', isAdmin, couponController.getCouponById);
+router.post('/api/coupons', isAdmin, couponController.createCoupon);
+router.put('/api/coupons/:id', isAdmin, couponController.updateCoupon);
+router.patch('/api/coupons/:id/toggle', isAdmin, couponController.toggleCouponStatus);
+router.delete('/api/coupons/:id', isAdmin, couponController.deleteCoupon);
+
+// Sales Report routes
+router.get('/sales-report', isAdmin, showSalesReport);
+router.get('/api/sales-report', isAdmin, getSalesReportData);
+router.get('/api/sales-report/download', isAdmin, downloadSalesReport);
+
+// Brand routes
+router.get('/brands', isAdmin, brandController.showBrands);
+router.get('/brands/:id', isAdmin, brandController.getBrandById);
+router.post('/brands', isAdmin, brandController.createBrand);
+router.put('/brands/:id', isAdmin, brandController.updateBrand);
+router.delete('/brands/:id', isAdmin, brandController.deleteBrand);
+router.patch('/brands/:id/toggle', isAdmin, brandController.toggleBrandStatus);
 
 router.get('/api/session-check', adminSessionCheck);
 

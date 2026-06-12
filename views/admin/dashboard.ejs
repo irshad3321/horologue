@@ -5,175 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Horologue</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <!-- Admin Navbar -->
-    <%- include('../partials/admin-navbar') %>
     
-    <!-- Admin Sidebar -->
-    <%- include('../partials/admin-sidebar', { currentPage: 'dashboard' }) %>
-    
-    <!-- Main Content -->
-    <div class="admin-main-content">
-        <div class="dashboard-container">
-            <!-- Stats Cards -->
-            <div class="row mb-4">
-                <div class="col-lg-4 col-md-6 mb-3">
-                    <div class="stats-card stats-users">
-                        <div class="stats-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stats-content">
-                            <h3>Total User</h3>
-                            <div class="stats-number">40,689</div>
-                            <div class="stats-change positive">
-                                <i class="fas fa-arrow-up"></i>
-                                8.5% Up from last month
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-3">
-                    <div class="stats-card stats-orders">
-                        <div class="stats-icon">
-                            <i class="fas fa-box"></i>
-                        </div>
-                        <div class="stats-content">
-                            <h3>Total Order</h3>
-                            <div class="stats-number">10293</div>
-                            <div class="stats-change positive">
-                                <i class="fas fa-arrow-up"></i>
-                                1.3% Up from last month
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-3">
-                    <div class="stats-card stats-sales">
-                        <div class="stats-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="stats-content">
-                            <h3>Total Sales</h3>
-                            <div class="stats-number">$89,000</div>
-                            <div class="stats-change negative">
-                                <i class="fas fa-arrow-down"></i>
-                                4.3% Down from last month
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Sales Chart -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h4>Sales Details</h4>
-                            <div class="chart-controls">
-                                <select class="form-select form-select-sm">
-                                    <option>Today</option>
-                                    <option>This Week</option>
-                                    <option>This Month</option>
-                                </select>
-                                <select class="form-select form-select-sm">
-                                    <option>October</option>
-                                    <option>November</option>
-                                    <option>December</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="salesChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recent Orders Table -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="table-card">
-                        <div class="table-header">
-                            <h4>Recent Orders</h4>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>NAME</th>
-                                        <th>ADDRESS</th>
-                                        <th>DATE</th>
-                                        <th>TYPE</th>
-                                        <th>STATUS</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>00001</td>
-                                        <td>Rolex Submariner</td>
-                                        <td>089 Kutch Green Apt. 448</td>
-                                        <td>04 Sep 2019</td>
-                                        <td>Analogue</td>
-                                        <td><span class="badge status-completed">Completed</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>00002</td>
-                                        <td>Omega Speedmaster</td>
-                                        <td>979 Immanuel Ferry Suite 526</td>
-                                        <td>28 May 2019</td>
-                                        <td>Digital</td>
-                                        <td><span class="badge status-processing">Processing</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>00003</td>
-                                        <td>TAG Heuer Carrera</td>
-                                        <td>8587 Frida Ports</td>
-                                        <td>23 Nov 2019</td>
-                                        <td>Analogue</td>
-                                        <td><span class="badge status-rejected">Rejected</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>00004</td>
-                                        <td>Breitling Navitimer</td>
-                                        <td>123 Watch Street Suite 100</td>
-                                        <td>15 Dec 2019</td>
-                                        <td>Chronograph</td>
-                                        <td><span class="badge status-completed">Completed</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>00005</td>
-                                        <td>Patek Philippe Calatrava</td>
-                                        <td>456 Luxury Avenue Apt. 789</td>
-                                        <td>02 Jan 2020</td>
-                                        <td>Dress Watch</td>
-                                        <td><span class="badge status-processing">Processing</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
         }
 
         .admin-main-content {
@@ -183,106 +28,151 @@
             min-height: calc(100vh - 70px);
         }
 
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
         }
 
         /* Stats Cards */
-        .stats-card {
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
             background: white;
-            border-radius: 15px;
+            border-radius: 16px;
             padding: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e9ecef;
-            height: 100%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
             display: flex;
             align-items: center;
             gap: 1rem;
+            transition: all 0.3s ease;
         }
 
-        .stats-icon {
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon {
             width: 60px;
             height: 60px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 24px;
             color: white;
         }
 
-        .stats-users .stats-icon {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
+        .stat-icon.users { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .stat-icon.orders { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .stat-icon.sales { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .stat-icon.products { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
 
-        .stats-orders .stats-icon {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-
-        .stats-sales .stats-icon {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        .stats-content h3 {
-            font-size: 0.9rem;
+        .stat-content h3 {
+            font-size: 14px;
             color: #6c757d;
-            margin: 0 0 0.5rem 0;
-            font-weight: 500;
+            margin-bottom: 8px;
         }
 
-        .stats-number {
-            font-size: 1.8rem;
+        .stat-value {
+            font-size: 28px;
             font-weight: 700;
-            color: #212529;
-            margin-bottom: 0.5rem;
+            color: #2c3e50;
         }
 
-        .stats-change {
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .stats-change.positive {
-            color: #28a745;
-        }
-
-        .stats-change.negative {
-            color: #dc3545;
-        }
-
-        /* Chart Card */
-        .chart-card {
+        /* Chart Section */
+        .chart-section {
             background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e9ecef;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            margin-bottom: 2rem;
         }
 
         .chart-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .chart-header h4 {
-            margin: 0;
-            color: #212529;
-            font-weight: 600;
-        }
-
-        .chart-controls {
-            display: flex;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
             gap: 1rem;
         }
 
-        .chart-controls .form-select {
-            width: auto;
-            min-width: 120px;
+        .chart-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-download {
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-download:hover {
+            background: #218838;
+            transform: translateY(-2px);
         }
 
         .chart-container {
@@ -290,94 +180,126 @@
             position: relative;
         }
 
-        /* Table Card */
-        .table-card {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e9ecef;
+        /* Best Selling Section */
+        .best-selling-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        .table-header {
+        .best-selling-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1.5rem;
         }
 
-        .table-header h4 {
-            margin: 0;
-            color: #212529;
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .item:hover {
+            background: #f8f9fa;
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .item-rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .item-rank.gold { background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%); }
+        .item-rank.silver { background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%); }
+        .item-rank.bronze { background: linear-gradient(135deg, #cd7f32 0%, #b87333 100%); }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
             font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+            margin-bottom: 4px;
         }
 
-        .table {
-            margin: 0;
+        .item-meta {
+            font-size: 12px;
+            color: #6c757d;
         }
 
-        .table th {
-            border-top: none;
-            border-bottom: 2px solid #e9ecef;
-            font-weight: 600;
-            color: #495057;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 1rem 0.75rem;
+        .item-stats {
+            text-align: right;
         }
 
-        .table td {
-            border-top: 1px solid #f1f3f4;
-            padding: 1rem 0.75rem;
-            vertical-align: middle;
-            font-size: 0.9rem;
+        .item-value {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 16px;
         }
 
-        .table tbody tr:hover {
-            background-color: #f8f9fa;
+        .item-count {
+            font-size: 12px;
+            color: #6c757d;
         }
 
-        /* Status Badges */
-        .badge {
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
         }
 
-        .status-completed {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .status-processing {
-            background-color: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .status-rejected {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .admin-main-content {
                 margin-left: 0;
                 padding: 1rem;
             }
 
-            .stats-card {
-                flex-direction: column;
-                text-align: center;
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
 
-            .chart-header {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: stretch;
-            }
-
-            .chart-controls {
-                justify-content: center;
+            .best-selling-grid {
+                grid-template-columns: 1fr;
             }
 
             .chart-container {
@@ -385,69 +307,422 @@
             }
         }
     </style>
+</head>
+<body>
+    <%- include('../partials/admin-navbar') %>
+    <%- include('../partials/admin-sidebar', { currentPage: 'dashboard' }) %>
+    
+    <div class="admin-main-content">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Dashboard Overview</h1>
+        </div>
 
-    <!-- Session Protection Script -->
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon users">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Total Users</h3>
+                    <div class="stat-value" id="totalUsers">-</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon orders">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Total Orders</h3>
+                    <div class="stat-value" id="totalOrders">-</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon sales">
+                    <i class="fas fa-rupee-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Total Revenue</h3>
+                    <div class="stat-value" id="totalRevenue">-</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon products">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Total Products</h3>
+                    <div class="stat-value" id="totalProducts">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Chart -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2 class="chart-title">Sales Analytics</h2>
+                <div class="chart-filters">
+                    <button class="filter-btn" onclick="filterChart('daily')">Daily</button>
+                    <button class="filter-btn" onclick="filterChart('weekly')">Weekly</button>
+                    <button class="filter-btn active" onclick="filterChart('monthly')">Monthly</button>
+                    <button class="filter-btn" onclick="filterChart('yearly')">Yearly</button>
+                    <button class="filter-btn" onclick="showCustomDateFilter()">Custom</button>
+                    <div id="customDateInputs" style="display: none; gap: 0.5rem;">
+                        <input type="date" id="customStartDate" class="date-input" placeholder="Start Date">
+                        <input type="date" id="customEndDate" class="date-input" placeholder="End Date">
+                        <button class="filter-btn" onclick="applyCustomFilter()">Apply</button>
+                    </div>
+                    <button class="btn-download" onclick="downloadDashboardPDF()">
+                        <i class="fas fa-download"></i> Download PDF
+                    </button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Best Selling Products, Categories, Brands -->
+        <div class="best-selling-grid">
+            <!-- Best Selling Products -->
+            <div class="best-selling-card">
+                <div class="card-header">
+                    <h3 class="card-title">Top 10 Products</h3>
+                </div>
+                <div class="item-list" id="topProducts">
+                    <div class="no-data">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Best Selling Categories -->
+            <div class="best-selling-card">
+                <div class="card-header">
+                    <h3 class="card-title">Top 10 Categories</h3>
+                </div>
+                <div class="item-list" id="topCategories">
+                    <div class="no-data">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Best Selling Brands -->
+            <div class="best-selling-card">
+                <div class="card-header">
+                    <h3 class="card-title">Top 10 Brands</h3>
+                </div>
+                <div class="item-list" id="topBrands">
+                    <div class="no-data">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/session-protection.js"></script>
-
     <script>
-        // Sales Chart
-        const ctx = document.getElementById('salesChart').getContext('2d');
-        const salesChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['5k', '10k', '15k', '20k', '25k', '30k', '35k', '40k', '45k', '50k', '55k', '60k'],
-                datasets: [{
-                    label: 'Sales',
-                    data: [20, 30, 45, 50, 85, 40, 55, 70, 60, 75, 65, 80],
-                    borderColor: '#007bff',
-                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#007bff',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
+        let currentChart = null;
+        let currentFilter = 'monthly';
+        let customStartDate = null;
+        let customEndDate = null;
+
+        // Load dashboard stats
+        async function loadStats() {
+            try {
+                const response = await fetch('/admin/api/dashboard/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('totalUsers').textContent = data.stats.totalUsers.toLocaleString('en-IN');
+                    document.getElementById('totalOrders').textContent = data.stats.totalOrders.toLocaleString('en-IN');
+                    document.getElementById('totalRevenue').textContent = '₹' + (data.stats.totalRevenue / 100000).toFixed(1) + 'L';
+                    document.getElementById('totalProducts').textContent = data.stats.totalProducts.toLocaleString('en-IN');
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        function showCustomDateFilter() {
+            const customInputs = document.getElementById('customDateInputs');
+            customInputs.style.display = 'flex';
+            
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        async function applyCustomFilter() {
+            const startDate = document.getElementById('customStartDate').value;
+            const endDate = document.getElementById('customEndDate').value;
+            
+            if (!startDate || !endDate) {
+                Swal.fire('Error', 'Please select both start and end dates', 'error');
+                return;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                Swal.fire('Error', 'Start date must be before end date', 'error');
+                return;
+            }
+            
+            customStartDate = startDate;
+            customEndDate = endDate;
+            currentFilter = 'custom';
+            
+            await createChart('custom');
+        }
+
+        // Create chart
+        async function createChart(filter) {
+            try {
+                let url = `/admin/api/dashboard/sales-chart?filter=${filter}`;
+                
+                if (filter === 'custom' && customStartDate && customEndDate) {
+                    url += `&startDate=${customStartDate}&endDate=${customEndDate}`;
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    console.error('Failed to load chart data');
+                    return;
+                }
+                
+                const ctx = document.getElementById('salesChart').getContext('2d');
+                
+                if (currentChart) {
+                    currentChart.destroy();
+                }
+                
+                currentChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.chartData.labels,
+                        datasets: [{
+                            label: 'Revenue (₹)',
+                            data: data.chartData.data,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#667eea',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '₹' + context.parsed.y.toLocaleString('en-IN');
+                                    }
+                                }
                             }
                         },
-                        grid: {
-                            color: '#f1f3f4'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        if (value >= 100000) {
+                                            return '₹' + (value / 100000) + 'L';
+                                        }
+                                        return '₹' + (value / 1000) + 'K';
+                                    }
+                                },
+                                grid: {
+                                    color: '#f1f3f5'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
                         }
                     }
-                },
-                elements: {
-                    point: {
-                        hoverBackgroundColor: '#007bff'
-                    }
-                }
+                });
+            } catch (error) {
+                console.error('Failed to create chart:', error);
             }
+        }
+
+        function filterChart(filter) {
+            currentFilter = filter;
+            customStartDate = null;
+            customEndDate = null;
+            
+            // Hide custom date inputs
+            document.getElementById('customDateInputs').style.display = 'none';
+            
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update chart
+            createChart(filter);
+        }
+
+        async function downloadDashboardPDF() {
+            try {
+                Swal.fire({
+                    title: 'Generating Dashboard PDF...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                let url = `/admin/api/dashboard/download-pdf?filter=${currentFilter}`;
+                
+                if (currentFilter === 'custom' && customStartDate && customEndDate) {
+                    url += `&startDate=${customStartDate}&endDate=${customEndDate}`;
+                }
+                
+                window.location.href = url;
+                
+                setTimeout(() => {
+                    Swal.close();
+                }, 2000);
+            } catch (error) {
+                Swal.close();
+                console.error('Download error:', error);
+                Swal.fire('Error', 'Failed to download PDF', 'error');
+            }
+        }
+
+        // Load top products
+        async function loadTopProducts() {
+            try {
+                const response = await fetch('/admin/api/dashboard/top-products');
+                const data = await response.json();
+                
+                const container = document.getElementById('topProducts');
+                
+                if (data.success && data.products.length > 0) {
+                    container.innerHTML = data.products.map((product, index) => {
+                        const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+                        return `
+                            <div class="item">
+                                <div class="item-info">
+                                    <div class="item-rank ${rankClass}">${index + 1}</div>
+                                    <div class="item-details">
+                                        <div class="item-name">${product.name}</div>
+                                        <div class="item-meta">${product.brand} - ${product.category}</div>
+                                    </div>
+                                </div>
+                                <div class="item-stats">
+                                    <div class="item-value">₹${(product.totalRevenue / 100000).toFixed(1)}L</div>
+                                    <div class="item-count">${product.totalSold} sold</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="no-data">No data available</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load top products:', error);
+                document.getElementById('topProducts').innerHTML = '<div class="no-data">Failed to load data</div>';
+            }
+        }
+
+        // Load top categories
+        async function loadTopCategories() {
+            try {
+                const response = await fetch('/admin/api/dashboard/top-categories');
+                const data = await response.json();
+                
+                const container = document.getElementById('topCategories');
+                
+                if (data.success && data.categories.length > 0) {
+                    container.innerHTML = data.categories.map((category, index) => {
+                        const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+                        return `
+                            <div class="item">
+                                <div class="item-info">
+                                    <div class="item-rank ${rankClass}">${index + 1}</div>
+                                    <div class="item-details">
+                                        <div class="item-name">${category.name}</div>
+                                        <div class="item-meta">Category</div>
+                                    </div>
+                                </div>
+                                <div class="item-stats">
+                                    <div class="item-value">₹${(category.totalRevenue / 100000).toFixed(1)}L</div>
+                                    <div class="item-count">${category.totalSold} sold</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="no-data">No data available</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load top categories:', error);
+                document.getElementById('topCategories').innerHTML = '<div class="no-data">Failed to load data</div>';
+            }
+        }
+
+        // Load top brands
+        async function loadTopBrands() {
+            try {
+                const response = await fetch('/admin/api/dashboard/top-brands');
+                const data = await response.json();
+                
+                const container = document.getElementById('topBrands');
+                
+                if (data.success && data.brands.length > 0) {
+                    container.innerHTML = data.brands.map((brand, index) => {
+                        const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+                        return `
+                            <div class="item">
+                                <div class="item-info">
+                                    <div class="item-rank ${rankClass}">${index + 1}</div>
+                                    <div class="item-details">
+                                        <div class="item-name">${brand.name}</div>
+                                        <div class="item-meta">Brand</div>
+                                    </div>
+                                </div>
+                                <div class="item-stats">
+                                    <div class="item-value">₹${(brand.totalRevenue / 100000).toFixed(1)}L</div>
+                                    <div class="item-count">${brand.totalSold} sold</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="no-data">No data available</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load top brands:', error);
+                document.getElementById('topBrands').innerHTML = '<div class="no-data">Failed to load data</div>';
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            createChart('monthly');
+            loadTopProducts();
+            loadTopCategories();
+            loadTopBrands();
         });
     </script>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

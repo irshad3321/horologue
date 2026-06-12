@@ -34,7 +34,7 @@ const createSessionConfig = (sessionName, cookieName) => {
   return session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,  // Changed to true to save guest sessions
     rolling: true,
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URI,
@@ -79,6 +79,9 @@ app.use((err, req, res, next) => {
     method: req.method
   });
 });
+
+
+
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

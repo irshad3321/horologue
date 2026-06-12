@@ -298,6 +298,10 @@
             font-weight: 600;
         }
 
+        .stock-info.unavailable {
+            color: #dc3545;
+        }
+
         /* Action Buttons */
         .action-buttons {
             display: flex;
@@ -357,6 +361,21 @@
         .btn-wishlist:hover {
             border-color: #ff6b6b;
             color: #ff6b6b;
+        }
+
+        .btn:disabled,
+        .btn-wishlist:disabled {
+            background: #dee2e6 !important;
+            border-color: #dee2e6 !important;
+            color: #999 !important;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+        }
+
+        .btn:disabled:hover,
+        .btn-wishlist:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
         }
 
         /* Product Features */
@@ -485,6 +504,9 @@
                 if (product.variants && product.variants.length > 0) {
                     maxStock = product.variants[0].stock;
                 }
+                
+                // Check if product or brand is unavailable
+                const isUnavailable = product.status !== 'active' || product.brandStatus === 'inactive';
                 %>
                 
                 <% if (product.offer > 0) { %>
@@ -562,8 +584,12 @@
                             <input type="number" class="qty-input" value="1" min="1" max="5" id="qtyInput">
                             <button class="qty-btn" id="increaseQty">+</button>
                         </div>
-                        <span class="stock-info" id="stockInfo">
-                            <% if (maxStock > 0) { %>
+                        <span class="stock-info <%= isUnavailable ? 'unavailable' : '' %>" id="stockInfo">
+                            <% if (product.brandStatus === 'inactive') { %>
+                                <i class="fas fa-ban"></i> Brand Deactivated
+                            <% } else if (isUnavailable) { %>
+                                <i class="fas fa-ban"></i> Unavailable
+                            <% } else if (maxStock > 0) { %>
                                 <i class="fas fa-check-circle"></i> In Stock (<%= maxStock %> available)
                             <% } else { %>
                                 <i class="fas fa-times-circle"></i> Out of Stock
@@ -578,12 +604,12 @@
                         <i class="fas fa-shopping-cart"></i>
                         Add to Cart
                     </button>
-                    <button class="btn btn-secondary" id="buyNowBtn">
-                        <i class="fas fa-bolt"></i>
+                    <!-- <button class="btn btn-secondary" id="buyNowBtn">
+                        <i class="fas fa-bolt"></i> 
                         Buy Now
-                    </button>
+                    </button> -->
                     <button class="btn-wishlist" id="addToWishlistBtn">
-                        <i class="<%= isInWishlist ? 'fas' : 'far' %> fa-heart" style="<%= isInWishlist ? 'color: #ff6b6b;' : '' %>"></i>
+                        <i class="far fa-heart"></i>
                     </button>
                 </div>
 
@@ -616,6 +642,60 @@
                 </div>
             </div>
         </div>
+
+        <!-- Related Products Section -->
+        <% if (relatedProducts && relatedProducts.length > 0) { %>
+        <div style="margin-top: 80px;">
+            <h2 style="font-size: 32px; font-weight: 900; color: #111; margin-bottom: 32px; text-align: center;">
+                Related Products
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
+                <% relatedProducts.forEach(relatedProduct => { 
+                    // Get first variant for display
+                    const firstVariant = relatedProduct.variants && relatedProduct.variants.length > 0 ? relatedProduct.variants[0] : null;
+                    const firstImage = firstVariant && firstVariant.images && firstVariant.images.length > 0 ? firstVariant.images[0].url : 'https://via.placeholder.com/300?text=No+Image';
+                    const minPrice = firstVariant ? firstVariant.price : 0;
+                    const hasOffer = relatedProduct.offer > 0;
+                    const finalPrice = hasOffer ? minPrice - (minPrice * relatedProduct.offer / 100) : minPrice;
+                    const isInWishlistRelated = wishlistProductIds.includes(relatedProduct._id.toString());
+                %>
+                <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; position: relative;">
+                    <a href="/product/<%= relatedProduct._id %>" style="text-decoration: none; color: inherit;">
+                        <div style="position: relative; height: 280px; overflow: hidden; background: #f8f9fa;">
+                            <img src="<%= firstImage %>" alt="<%= relatedProduct.name %>" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                            <% if (hasOffer) { %>
+                            <div style="position: absolute; top: 12px; left: 12px; background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;">
+                                -<%= relatedProduct.offer %>% OFF
+                            </div>
+                            <% } %>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div style="font-size: 12px; color: #999; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">
+                                <%= relatedProduct.brand %>
+                            </div>
+                            <h3 style="font-size: 16px; font-weight: 700; color: #111; margin-bottom: 12px; line-height: 1.4; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                <%= relatedProduct.name %>
+                            </h3>
+                            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px;">
+                                <span style="font-size: 24px; font-weight: 900; color: #28a745;">
+                                    ₹<%= Math.round(finalPrice).toLocaleString('en-IN') %>
+                                </span>
+                                <% if (hasOffer) { %>
+                                <span style="font-size: 14px; color: #999; text-decoration: line-through;">
+                                    ₹<%= Math.round(minPrice).toLocaleString('en-IN') %>
+                                </span>
+                                <% } %>
+                            </div>
+                        </div>
+                    </a>
+                    <button onclick="toggleWishlistRelated('<%= relatedProduct._id %>', this, event)" style="position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; background: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s ease; z-index: 10;">
+                        <i class="<%= isInWishlistRelated ? 'fas' : 'far' %> fa-heart" style="font-size: 16px; color: <%= isInWishlistRelated ? '#ff6b6b' : '#666' %>;"></i>
+                    </button>
+                </div>
+                <% }); %>
+            </div>
+        </div>
+        <% } %>
     </div>
 
     <%- include('../partials/footer') %>
@@ -628,6 +708,53 @@
         const productId = '<%= product._id %>';
         const productName = document.getElementById('productTitle').dataset.productName;
         const productOffer = <%= product.offer || 0 %>;
+        
+        // Toggle wishlist for related products
+        async function toggleWishlistRelated(productId, button, event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const icon = button.querySelector('i');
+            const isInWishlist = icon.classList.contains('fas');
+            
+            try {
+                const url = isInWishlist ? '/api/wishlist/remove' : '/api/wishlist/add';
+                const method = isInWishlist ? 'DELETE' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: productId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (isInWishlist) {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        icon.style.color = '#666';
+                        toastManager.success('Removed from wishlist!');
+                    } else {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        icon.style.color = '#ff6b6b';
+                        toastManager.success('Added to wishlist!');
+                    }
+                } else {
+                    if (response.status === 401) {
+                        toastManager.warning('Please login to manage wishlist');
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 2000);
+                    } else {
+                        toastManager.error(data.message);
+                    }
+                }
+            } catch (error) {
+                toastManager.error('Error updating wishlist');
+            }
+        }
         
         // Debug: Log total variants
         console.log('Total variants loaded:', <%= product.variants.length %>);

@@ -82,7 +82,7 @@ export const isNotAuthenticatedAdmin = async (req, res, next) => {
             });
         }
         return;
-    }
+    }   
     
     // Allow access to admin login page
     next();

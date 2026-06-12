@@ -24,7 +24,8 @@ export const syncUserSession = (req, res, next) => {
             phone: req.user.phone,
             profileImage: req.user.profileImage,
             isAdmin: req.user.isAdmin,
-            createdAt: req.user.createdAt
+            createdAt: req.user.createdAt,
+            isGoogleUser: !!req.user.googleId  // Add flag for Google users
         };
     }
     next();
@@ -82,41 +83,44 @@ export const isAuthenticated = async (req, res, next) => {
         return next();
     }
     
+    // Save the URL user was trying to access
+    req.session.redirectTo = req.originalUrl;
+    
     // No user session, redirect to login
     res.redirect('/login');
 };
 
-// Check if user is not authenticated - with strict session validation
-export const isNotAuthenticated = async (req, res, next) => {
-    // Apply cache prevention for login pages
-    preventCache(req, res, () => {});
+// // Check if user is not authenticated - with strict session validation
+// export const isNotAuthenticated = async (req, res, next) => {
+//     // Apply cache prevention for login pages
+//     preventCache(req, res, () => {});
     
-    // Check for any existing valid user session
-    if (req.session.userId || req.user) {
-        const userId = req.session.userId || req.user._id;
+//     // Check for any existing valid user session
+//     if (req.session.userId || req.user) {
+//         const userId = req.session.userId || req.user._id;
         
-        // Validate user status first
-        const isValidUser = await validateUserStatus(userId);
+//         // Validate user status first
+//         const isValidUser = await validateUserStatus(userId);
         
-        if (!isValidUser) {
-            // User is blocked, clear user session and allow access to login page
-            req.session.destroy((err) => {
-                if (err) {
-                    console.error('Session destroy error:', err);
-                }
-                res.clearCookie('horologue.user.sid');
-                next();
-            });
-            return;
-        }
+//         if (!isValidUser) {
+//             // User is blocked, clear user session and allow access to login page
+//             req.session.destroy((err) => {
+//                 if (err) {
+//                     console.error('Session destroy error:', err);
+//                 }
+//                 res.clearCookie('horologue.user.sid');
+//                 next();
+//             });
+//             return;
+//         }
         
-        // Valid user session exists, redirect to user home
-        return res.redirect('/home');
-    }
+//         // Valid user session exists, redirect to user home
+//         return res.redirect('/home');
+//     }
     
-    // No valid session, allow access to login page
-    next();
-};
+//     // No valid session, allow access to login page
+//     next();
+// };
 
 // Middleware for public pages (like landing) - redirect authenticated users
 export const redirectAuthenticatedUsers = async (req, res, next) => {

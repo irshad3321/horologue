@@ -2,7 +2,7 @@ import Address from '../models/Address.js';
 
 // Get all addresses for a user
 export const getUserAddresses = async (userId) => {
-    try {
+    try {   
         const addresses = await Address.find({ userId }).sort({ isDefault: -1, createdAt: -1 });
         return addresses;
     } catch (error) {

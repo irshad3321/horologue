@@ -24,7 +24,14 @@ const orderSchema = new mongoose.Schema({
         color: String,
         price: Number,
         quantity: Number,
-        itemTotal: Number
+        itemTotal: Number,
+        itemStatus: {
+            type: String,
+            enum: ['Active', 'Cancelled', 'Returned'],
+            default: 'Active'
+        },
+        cancelledDate: Date,
+        cancellationReason: String
     }],
     shippingAddress: {
         fullName: String,
@@ -56,9 +63,17 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    couponCode: {
+        type: String,
+        default: null
+    },
+    couponDiscount: {
+        type: Number,
+        default: 0
+    },
     paymentMethod: {
         type: String,
-        enum: ['COD', 'Online'],
+        enum: ['COD', 'Online', 'Wallet'],
         default: 'COD'
     },
     paymentStatus: {
@@ -66,11 +81,24 @@ const orderSchema = new mongoose.Schema({
         enum: ['Pending', 'Paid', 'Failed'],
         default: 'Pending'
     },
+    razorpayOrderId: {
+        type: String,
+        default: null
+    },
+    razorpayPaymentId: {
+        type: String,
+        default: null
+    },
+    razorpaySignature: {
+        type: String,
+        default: null
+    },
     orderStatus: {
         type: String,
         enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested', 'Returned', 'Return Declined'],
         default: 'Pending'
     },
+    
     orderDate: {
         type: Date,
         default: Date.now

@@ -683,6 +683,7 @@
               <label for="email">Email Address</label>
               <div class="email-field">
                 <input type="email" id="email" name="email" value="<%= user ? user.email : '' %>" readonly />
+                <% if (!isGoogleUser) { %>
                 <button type="button" class="change-email-btn" onclick="openEmailChangePopup()">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -690,6 +691,11 @@
                   </svg>
                   Change Email
                 </button>
+                <% } else { %>
+                <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #999;">
+                  Managed by Google
+                </span>
+                <% } %>
               </div>
             </div>
 

@@ -28,6 +28,8 @@ export const validateRegistration = (userData) => {
         }
     }
 
+
+
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
         return passwordValidation;

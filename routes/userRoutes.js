@@ -46,8 +46,16 @@ import {
     showEditProfile,
     showLanding,
     showAddresses,
-    showChangePassword
+    showChangePassword,
+    showAbout,
+    showContact
 } from '../controllers/pageController.js';
+
+import {
+    showWallet,
+    addMoney,
+    getBalance
+} from '../controllers/user/walletController.js';
 
 import {
     showProducts,
@@ -72,10 +80,15 @@ import {
     cancelOrder,
     cancelOrderItem,
     returnOrder,
-    downloadInvoice
+    downloadInvoice,
+    createRazorpayOrder,
+    verifyRazorpayPayment,
+    validateCouponController,
+    getAvailableCoupons,
+    validateStock
 } from '../controllers/user/orderController.js';
 
-import { syncUserSession, isAuthenticated, isNotAuthenticated, preventCache, redirectAuthenticatedUsers, userSessionCheck } from '../middlewares/sessionAuth.js';
+import { syncUserSession, isAuthenticated, preventCache, redirectAuthenticatedUsers, userSessionCheck } from '../middlewares/sessionAuth.js';
 import upload, { handleMulterError } from '../config/multer.js';
 
 const router = express.Router();
@@ -86,6 +99,8 @@ router.use(syncUserSession);
 // Page routes
 router.get('/', redirectAuthenticatedUsers, showLanding);
 router.get('/home', isAuthenticated, showHome);
+router.get('/about', showAbout);
+router.get('/contact', showContact);
 router.get('/products', showProducts);
 router.get('/collection', showProducts);
 router.get('/product/:id', showProductDetail);
@@ -96,26 +111,49 @@ router.get('/edit-profile', isAuthenticated, showEditProfile);
 router.get('/addresses', isAuthenticated, showAddresses);
 router.get('/password', isAuthenticated, showChangePassword);
 
+// Wallet route
+router.get('/wallet', isAuthenticated, showWallet);
+router.post('/api/wallet/add-money', isAuthenticated, addMoney);
+router.get('/api/wallet/balance', isAuthenticated, getBalance);
+
 // Checkout routes
 router.get('/checkout', isAuthenticated, showCheckout);
 router.post('/api/orders/place', isAuthenticated, placeOrder);
 router.get('/order-success', isAuthenticated, showOrderSuccess);
+router.get('/payment-failure', isAuthenticated, (req, res) => {
+    res.render('user/payment-failure', {
+        user: req.session.user,
+        orderId: req.query.orderId || null,
+        amount: req.query.amount || 0,
+        paymentMethod: req.query.method || 'Online Payment',
+        reason: req.query.reason || 'Payment gateway error'
+    });
+});
+
+// Payment routes
+router.post('/api/payment/create-order', isAuthenticated, createRazorpayOrder);
+router.post('/api/payment/verify', isAuthenticated, verifyRazorpayPayment);
+
+// Coupon routes
+router.post('/api/coupon/validate', isAuthenticated, validateCouponController);
+router.get('/api/coupons/available', isAuthenticated, getAvailableCoupons);
 
 // Orders routes
 router.get('/orders', isAuthenticated, showOrders);
 router.get('/orders/:id', isAuthenticated, showOrderDetail);
 
 // Order management API routes
+router.post('/api/orders/validate-stock', isAuthenticated, validateStock);
 router.post('/api/orders/:id/cancel', isAuthenticated, cancelOrder);
 router.post('/api/orders/:orderId/items/:itemId/cancel', isAuthenticated, cancelOrderItem);
 router.post('/api/orders/:id/return', isAuthenticated, returnOrder);
 router.get('/api/orders/:id/invoice', isAuthenticated, downloadInvoice);
 
 // Cart API routes
-router.post('/api/cart/add', isAuthenticated, addToCart);
-router.put('/api/cart/update', isAuthenticated, updateCartQuantity);
-router.delete('/api/cart/remove', isAuthenticated, removeFromCart);
-router.delete('/api/cart/clear', isAuthenticated, clearCart);
+router.post('/api/cart/add', addToCart);
+router.put('/api/cart/update', updateCartQuantity);
+router.delete('/api/cart/remove', removeFromCart);
+router.delete('/api/cart/clear', clearCart);
 
 // Wishlist API routes
 router.post('/api/wishlist/add', isAuthenticated, addToWishlist);
@@ -123,9 +161,9 @@ router.delete('/api/wishlist/remove', isAuthenticated, removeFromWishlist);
 router.delete('/api/wishlist/clear', isAuthenticated, clearWishlist);
 
 // Authentication routes
-router.get('/register', isNotAuthenticated,showRegister);
+router.get('/register',showRegister);
 router.post('/register', registerUser);
-router.get('/login', isNotAuthenticated,showLogin);
+router.get('/login',showLogin);
 router.post('/login', loginUser)
 router.get('/logout', logoutUser)
 router.get('/verify-otp-registration',showVerifyOTPRegistration)

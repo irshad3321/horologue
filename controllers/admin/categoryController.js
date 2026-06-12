@@ -141,7 +141,6 @@ export async function deleteCategory(req, res) {
 export async function toggleCategoryStatus(req, res) {
     try {
         const { categoryId } = req.params;
-        
         const category = await categoryService.toggleCategoryStatus(categoryId);
         if (!category) {
             return res.status(404).json({ 

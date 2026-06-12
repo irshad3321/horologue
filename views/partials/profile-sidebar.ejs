@@ -64,6 +64,7 @@
         Wallet
       </a>
     </li>
+    <% if (!user.googleId) { %>
     <li>
       <a href="/password" class="<%= typeof currentPage !== 'undefined' && currentPage === 'password' ? 'active' : '' %>">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -74,6 +75,7 @@
         Password
       </a>
     </li>
+    <% } %>
     <li>
       <a href="/wishlist" class="<%= typeof currentPage !== 'undefined' && currentPage === 'wishlist' ? 'active' : '' %>">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

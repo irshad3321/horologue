@@ -800,10 +800,10 @@
                         <i class="fas fa-filter" style="margin-right: 0.5rem;"></i>
                         Filter & Search Products
                     </h3>
-                    <a href="#" style="color: #007bff; font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                    <!-- <a href="#" style="color: #007bff; font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
                         Advanced Filters
                         <i class="fas fa-chevron-down"></i>
-                    </a>
+                    </a> -->
                 </div>
                 
                 <form method="GET" action="/admin/products" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
@@ -1249,11 +1249,11 @@
         }
 
         // Toggle Product Status
-        function toggleProduct(productId, currentStatus) {
+        async function toggleProduct(productId, currentStatus) {
             const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
             const action = newStatus === 'active' ? 'enable' : 'disable';
             
-            Swal.fire({
+            const result = await Swal.fire({
                 title: `${action.charAt(0).toUpperCase() + action.slice(1)} Product?`,
                 text: `Are you sure you want to ${action} this product?`,
                 icon: 'question',
@@ -1262,8 +1262,10 @@
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: `Yes, ${action.charAt(0).toUpperCase() + action.slice(1)}`,
                 cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
+            });
+
+            if (result.isConfirmed) {
+                try {
                     // Show loading
                     Swal.fire({
                         title: 'Updating...',
@@ -1274,21 +1276,39 @@
                         }
                     });
 
-                    // Simulate API call - replace with actual backend call
-                    setTimeout(() => {
-                        Swal.fire({
+                    const response = await fetch(`/admin/products/${productId}/toggle-status`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        await Swal.fire({
                             icon: 'success',
                             title: 'Status Updated!',
                             text: `Product has been ${action}d successfully`,
                             timer: 2000,
                             showConfirmButton: false
-                        }).then(() => {
-                            // Reload page to show updated data
-                            window.location.reload();
                         });
-                    }, 1000);
+                        window.location.reload();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'Failed to update product status'
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to update product status. Please try again.'
+                    });
                 }
-            });
+            }
         }
 
         // Delete Product (Soft Delete)

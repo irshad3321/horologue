@@ -8,12 +8,13 @@ export const validateEmail = (email) => {
   };
 };
 
-// Password validation
+// Password validation - Strong password requirements
 export const validatePassword = (password) => {
-  const minLength = 6;
+  const minLength = 8;
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
   const hasNumbers = /\d/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
   
   if (password.length < minLength) {
     return {
@@ -25,21 +26,28 @@ export const validatePassword = (password) => {
   if (!hasUpperCase) {
     return {
       isValid: false,
-      message: 'Password must contain at least one uppercase letter'
+      message: 'Password must contain at least one uppercase letter (A-Z)'
     };
   }
   
   if (!hasLowerCase) {
     return {
       isValid: false,
-      message: 'Password must contain at least one lowercase letter'
+      message: 'Password must contain at least one lowercase letter (a-z)'
     };
   }
   
   if (!hasNumbers) {
     return {
       isValid: false,
-      message: 'Password must contain at least one number'
+      message: 'Password must contain at least one number (0-9)'
+    };
+  }
+  
+  if (!hasSpecialChar) {
+    return {
+      isValid: false,
+      message: 'Password must contain at least one special character (!@#$%^&*...)'
     };
   }
   
@@ -54,7 +62,7 @@ export const validatePhone = (phone) => {
   const phoneRegex = /^\d{10}$/;
   return {
     isValid: phoneRegex.test(phone),
-    message: phoneRegex.test(phone) ? '' : 'Please enter a valid 10-digit phone number'
+    message: phoneRegex.test(phone) ? '' : 'Please enter a valid 10-digit phone number',
   };
 };
 
