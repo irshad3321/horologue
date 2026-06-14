@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Horologue - The Art of Precision</title>
+  <link rel="stylesheet" href="/css/responsive.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -503,7 +504,8 @@
       }
 
       .carousel-slide {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr !important;
+        gap: 20px;
       }
 
       .hero-content h1 {
@@ -513,11 +515,113 @@
       .quote-section h2 {
         font-size: 36px;
       }
+
+      .hero {
+        padding: 80px 0;
+        min-height: auto;
+      }
+
+      .hero-container {
+        padding: 0 20px;
+      }
+
+      .hero-content h1 {
+        font-size: 36px;
+      }
+
+      .hero-content p {
+        font-size: 18px;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+      }
+
+      .btn-primary, .btn-secondary {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .products {
+        padding: 60px 0;
+      }
+
+      .products-container {
+        padding: 0 20px;
+      }
+
+      .carousel-container {
+        padding: 20px;
+      }
+
+      .section-header h2 {
+        font-size: 28px;
+      }
+
+      .section-header p {
+        font-size: 16px;
+      }
+
+      .product-card img {
+        height: 250px;
+      }
+
+      .carousel-controls {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .explore-more-btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .quote-section {
+        padding: 80px 0;
+      }
+
+      .quote-container {
+        padding: 0 20px;
+      }
+
+      .quote-section h2 {
+        font-size: 28px;
+      }
+
+      .quote-section p {
+        font-size: 16px;
+      }
+
+      .craftsmanship {
+        padding: 80px 0;
+      }
+
+      .craftsmanship-container {
+        padding: 0 20px;
+      }
+
+      .craftsmanship-content h2 {
+        font-size: 32px;
+      }
+
+      .craftsmanship-content p {
+        font-size: 16px;
+      }
     }
 
     @media (max-width: 480px) {
       .carousel-slide {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
+      }
+
+      .hero-content h1 {
+        font-size: 32px;
+      }
+
+      .btn-primary, .btn-secondary {
+        font-size: 16px;
+        padding: 16px 32px;
       }
     }
   </style>
