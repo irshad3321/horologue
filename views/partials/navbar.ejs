@@ -10,7 +10,8 @@
       <span class="logo-text">Horologue</span>
     </div>
     
-    <div class="nav-links">
+    <!-- Desktop Navigation -->
+    <div class="nav-links desktop-nav">
       <a href="/home" class="nav-link">Home</a>
       <a href="/collection" class="nav-link">Collection</a>
       <a href="/about" class="nav-link">About</a>
@@ -31,9 +32,7 @@
 
       <a href="/cart" class="nav-icon" title="Shopping Cart">
         <div class="icon-wrapper">
-         
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            
             <circle cx="9" cy="21" r="1"/>
             <circle cx="20" cy="21" r="1"/>
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
@@ -41,7 +40,6 @@
           <% if (typeof cartCount !== 'undefined' && cartCount > 0) { %>
             <span class="cart-count"><%= cartCount %></span>
           <% } %>
-
         </div>
       </a>
       
@@ -53,9 +51,33 @@
           </svg>
         </div>
       </a>
+
+      <!-- Hamburger Menu Button (Mobile Only) -->
+      <button class="hamburger-menu mobile-only" onclick="toggleMobileMenu()" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
   </div>
 </nav>
+
+<!-- Mobile Navigation Overlay -->
+<div class="mobile-nav-overlay" onclick="toggleMobileMenu()"></div>
+
+<!-- Mobile Navigation Menu -->
+<div class="mobile-nav">
+  <ul>
+    <li><a href="/home">Home</a></li>
+    <li><a href="/collection">Collection</a></li>
+    <li><a href="/about">About</a></li>
+    <li><a href="/contact">Contact</a></li>
+    <li><a href="/profile">My Profile</a></li>
+    <li><a href="/orders">My Orders</a></li>
+    <li><a href="/wishlist">Wishlist</a></li>
+    <li><a href="/cart">Cart</a></li>
+  </ul>
+</div>
 
 <style>
 .navbar {
@@ -328,7 +350,7 @@
     padding: 0 20px;
   }
   
-  .nav-links {
+  .desktop-nav {
     display: none;
   }
   
@@ -357,6 +379,130 @@
   
   .icon-wrapper {
     border-radius: 16px;
+  }
+}
+
+/* Hamburger Menu */
+.hamburger-menu {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1001;
+}
+
+.hamburger-menu span {
+  width: 100%;
+  height: 3px;
+  background: #ffffff;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.hamburger-menu.active span:nth-child(1) {
+  transform: rotate(45deg) translateY(8px);
+  background: #000000;
+}
+
+.hamburger-menu.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-menu.active span:nth-child(3) {
+  transform: rotate(-45deg) translateY(-8px);
+  background: #000000;
+}
+
+.hamburger-menu.active {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: flex !important;
+  }
+}
+
+/* Mobile Navigation */
+.mobile-nav {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 280px;
+  height: 100vh;
+  background: white;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+  transition: right 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
+  padding-top: 80px;
+}
+
+.mobile-nav.active {
+  right: 0;
+}
+
+.mobile-nav-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.mobile-nav-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mobile-nav li {
+  border-bottom: 1px solid #eee;
+}
+
+.mobile-nav a {
+  display: block;
+  padding: 18px 24px;
+  color: #333;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.mobile-nav a:hover {
+  background: #f8f9fa;
+  padding-left: 32px;
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+  
+  .mobile-nav,
+  .mobile-nav-overlay {
+    display: none !important;
   }
 }
 
@@ -392,3 +538,35 @@
   box-shadow: 0 8px 50px rgba(0, 0, 0, 0.15);
 }
 </style>
+
+<script>
+function toggleMobileMenu() {
+  const hamburger = document.querySelector('.hamburger-menu');
+  const mobileNav = document.querySelector('.mobile-nav');
+  const overlay = document.querySelector('.mobile-nav-overlay');
+  
+  hamburger.classList.toggle('active');
+  mobileNav.classList.toggle('active');
+  overlay.classList.toggle('active');
+  
+  // Prevent body scroll when menu is open
+  document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+}
+
+// Close menu when clicking on a link
+document.querySelectorAll('.mobile-nav a').forEach(link => {
+  link.addEventListener('click', () => {
+    toggleMobileMenu();
+  });
+});
+
+// Scroll effect for navbar
+window.addEventListener('scroll', function() {
+  const navbar = document.querySelector('.navbar');
+  if (window.scrollY > 50) {
+    navbar.classList.add('scrolled');
+  } else {
+    navbar.classList.remove('scrolled');
+  }
+});
+</script>

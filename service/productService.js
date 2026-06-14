@@ -134,10 +134,9 @@ export async function updateProduct(productId, updateData) {
             if (newVariant._id) {
                 const existingVariant = product.variants.id(newVariant._id);
                 if (existingVariant) {
-             
                     existingVariant.color = newVariant.color;
-                    existingVariant.price = newVariant.price;
-                    existingVariant.stock = newVariant.stock;
+                    existingVariant.price = parseFloat(newVariant.price);
+                    existingVariant.stock = parseInt(newVariant.stock);
                     existingVariant.images = newVariant.images;
                     return existingVariant;
                 }

@@ -1,0 +1,380 @@
+/* ==========================================
+   RESPONSIVE STYLES FOR USER SIDE
+   Mobile-First Approach
+   ========================================== */
+
+/* Base Mobile Styles (0-767px) */
+@media (max-width: 767px) {
+    /* Global */
+    body {
+        font-size: 14px;
+    }
+
+    /* Container Adjustments */
+    .container {
+        padding: 15px !important;
+        max-width: 100% !important;
+    }
+
+    /* Typography */
+    h1, .page-title {
+        font-size: 24px !important;
+    }
+
+    h2 {
+        font-size: 20px !important;
+    }
+
+    h3 {
+        font-size: 18px !important;
+    }
+
+    h4 {
+        font-size: 16px !important;
+    }
+
+    /* Buttons */
+    .btn, button {
+        width: 100%;
+        padding: 12px 20px !important;
+        font-size: 14px !important;
+    }
+
+    .btn-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* Forms */
+    input, select, textarea {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+        width: 100% !important;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    /* Grid Layouts */
+    .grid, .product-grid, .products-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+
+    .two-column-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Product Cards */
+    .product-card {
+        margin-bottom: 15px;
+    }
+
+    .product-card img {
+        max-height: 250px;
+    }
+
+    /* Cart Items */
+    .cart-item {
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+
+    .cart-item-image {
+        width: 100% !important;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+
+    /* Tables */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Order Items */
+    .order-item {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    /* Summary Boxes */
+    .summary-box, .checkout-summary {
+        position: static !important;
+        margin-top: 20px;
+    }
+
+    /* Footer */
+    .footer-grid {
+        grid-template-columns: 1fr !important;
+        text-align: center;
+    }
+
+    /* Spacing */
+    .section {
+        padding: 30px 15px !important;
+    }
+
+    /* Images */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Flexbox Adjustments */
+    .flex-row {
+        flex-direction: column !important;
+    }
+
+    /* Modal */
+    .modal-content {
+        width: 95% !important;
+        margin: 5% auto !important;
+        padding: 15px !important;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+        font-size: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* Price Display */
+    .price {
+        font-size: 18px !important;
+    }
+
+    /* Product Detail */
+    .product-detail-container {
+        flex-direction: column !important;
+    }
+
+    .product-images {
+        width: 100% !important;
+        margin-bottom: 20px;
+    }
+
+    .product-info {
+        width: 100% !important;
+    }
+
+    /* Checkout Page */
+    .checkout-container {
+        flex-direction: column !important;
+    }
+
+    .checkout-left, .checkout-right {
+        width: 100% !important;
+    }
+
+    /* Profile Sidebar */
+    .profile-container {
+        flex-direction: column !important;
+    }
+
+    .profile-sidebar {
+        width: 100% !important;
+        margin-bottom: 20px;
+    }
+
+    .profile-content {
+        width: 100% !important;
+    }
+
+    /* Address Cards */
+    .address-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Pagination */
+    .pagination {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .pagination a, .pagination-btn {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+    }
+
+    /* Hide Desktop Elements */
+    .desktop-only {
+        display: none !important;
+    }
+
+    /* Show Mobile Elements */
+    .mobile-only {
+        display: block !important;
+    }
+}
+
+/* Tablet Styles (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .container {
+        padding: 20px !important;
+    }
+
+    .grid, .product-grid, .products-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 20px !important;
+    }
+
+    .two-column-grid {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    h1, .page-title {
+        font-size: 28px !important;
+    }
+
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+/* Desktop Styles (1024px+) */
+@media (min-width: 1024px) {
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+/* Hamburger Menu Styles */
+.hamburger-menu {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    padding: 5px;
+    z-index: 1001;
+}
+
+.hamburger-menu span {
+    width: 25px;
+    height: 3px;
+    background-color: #333;
+    margin: 3px 0;
+    transition: 0.3s;
+    border-radius: 2px;
+}
+
+@media (max-width: 767px) {
+    .hamburger-menu {
+        display: flex;
+    }
+
+    /* Hamburger Animation */
+    .hamburger-menu.active span:nth-child(1) {
+        transform: rotate(-45deg) translate(-5px, 6px);
+    }
+
+    .hamburger-menu.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .hamburger-menu.active span:nth-child(3) {
+        transform: rotate(45deg) translate(-5px, -6px);
+    }
+}
+
+/* Mobile Navigation */
+.mobile-nav {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 80%;
+    max-width: 300px;
+    height: 100vh;
+    background: white;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    transition: left 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
+    padding-top: 60px;
+}
+
+.mobile-nav.active {
+    left: 0;
+}
+
+.mobile-nav-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+}
+
+.mobile-nav-overlay.active {
+    display: block;
+}
+
+@media (max-width: 767px) {
+    .mobile-nav {
+        display: block;
+    }
+}
+
+.mobile-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mobile-nav li {
+    border-bottom: 1px solid #eee;
+}
+
+.mobile-nav a {
+    display: block;
+    padding: 15px 20px;
+    color: #333;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.mobile-nav a:hover {
+    background: #f8f9fa;
+}
+
+.mobile-nav .active {
+    background: #e9ecef;
+    font-weight: 600;
+}
+
+/* Touch-Friendly Elements */
+@media (max-width: 767px) {
+    a, button, .clickable {
+        min-height: 44px;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Fix Sticky Elements on Mobile */
+@media (max-width: 767px) {
+    .sticky {
+        position: static !important;
+    }
+}
+
+/* Responsive Images */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}

@@ -246,7 +246,6 @@ export const addToCart = async (req, res) => {
             quantity
         );
         
-        // Only remove from wishlist if user is logged in
         if (req.session.userId) {
             await wishlistService.removeFromWishlist(req.session.userId, productId);
         }
@@ -272,7 +271,6 @@ export const updateCartQuantity = async (req, res) => {
     try {
         const { productId, variantId, quantity } = req.body;
         
-        // Use userId if logged in, otherwise use session ID for guest cart
         const cartIdentifier = req.session.userId || req.sessionID;
         
         await cartService.updateCartQuantity(

@@ -1283,13 +1283,17 @@
                         }
                     });
 
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
                     const data = await response.json();
 
                     if (data.success) {
                         await Swal.fire({
                             icon: 'success',
                             title: 'Status Updated!',
-                            text: `Product has been ${action}d successfully`,
+                            text: data.message || `Product has been ${action}d successfully`,
                             timer: 2000,
                             showConfirmButton: false
                         });
@@ -1302,6 +1306,7 @@
                         });
                     }
                 } catch (error) {
+                    console.error('Toggle error:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
