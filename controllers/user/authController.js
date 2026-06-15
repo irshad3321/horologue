@@ -88,7 +88,7 @@ export const registerUser = async (req, res) => {
 
         req.session.tempUserData = trimmedData;
         req.session.tempEmail = trimmedData.email;
-        req.session.resendTimerStart = Date.now(); // Initialize resend timer
+        req.session.resendTimerStart = Date.now()
         
         await generateAndSaveOTP(trimmedData.email, 'signup');
         
@@ -243,7 +243,6 @@ export const verifyOTPForgotController = async (req, res) => {
 export const showLogin = (req, res) => {
     let error = null;
     
-    // Handle various error types
     if (req.query.error === 'google_auth_failed') {
         error = 'Google authentication failed. Please try again.';
     } else if (req.query.error === 'auth_error') {

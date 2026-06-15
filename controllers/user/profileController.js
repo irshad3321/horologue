@@ -18,7 +18,6 @@ export const updateProfile = async (req, res) => {
         const updatedUser = await updateUser(userId, firstName, lastName, phone);
         
         if (updatedUser) {
-            // Update session with plain object, not Mongoose document
             req.session.user = {
                 id: updatedUser._id,
                 firstName: updatedUser.firstName,
