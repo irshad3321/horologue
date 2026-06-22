@@ -49,6 +49,12 @@ async function mergeGuestCart(guestSessionId, userId) {
 
 // Show pages
 export const showRegister = (req, res) => {
+    // Prevent caching of registration page
+    res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    });
     res.render('user/register', { error: null, success: null, formData: {} });
 };
 
@@ -93,6 +99,13 @@ export const registerUser = async (req, res) => {
         await generateAndSaveOTP(trimmedData.email, 'signup');
         
         const otpCreatedAt = await getLatestOTPCreationTime(trimmedData.email, 'signup');
+        
+        // Prevent caching
+        res.set({
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        });
         
         res.render('user/verify-otp-registration', {
             error: null,
@@ -257,8 +270,20 @@ export const showLogin = (req, res) => {
 };
 
 export const showVerifyOTPRegistration = async (req, res) => {
+    // Redirect to register if no temp email in session
+    if (!req.session.tempEmail) {
+        return res.redirect('/register');
+    }
+    
     const email = req.session.tempEmail || '';
     const otpCreatedAt = email ? await getLatestOTPCreationTime(email, 'signup') : null;
+    
+    // Prevent caching
+    res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    });
     
     res.render('user/verify-otp-registration', {
         error: null,

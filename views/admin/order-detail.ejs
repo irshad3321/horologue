@@ -354,7 +354,7 @@
                                     <option value="Confirmed" <%= order.orderStatus === 'Confirmed' ? 'selected' : '' %>>Confirmed</option>
                                     <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
                                     <option value="Delivered" <%= order.orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                                    <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                    <!-- <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option> -->
                                     <!-- <option value="Returned" <%= order.orderStatus === 'Returned' ? 'selected' : '' %>>Returned</option> -->
                                 </select>
                                 <button class="btn btn-primary" onclick="updateStatus()" <%= isFinalState ? 'disabled' : '' %>>
@@ -369,8 +369,14 @@
                         <h2 class="card-title">Order Information</h2>
                         <div class="info-row">
                             <span class="info-label">Order Date</span>
-                            <span class="info-value"><%= new Date(order.orderDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+                            <span class="info-value"><%= new Date(order.orderDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) %></span>
                         </div>
+                        <% if (order.deliveryDate) { %>
+                        <div class="info-row">
+                            <span class="info-label">Delivery Date</span>
+                            <span class="info-value"><%= new Date(order.deliveryDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) %></span>
+                        </div>
+                        <% } %>
                         <div class="info-row">
                             <span class="info-label">Payment Method</span>
                             <span class="info-value"><%= order.paymentMethod %></span>
