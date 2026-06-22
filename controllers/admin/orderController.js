@@ -130,6 +130,10 @@ export const updateOrderStatus = async (req, res) => {
         
         if (status === 'Delivered') {
             order.deliveryDate = new Date();
+            // Mark COD payment as Paid when delivered
+            if (order.paymentMethod === 'COD' && order.paymentStatus === 'Pending') {
+                order.paymentStatus = 'Paid';
+            }
         }
         
         // Restore stock only when approving return from 'Return Requested' status

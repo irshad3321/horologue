@@ -187,10 +187,7 @@ export async function getOrderById(orderId, userId) {
 export async function cancelOrder(orderId, userId, reason) {
     try {
 
-        const count = await Order.countDocuments({userId,orderStatus:'Cancelled'})
-        if(count>3){
-            throw new Error('you have cancelled 3 ')
-        }
+       
         const order = await Order.findOne({ _id: orderId, userId })
             .populate('items.product');
         
@@ -225,8 +222,7 @@ export async function cancelOrder(orderId, userId, reason) {
         order.cancellationReason = reason || '';
         await order.save();
         
-        return order,
-        count ;
+        return order
     } catch (error) {
         throw error;
     }

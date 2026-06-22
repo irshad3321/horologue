@@ -3,10 +3,9 @@ import Category from '../models/Category.js';
 import Brand from '../models/Brand.js';
 import { deleteFromCloudinary } from '../config/cloudinary.js';
 
-// Helper function to get brand status
 async function getBrandStatus(brandName) {
     const brand = await Brand.findOne({ name: brandName, isDeleted: false });
-    return brand ? brand.status : 'active'; // Default to active if brand not found
+    return brand ? brand.status : 'active'; 
 }
 
 export async function getProducts(filters = {}) {

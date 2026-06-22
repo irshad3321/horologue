@@ -161,14 +161,14 @@ router.delete('/api/wishlist/remove', isAuthenticated, removeFromWishlist);
 router.delete('/api/wishlist/clear', isAuthenticated, clearWishlist);
 
 // Authentication routes
-router.get('/register',showRegister);
-router.post('/register', registerUser);
-router.get('/login',showLogin);
+router.get('/register', redirectAuthenticatedUsers, showRegister);
+router.post('/register', redirectAuthenticatedUsers, registerUser);
+router.get('/login', redirectAuthenticatedUsers, showLogin);
 router.post('/login', loginUser)
 router.get('/logout', logoutUser)
-router.get('/verify-otp-registration',showVerifyOTPRegistration)
-router.post('/verify-otp-registration',verifyOTPRegistrationController)
-router.post('/resend-otp-registration',resendOTPRegistrationController)
+router.get('/verify-otp-registration', redirectAuthenticatedUsers, showVerifyOTPRegistration)
+router.post('/verify-otp-registration', redirectAuthenticatedUsers, verifyOTPRegistrationController)
+router.post('/resend-otp-registration', redirectAuthenticatedUsers, resendOTPRegistrationController)
 router.get('/verify-otp-forgot',showVerifyOTPForgot)
 router.post('/verify-otp-forgot',verifyOTPForgotController)
 router.post('/resend-otp-forgot',resendOTPForgotController)
