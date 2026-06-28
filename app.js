@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
-
+import { normal, errorr } from './middlewares/error.js';
 // Load environment variables FIRST
 dotenv.config();
 
@@ -63,24 +63,25 @@ app.use(passport.session());
 app.use('/', userRoutes);
 app.use('/admin', adminRoutes);
 
-// 404 handler - manual middleware
-app.use((req, res, next) => {
-  res.status(404).render('error/404', {
-    url: req.originalUrl,
-    method: req.method
-  });
-});
+// // 404 handler - manual middleware
+// app.use((req, res, next) => {
+//   res.status(404).render('error/404', {
+//     url: req.originalUrl,
+//     method: req.method
+//   });
+// });
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).render('error/404', {
-    url: req.originalUrl,
-    method: req.method
-  });
-});
+// // Global error handler
+// app.use((err, req, res, next) => {
+//   console.error('Error:', err);
+//   res.status(500).render('error/404', {
+//     url: req.originalUrl,
+//     method: req.method
+//   });
+// });
 
-
+app.use(normal)
+app.use(errorr)
 
 
 const PORT = process.env.PORT || 4000;

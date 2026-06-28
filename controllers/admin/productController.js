@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../../helper/constants.js';
 import * as productService from '../../service/productService.js';
 import * as categoryService from '../../service/categoryService.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../../config/cloudinary.js';
@@ -31,7 +32,7 @@ export async function getProductsPage(req, res) {
         })
     } catch (error) {
         console.error('Error fetching products:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 }
 export async function getAddProductPage(req, res) {
@@ -48,7 +49,7 @@ export async function getAddProductPage(req, res) {
         });
     } catch (error) {
         console.error('Error loading add product page:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 }
 export async function getEditProductPage(req, res) {
@@ -57,7 +58,7 @@ export async function getEditProductPage(req, res) {
         
         const product = await productService.getProductById(productId);
         if (!product) {
-            return res.status(404).render('error/404');
+            return res.status(HTTP_STATUS.NOT_FOUND).render('error/404');
         }
         
         const categories = await categoryService.getCategories({ limit: 100, status: 'active' });
@@ -74,7 +75,7 @@ export async function getEditProductPage(req, res) {
         });
     } catch (error) {
         console.error('Error loading edit product page:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 }
 export async function getProductById(req, res) {
@@ -83,7 +84,7 @@ export async function getProductById(req, res) {
         
         const product = await productService.getProductById(productId);
         if (!product) {
-            return res.status(404).json({ 
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ 
                 success: false, 
                 message: 'Product not found' 
             });
@@ -95,7 +96,7 @@ export async function getProductById(req, res) {
         });
     } catch (error) {
         console.error('Error fetching product:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to fetch product' 
         });
@@ -106,14 +107,14 @@ export async function createProduct(req, res) {
     try {
         const { name, brand, category, description, offer, status, premium, variants } = req.body;
         if (!name || !brand || !category) {
-            return res.status(400).json({ 
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
                 message: 'Name, brand, and category are required' 
             });
         }
         
         if (!variants || variants.length === 0) {
-            return res.status(400).json({ 
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
                 message: 'At least one variant is required' 
             });
@@ -139,14 +140,14 @@ export async function createProduct(req, res) {
             premium: premium || 'No',
             variants: parsedVariants
         })
-        res.status(201).json({ 
+        res.status(HTTP_STATUS.CREATED).json({ 
             success: true, 
             message: 'Product created successfully',
             product 
         })
     } catch (error) {
         console.error('Error creating product:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to create product' 
         })
@@ -157,14 +158,14 @@ export async function updateProduct(req, res) {
         const { productId } = req.params;
         const { name, brand, category, description, offer, status, premium, variants } = req.body;
         if (!name || !brand || !category) {
-            return res.status(400).json({ 
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
                 message: 'Name, brand, and category are required' 
             });
         }
         const product = await productService.getProductById(productId);
         if (!product) {
-            return res.status(404).json({ 
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ 
                 success: false, 
                 message: 'Product not found' 
             });
@@ -205,7 +206,7 @@ export async function updateProduct(req, res) {
         });
     } catch (error) {
         console.error('Error updating product:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to update product' 
         });
@@ -219,7 +220,7 @@ export async function deleteProduct(req, res) {
         
         const product = await productService.getProductById(productId);
         if (!product) {
-            return res.status(404).json({ 
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ 
                 success: false, 
                 message: 'Product not found' 
             });
@@ -232,7 +233,7 @@ export async function deleteProduct(req, res) {
         })
     } catch (error) {
         console.error('Error deleting product:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to delete product' 
         })
@@ -243,7 +244,7 @@ export async function toggleProductStatus(req, res) {
         const { productId } = req.params   
         const product = await productService.toggleProductStatus(productId);
         if (!product) {
-            return res.status(404).json({ 
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ 
                 success: false, 
                 message: 'Product not found' 
             });
@@ -255,7 +256,7 @@ export async function toggleProductStatus(req, res) {
         });
     } catch (error) {
         console.error('Error toggling product status:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to toggle product status' 
         })
@@ -264,7 +265,7 @@ export async function toggleProductStatus(req, res) {
 export async function uploadVariantImage(req, res) {
     try {
         if (!req.file) {
-            return res.status(400).json({ 
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
                 message: 'No image file provided' 
             })
@@ -284,7 +285,7 @@ export async function uploadVariantImage(req, res) {
         })
     } catch (error) {
         console.error('Error uploading image:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to upload image' 
         })
@@ -295,7 +296,7 @@ export async function deleteVariantImage(req, res) {
         const { publicId } = req.body;
         
         if (!publicId) {
-            return res.status(400).json({ 
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
                 message: 'Public ID is required' 
             });
@@ -307,7 +308,7 @@ export async function deleteVariantImage(req, res) {
         });
     } catch (error) {
         console.error('Error deleting image:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to delete image' 
         });
@@ -378,7 +379,7 @@ export const showInventory = async (req, res) => {
         });
     } catch (error) {
         console.error('Inventory page error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 

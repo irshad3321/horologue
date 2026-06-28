@@ -7,7 +7,6 @@ export const isAdmin = async (req, res, next) => {
     preventCache(req, res, () => {});
     
     if (!req.session.userId || !req.session.user || !req.session.user.isAdmin) {
-        // Clear invalid admin session
         req.session.destroy((err) => {
             if (err) {
                 console.error('Session destroy error:', err);
@@ -19,11 +18,9 @@ export const isAdmin = async (req, res, next) => {
     }
     
     try {
-        // Validate admin status and check if blocked
         const user = await User.findById(req.session.userId);
         
         if (!user || user.isBlocked || !user.isAdmin) {
-            // Admin is blocked, no longer admin, or doesn't exist
             req.session.destroy((err) => {
                 if (err) {
                     console.error('Session destroy error:', err);
@@ -49,19 +46,15 @@ export const isAdmin = async (req, res, next) => {
 
 // Middleware specifically for admin login page
 export const isNotAuthenticatedAdmin = async (req, res, next) => {
-    // Apply cache prevention
     preventCache(req, res, () => {});
     
-    // Check if admin is already authenticated
     if (req.session.userId && req.session.user?.isAdmin) {
         try {
-            // Validate admin status
             const user = await User.findById(req.session.userId);
             
             if (user && !user.isBlocked && user.isAdmin) {
                 return res.redirect('/admin/dashboard');
             } else {
-                // Admin is blocked or no longer admin, clear admin session
                 req.session.destroy((err) => {
                     if (err) {
                         console.error('Session destroy error:', err);
@@ -72,7 +65,6 @@ export const isNotAuthenticatedAdmin = async (req, res, next) => {
             }
         } catch (error) {
             console.error('Admin validation error:', error);
-            // Clear admin session on error
             req.session.destroy((err) => {
                 if (err) {
                     console.error('Session destroy error:', err);
@@ -88,16 +80,13 @@ export const isNotAuthenticatedAdmin = async (req, res, next) => {
     next();
 };
 
-// Admin session check API endpoint middleware
 export const adminSessionCheck = async (req, res) => {
     if (req.session.userId && req.session.user && req.session.user.isAdmin) {
         try {
-            // Import User model
             const { default: User } = await import('../models/User.js');
             const user = await User.findById(req.session.userId);
             
             if (!user || user.isBlocked || !user.isAdmin) {
-                // Admin is blocked, no longer admin, or doesn't exist
                 req.session.destroy((err) => {
                     if (err) {
                         console.error('Session destroy error:', err);
@@ -122,7 +111,6 @@ export const adminSessionCheck = async (req, res) => {
 export const handleAdminLoginErrors = (req, res, next) => {
     let error = null;
     
-    // Handle admin-specific errors
     if (req.query.error === 'access_revoked') {
         error = 'Your admin access has been revoked. Please contact the system administrator.';
     } else if (req.query.error === 'validation_error') {

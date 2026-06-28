@@ -5,7 +5,7 @@ import { generateOTP } from "../../helper/utils.js";
 import Cart from "../../models/Cart.js";
 
 import OTP from "../../models/OTP.js";
-
+import User from "../../models/User.js";
 // Helper function to merge guest cart into user cart after login
 async function mergeGuestCart(guestSessionId, userId) {
     try {
@@ -49,7 +49,6 @@ async function mergeGuestCart(guestSessionId, userId) {
 
 // Show pages
 export const showRegister = (req, res) => {
-    // Prevent caching of registration page
     res.set({
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
@@ -67,7 +66,8 @@ export const registerUser = async (req, res) => {
             email: req.body.email?.trim().toLowerCase(),
             phone: req.body.phone?.trim(),
             password: req.body.password?.trim(),
-            confirmPassword: req.body.confirmPassword?.trim()
+            confirmPassword: req.body.confirmPassword?.trim(),
+            referralCode: req.body.referralCode?.trim() || ''
         };
         
         const validation = validateRegistration(trimmedData);
@@ -80,9 +80,8 @@ export const registerUser = async (req, res) => {
             });
         }
         
-
         const existingUser = await findUserByEmail(trimmedData.email);
-        
+       
         if (existingUser) {
             return res.render('user/register', {
                 error: 'User with this email already exists',
@@ -145,7 +144,6 @@ export const verifyOTPRegistrationController = async (req, res) => {
         if (!otpVerification.isValid) {
             const otpCreatedAt = await getLatestOTPCreationTime(email, 'signup');
             
-            // Store current timer states to preserve them
             const currentTime = Date.now();
             if (!req.session.resendTimerStart) {
                 req.session.resendTimerStart = currentTime;
@@ -163,23 +161,22 @@ export const verifyOTPRegistrationController = async (req, res) => {
         // Create user
         const newUser = await createUser(req.session.tempUserData);
         
-        // Set session for automatic login
         req.session.userId = newUser._id;
         req.session.user = {
             id: newUser._id,
             firstName: newUser.firstName,
             lastName: newUser.lastName,
             email: newUser.email,
-            isAdmin: newUser.isAdmin
+            isAdmin: newUser.isAdmin,
+            referralCode: newUser.referralCode,
+            referralEarnings: newUser.referralEarnings || 0
         };
         
-        //  toast
         req.session.loginSuccess = {
             firstName: newUser.firstName,
             message: `Welcome to Horologue, ${newUser.firstName}!`
         };
         
-        // Clear temp session data
         delete req.session.tempUserData;
         delete req.session.tempEmail;
         delete req.session.resendTimerStart;
@@ -270,7 +267,6 @@ export const showLogin = (req, res) => {
 };
 
 export const showVerifyOTPRegistration = async (req, res) => {
-    // Redirect to register if no temp email in session
     if (!req.session.tempEmail) {
         return res.redirect('/register');
     }
@@ -278,7 +274,6 @@ export const showVerifyOTPRegistration = async (req, res) => {
     const email = req.session.tempEmail || '';
     const otpCreatedAt = email ? await getLatestOTPCreationTime(email, 'signup') : null;
     
-    // Prevent caching
     res.set({
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
@@ -320,9 +315,7 @@ export const loginUser = async (req, res) => {
             });
         }
         
-        // User login - sessions are completely separate now
         
-        // Set user session
         const user = loginResult.user;
         req.session.userId = user._id;
         req.session.user = {
@@ -336,25 +329,20 @@ export const loginUser = async (req, res) => {
             createdAt: user.createdAt
         };
         
-        // Set login success flag for toast
         req.session.loginSuccess = {
             firstName: user.firstName,
             message: `Welcome back, ${user.firstName}!`
         }
         
-        // Merge guest cart into user cart
         try {
             const guestSessionId = req.sessionID;
             await mergeGuestCart(guestSessionId, user._id);
         } catch (mergeError) {
             console.error('Guest cart merge error:', mergeError);
-            // Continue even if merge fails
         }
         
-        // Redirect to saved URL or default to home
         const redirectTo = req.session.redirectTo || '/home';
-        delete req.session.redirectTo; // Clear the redirect URL
-        
+        delete req.session.redirectTo
         res.redirect(redirectTo);
         
     } catch (error) {
@@ -382,7 +370,6 @@ export const forgotPasswordController = async (req, res) => {
     try {
         const { email } = req.body;
         
-        // Check if user exists
         const user = await findUserByEmail(email);
         if (!user) {
             return res.json({
@@ -391,7 +378,6 @@ export const forgotPasswordController = async (req, res) => {
             });
         }
         
-        // Generate and send OTP
         req.session.resetEmail = email;
         await generateAndSaveOTP(email, 'forgot-password');
         
@@ -445,7 +431,6 @@ export const resetPasswordController = async (req, res) => {
         user.password = password;
         await user.save();
         
-        // Clear session
         delete req.session.resetEmail;
         
         res.render('user/login', {
@@ -465,23 +450,19 @@ export const resetPasswordController = async (req, res) => {
 
 // Logout user
 export const logoutUser = (req, res) => {
-    // Handle passport logout first
     if (req.logout) {
         req.logout((err) => {
             if (err) {
                 console.error('Passport logout error:', err);
             }
             
-            // Destroy the entire user session since it's separate
             req.session.destroy((err) => {
                 if (err) {
                     console.error('User session destroy error:', err);
                 }
                 
-                // Clear user session cookies
                 res.clearCookie('horologue.user.sid');
                 
-                // Set cache control headers
                 res.set({
                     'Cache-Control': 'no-cache, no-store, must-revalidate, private',
                     'Pragma': 'no-cache',
@@ -492,16 +473,13 @@ export const logoutUser = (req, res) => {
             });
         });
     } else {
-        // Destroy the entire user session since it's separate
         req.session.destroy((err) => {
             if (err) {
                 console.error('User session destroy error:', err);
             }
             
-            // Clear user session cookies
             res.clearCookie('horologue.user.sid');
             
-            // Set cache control headers
             res.set({
                 'Cache-Control': 'no-cache, no-store, must-revalidate, private',
                 'Pragma': 'no-cache',
@@ -524,7 +502,7 @@ export const resendOTPRegistrationController = async (req, res) => {
             });
         }
         
-        // Check if user can resend (1 minute cooldown)
+        // Check if user can resen
         const lastOTP = await OTP.findOne({
             email,
             purpose: 'signup'
@@ -532,7 +510,7 @@ export const resendOTPRegistrationController = async (req, res) => {
         
         if (lastOTP) {
             const timeSinceLastOTP = Date.now() - lastOTP.createdAt.getTime();
-            const oneMinute = 60 * 1000; // 1 minute in milliseconds
+            const oneMinute = 60 * 1000;
             
             if (timeSinceLastOTP < oneMinute) {
                 const remainingTime = Math.ceil((oneMinute - timeSinceLastOTP) / 1000);
@@ -546,7 +524,6 @@ export const resendOTPRegistrationController = async (req, res) => {
         // Generate and send new OTP
         await generateAndSaveOTP(email, 'signup');
         
-        // Reset resend timer for the new OTP
         req.session.resendTimerStart = Date.now();
         
         res.json({
@@ -575,7 +552,6 @@ export const resendOTPForgotController = async (req, res) => {
             });
         }
         
-        // Check if user can resend (1 minute cooldown)
         const lastOTP = await OTP.findOne({
             email,
             purpose: 'forgot-password'
@@ -593,7 +569,6 @@ export const resendOTPForgotController = async (req, res) => {
             }
         }
         
-        // Generate and send new OTP
         await generateAndSaveOTP(email, 'forgot-password');
         
         res.json({
@@ -611,6 +586,7 @@ export const resendOTPForgotController = async (req, res) => {
 };
 // Google OAuth Controllers
 import passport from '../../config/passport.js';
+// import User from "../../models/User.js";
 export const googleAuth = (req, res, next) => {
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
         return res.redirect('/login?error=google_not_configured');
@@ -620,7 +596,6 @@ export const googleAuth = (req, res, next) => {
     })(req, res, next);
 };
 
-// Google OAuth callback handler
 export const googleCallback = (req, res, next) => {
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
         return res.redirect('/login?error=google_not_configured');
@@ -636,15 +611,12 @@ export const googleCallback = (req, res, next) => {
             return res.redirect('/login?error=account_blocked');
         }
         
-        // Check if user is blocked
         if (req.user.isBlocked) {
             return res.redirect('/login?error=account_blocked');
         }
         
         try {
-            // Google OAuth - sessions are completely separate now
-            
-            // Set user session data (never set admin session from Google OAuth)
+           
             req.session.userId = req.user._id;
             req.session.user = {
                 id: req.user._id,
@@ -657,7 +629,6 @@ export const googleCallback = (req, res, next) => {
                 createdAt: req.user.createdAt
             };
             
-            // Always redirect to user home for Google OAuth (admins should use regular login)
             res.redirect('/home');
         } catch (error) {
             console.error('Session sync error:', error);

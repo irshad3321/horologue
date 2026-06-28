@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../../helper/constants.js';
 import Product from '../../models/Product.js';
 import * as categoryService from '../../service/categoryService.js'
 export async function getCategoriesPage(req, res) {
@@ -25,7 +26,7 @@ export async function getCategoriesPage(req, res) {
         })
     } catch (error) {
         console.error('Error fetching categories:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 }
 // Create category
@@ -33,14 +34,14 @@ export async function createCategory(req, res) {
     try {
         const { name, description, offer, status } = req.body;
         if (!name || name.trim() === '') {
-            return res.status(400).json({ 
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
                 message: 'Category name is required' 
             });
         }
         const exists = await categoryService.categoryNameExists(name);
         if (exists) {
-            return res.status(400).json({ 
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
                 message: 'Category name already exists' 
             });
@@ -52,14 +53,14 @@ export async function createCategory(req, res) {
             status: status || 'active'
         });
         
-        res.status(201).json({ 
+        res.status(HTTP_STATUS.CREATED).json({ 
             success: true, 
             message: 'Category created successfully',
             category 
         });
     } catch (error) {
         console.error('Error creating category:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to create category' 
         })
@@ -74,21 +75,21 @@ export async function updateCategory(req, res) {
         
         // Validation
         if (!name || name.trim() === '') {
-            return res.status(400).json({ 
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
                 message: 'Category name is required' 
             });
         }
         const category = await categoryService.getCategoryById(categoryId);
         if (!category) {
-            return res.status(404).json({ 
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ 
                 success: false, 
                 message: 'Category not found' 
             });
         }
         const exists = await categoryService.categoryNameExists(name, categoryId);
         if (exists) {
-            return res.status(400).json({ 
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
                 message: 'Category name already exists' 
             });
@@ -107,7 +108,7 @@ export async function updateCategory(req, res) {
         });
     } catch (error) {
         console.error('Error updating category:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to update category' 
         });
@@ -119,7 +120,7 @@ export async function deleteCategory(req, res) {
         const { categoryId } = req.params
         const category = await categoryService.getCategoryById(categoryId)
         if (!category) {
-            return res.status(404).json({ 
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ 
                 success: false, 
                 message: 'Category not found' 
             });
@@ -132,7 +133,7 @@ export async function deleteCategory(req, res) {
         });
     } catch (error) {
         console.error('Error deleting category:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to delete category' 
         });
@@ -143,7 +144,7 @@ export async function toggleCategoryStatus(req, res) {
         const { categoryId } = req.params;
         const category = await categoryService.toggleCategoryStatus(categoryId);
         if (!category) {
-            return res.status(404).json({ 
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ 
                 success: false, 
                 message: 'Category not found' 
             });
@@ -156,7 +157,7 @@ export async function toggleCategoryStatus(req, res) {
         });
     } catch (error) {
         console.error('Error toggling category status:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to toggle category status' 
         });
@@ -168,7 +169,7 @@ export async function getCategoryById(req, res) {
         
         const category = await categoryService.getCategoryById(categoryId);
         if (!category) {
-            return res.status(404).json({ 
+            return res.status(HTTP_STATUS.NOT_FOUND).json({ 
                 success: false, 
                 message: 'Category not found' 
             });
@@ -180,7 +181,7 @@ export async function getCategoryById(req, res) {
         });
     } catch (error) {
         console.error('Error fetching category:', error);
-        res.status(500).json({ 
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
             success: false, 
             message: 'Failed to fetch category' 
         });

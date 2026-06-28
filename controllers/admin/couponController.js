@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../../helper/constants.js';
 import Coupon from '../../models/Coupon.js';
 
 // Show coupons page
@@ -12,7 +13,7 @@ export const showCoupons = async (req, res) => {
         });
     } catch (error) {
         console.error('Show coupons error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
@@ -49,7 +50,6 @@ export const createCoupon = async (req, res) => {
             description
         } = req.body;
         
-        // Check if coupon code already exists
         const existingCoupon = await Coupon.findOne({ 
             code: code.toUpperCase() 
         });

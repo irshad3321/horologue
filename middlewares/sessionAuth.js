@@ -2,14 +2,10 @@ import User from '../models/User.js';
 
 // Middleware to sync passport user with session
 export const syncUserSession = (req, res, next) => {
-    // Only sync if there's a passport user but no session, and ensure we don't override existing valid sessions
     if (req.user && !req.session.userId) {
-        // Google OAuth - DO NOT clear admin session data
-        // Keep sessions completely separate
         
-        // Double-check that there's no conflicting session data
+        
         if (req.session.user && req.session.user.id !== req.user._id.toString()) {
-            // Clear conflicting session data
             delete req.session.userId;
             delete req.session.user;
         }
@@ -25,7 +21,7 @@ export const syncUserSession = (req, res, next) => {
             profileImage: req.user.profileImage,
             isAdmin: req.user.isAdmin,
             createdAt: req.user.createdAt,
-            isGoogleUser: !!req.user.googleId  // Add flag for Google users
+            isGoogleUser: !!req.user.googleId 
         };
     }
     next();
@@ -43,7 +39,7 @@ export const preventCache = (req, res, next) => {
     next();
 };
 
-// Function to validate user status (not blocked)
+// Function to validate user status 
 const validateUserStatus = async (userId) => {
     try {
         const user = await User.findById(userId);
@@ -59,17 +55,14 @@ const validateUserStatus = async (userId) => {
 
 // Check if user is authenticated (either session or passport) and not blocked
 export const isAuthenticated = async (req, res, next) => {
-    // Apply cache prevention for authenticated pages
     preventCache(req, res, () => {});
     
     if (req.session.userId || req.user) {
         const userId = req.session.userId || req.user._id;
         
-        // Validate user status (check if blocked)
         const isValidUser = await validateUserStatus(userId);
         
         if (!isValidUser) {
-            // User is blocked or doesn't exist, clear user session
             req.session.destroy((err) => {
                 if (err) {
                     console.error('Session destroy error:', err);
@@ -122,28 +115,21 @@ export const isAuthenticated = async (req, res, next) => {
 //     next();
 // };
 
-// Middleware for public pages (like landing) - redirect authenticated users
 export const redirectAuthenticatedUsers = async (req, res, next) => {
-    // Apply cache prevention
-    preventCache(req, res, () => {});
-    
-    // Check if user is authenticated
+    preventCache(req, res, () => {})
     if (req.session.userId || req.user) {
         const userId = req.session.userId || req.user._id;
-        
-        // Validate user status
         const isValidUser = await validateUserStatus(userId);
         
         if (!isValidUser) {
-            // User is blocked, clear user session and allow access to public page
-            req.session.destroy((err) => {
-                if (err) {
-                    console.error('Session destroy error:', err);
+            req.session.destroy((err) =>{
+                if (err){
+                 console.error('Session destroy error:', err);
                 }
                 res.clearCookie('horologue.user.sid');
-                next();
-            });
-            return;
+                next()
+            })
+            return
         }
         
         // Valid authenticated user, redirect to user home
@@ -154,7 +140,6 @@ export const redirectAuthenticatedUsers = async (req, res, next) => {
     next();
 };
 
-// User session check API endpoint middleware
 export const userSessionCheck = async (req, res) => {
     if (req.session.userId || req.user) {
         const userId = req.session.userId || req.user._id;
@@ -163,7 +148,6 @@ export const userSessionCheck = async (req, res) => {
             const user = await User.findById(userId);
             
             if (!user || user.isBlocked) {
-                // Clear user session
                 req.session.destroy((err) => {
                     if (err) {
                         console.error('Session destroy error:', err);

@@ -29,8 +29,6 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
         
         for (const item of cart.items) {
             const product = item.product;
-            
-            // Validate product status
             if (product.status !== 'active' || product.isDeleted) {
                 throw new Error(`${product.name} is no longer available`);
             }
@@ -72,7 +70,6 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
         const shippingCharge = 0;
         const totalAmount = subtotal - discount - couponDiscount + tax + shippingCharge;
         
-        // Handle wallet payment
         if (paymentMethod === 'Wallet') {
             const { hasSufficientBalance, deductMoneyFromWallet } = await import('./walletService.js');
             
@@ -81,8 +78,6 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
                 throw new Error('Insufficient wallet balance');
             }
         }
-        
-        // If coupon is applied, increment usage count
         if (couponCode) {
             const { applyCoupon } = await import('./couponService.js');
             const Coupon = (await import('../models/Coupon.js')).default;
@@ -231,6 +226,7 @@ export async function cancelOrder(orderId, userId, reason) {
 // Cancel ordered item
 export async function cancelOrderItem(orderId, itemId, userId, reason) {
     try {
+        
         const order = await Order.findOne({ _id: orderId, userId })
             .populate('items.product');
         
@@ -254,7 +250,6 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
         
         const itemTotal = item.itemTotal;
         
-        // Restore stock
         const product = await Product.findById(item.product._id);
         const variant = product.variants.id(item.variantId);
         
@@ -271,8 +266,6 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
         item.itemStatus = 'Cancelled';
         item.cancelledDate = new Date();
         item.cancellationReason = reason || '';
-        
-        // Recalculate totals based on active items only
         let subtotal = 0;
         order.items.forEach(item => {
             if (item.itemStatus === 'Active') {
@@ -300,7 +293,9 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
 // Return order
 export async function returnOrder(orderId, userId, reason) {
     try {
-        const order = await Order.findOne({ _id: orderId, userId });
+        
+        const order = await Order.findOne({ _id: orderId, userId })
+
         
         if (!order) {
             throw new Error('Order not found');
@@ -319,7 +314,7 @@ export async function returnOrder(orderId, userId, reason) {
         
         await order.save();
         
-        return order;
+        return order
     } catch (error) {
         throw error;
     }

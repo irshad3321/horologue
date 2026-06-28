@@ -47,7 +47,6 @@ export async function getBrandById(brandId) {
 
 // Create new brand
 export async function createBrand(name, description) {
-    // Check if brand already exists
     const existingBrand = await Brand.findOne({ 
         name: { $regex: new RegExp(`^${name}$`, 'i') },
         isDeleted: false 
@@ -93,7 +92,7 @@ export async function updateBrand(brandId, name, description, status) {
     return brand;
 }
 
-// Delete brand (soft delete)
+// Delete brand 
 export async function deleteBrand(brandId) {
     const brand = await Brand.findOne({ _id: brandId, isDeleted: false });
     

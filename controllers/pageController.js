@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../helper/constants.js';
 import { getUserById } from '../service/userService.js';
 import { getUserAddresses } from '../service/addressService.js';
 import { getProducts } from '../service/productService.js';
@@ -6,16 +7,14 @@ import { getWishlistCount } from '../service/wishlistService.js';
 
 // Show home page
 export const showHome = async (req, res) => {
-    // Check if user is logged in (prioritize USER session for user pages)
-    if (!req.session.userId) {
+ if (!req.session.userId) {
         return res.redirect('/login');
     }
-    
-    // Check for login success message
+   
     const loginSuccess = req.session.loginSuccess;
     delete req.session.loginSuccess; 
     
-    // Get featured products (active products, limit 8)
+   
     const result = await getProducts({
         status: 'active',
         limit: 8,
@@ -60,8 +59,7 @@ export const showProfile = async (req, res) => {
     if (!req.session.userId) {
         return res.redirect('/login');
     }
-    
-    // Get fresh user data
+
     const user = await getUserById(req.session.userId);
     if (user) {
         req.session.user = {
@@ -73,7 +71,9 @@ export const showProfile = async (req, res) => {
             profileImage: user.profileImage,
             isAdmin: user.isAdmin,
             createdAt: user.createdAt,
-            googleId: user.googleId  // Include googleId for checking
+            googleId: user.googleId,
+            referralCode: user.referralCode,
+            referralEarnings: user.referralEarnings || 0
         };
     }
     
@@ -95,7 +95,6 @@ export const showEditProfile = async (req, res) => {
         return res.redirect('/login');
     }
     
-    // Get fresh user data
     const user = await getUserById(req.session.userId);
     if (user) {
         req.session.user = {
@@ -107,7 +106,7 @@ export const showEditProfile = async (req, res) => {
             profileImage: user.profileImage,
             isAdmin: user.isAdmin,
             createdAt: user.createdAt,
-            googleId: user.googleId  // Include googleId for checking
+            googleId: user.googleId  
         };
     }
     
@@ -120,7 +119,7 @@ export const showEditProfile = async (req, res) => {
         currentPage: 'edit-profile',
         cartCount: cartCount,
         wishlistCount: wishlistCount,
-        isGoogleUser: !!req.session.user?.googleId  // Pass to view based on googleId
+        isGoogleUser: !!req.session.user?.googleId 
     });
 };
 
@@ -142,14 +141,12 @@ export const showAddresses = async (req, res) => {
             profileImage: user.profileImage,
             isAdmin: user.isAdmin,
             createdAt: user.createdAt,
-            googleId: user.googleId  // Include googleId for checking
+            googleId: user.googleId  
         };
     }
     
     // Get user addresses
     const addresses = await getUserAddresses(req.session.userId);
-    
-    // Get cart and wishlist counts
     const cartCount = await getCartCount(req.session.userId);
     const wishlistCount = await getWishlistCount(req.session.userId);
     
@@ -180,7 +177,7 @@ export const showChangePassword = async (req, res) => {
             profileImage: user.profileImage,
             isAdmin: user.isAdmin,
             createdAt: user.createdAt,
-            googleId: user.googleId  // Include googleId for checking
+            googleId: user.googleId 
         };
     }
     
@@ -199,7 +196,6 @@ export const showChangePassword = async (req, res) => {
 // Show about page
 export const showAbout = async (req, res) => {
     try {
-        // Get cart and wishlist counts if user is logged in
         let cartCount = 0;
         let wishlistCount = 0;
         
@@ -215,14 +211,13 @@ export const showAbout = async (req, res) => {
         });
     } catch (error) {
         console.error('Show about error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
 // Show contact page
 export const showContact = async (req, res) => {
     try {
-        // Get cart and wishlist counts if user is logged in
         let cartCount = 0;
         let wishlistCount = 0;
         
@@ -238,11 +233,11 @@ export const showContact = async (req, res) => {
         });
     } catch (error) {
         console.error('Show contact error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
 // Handle 404 errors
 export const show404 = (req, res) => {
-    res.status(404).render('error/404');
+    res.status(HTTP_STATUS.NOT_FOUND).render('error/404');
 };

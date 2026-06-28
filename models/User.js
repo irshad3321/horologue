@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   lastName: {
     type: String,
@@ -77,7 +77,33 @@ const userSchema = new mongoose.Schema({
         default: Date.now
       }
     }]
-  }
+  },
+  referralCode: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  referredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  referralEarnings: {
+    type: Number,
+    default: 0
+  },
+  referralHistory: [{
+    referredUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    referredUserName: String,
+    amount: Number,
+    date: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 }, {
   timestamps: true
 });

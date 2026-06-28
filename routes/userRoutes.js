@@ -1,7 +1,7 @@
 import express from 'express';
-import { 
-    showRegister, 
-    showLogin, 
+import {
+    showRegister,
+    showLogin,
     showVerifyOTPRegistration,
     showVerifyOTPForgot,
     showForgotPassword,
@@ -169,17 +169,17 @@ router.get('/logout', logoutUser)
 router.get('/verify-otp-registration', redirectAuthenticatedUsers, showVerifyOTPRegistration)
 router.post('/verify-otp-registration', redirectAuthenticatedUsers, verifyOTPRegistrationController)
 router.post('/resend-otp-registration', redirectAuthenticatedUsers, resendOTPRegistrationController)
-router.get('/verify-otp-forgot',showVerifyOTPForgot)
-router.post('/verify-otp-forgot',verifyOTPForgotController)
-router.post('/resend-otp-forgot',resendOTPForgotController)
+router.get('/verify-otp-forgot', showVerifyOTPForgot)
+router.post('/verify-otp-forgot', verifyOTPForgotController)
+router.post('/resend-otp-forgot', resendOTPForgotController)
 router.get('/forgot-password', showForgotPassword)
-router.post('/forgot-password',forgotPasswordController)
-router.get('/reset-password',showResetPassword)
-router.post('/reset-password',resetPasswordController)
-router.post('/update-profile',isAuthenticated, updateProfile)
-router.post('/send-email-change-otp',isAuthenticated, sendEmailChangeOTP)
-router.post('/verify-email-change-otp',isAuthenticated, verifyEmailChangeOTP)
-router.post('/resend-email-change-otp',isAuthenticated, resendEmailChangeOTP)
+router.post('/forgot-password', forgotPasswordController)
+router.get('/reset-password', showResetPassword)
+router.post('/reset-password', resetPasswordController)
+router.post('/update-profile', isAuthenticated, updateProfile)
+router.post('/send-email-change-otp', isAuthenticated, sendEmailChangeOTP)
+router.post('/verify-email-change-otp', isAuthenticated, verifyEmailChangeOTP)
+router.post('/resend-email-change-otp', isAuthenticated, resendEmailChangeOTP)
 
 // Avatar routes
 router.post('/upload-avatar', isAuthenticated, upload.single('avatar'), uploadAvatar);
