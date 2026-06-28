@@ -322,6 +322,65 @@
             </div>
           </div>
 
+          <!-- Referral Program Section -->
+          <% if (user && user.referralCode) { %>
+          <div class="card" style="margin-top: 20px;">
+            <h2 class="card-title">Referral Program</h2>
+            
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Your Referral Code</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 18px; font-weight: 600; color: #333;"><%= user.referralCode %></span>
+                  <button onclick="copyReferralCode('<%= user.referralCode %>')" style="padding: 6px 12px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                    Copy
+                  </button>
+                </div>
+              </div>
+              
+              <div class="info-item">
+                <label>Total Earnings</label>
+                <span style="font-weight: 600; color: #28a745;">₹<%= user.referralEarnings || 0 %></span>
+              </div>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 4px;">
+              Share your referral code with friends. You'll earn ₹100 for each friend who signs up, and they'll get ₹100 too!
+            </p>
+            
+            <!-- Referral History -->
+            <% if (user.referralHistory && user.referralHistory.length > 0) { %>
+            <div style="margin-top: 25px;">
+              <h3 style="font-size: 16px; margin-bottom: 15px; color: #333;">Referral History</h3>
+              <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <thead style="background: #f8f9fa;">
+                    <tr>
+                      <th style="padding: 12px; text-align: left; font-size: 13px; color: #666; font-weight: 600;">Name</th>
+                      <th style="padding: 12px; text-align: left; font-size: 13px; color: #666; font-weight: 600;">Date</th>
+                      <th style="padding: 12px; text-align: right; font-size: 13px; color: #666; font-weight: 600;">Earned</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% user.referralHistory.slice().reverse().forEach((referral, index) => { %>
+                    <tr style="border-top: 1px solid #eee;">
+                      <td style="padding: 12px; font-size: 14px;"><%= referral.referredUserName %></td>
+                      <td style="padding: 12px; font-size: 14px; color: #666;"><%= new Date(referral.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></td>
+                      <td style="padding: 12px; text-align: right; font-size: 14px; color: #28a745; font-weight: 600;">+₹<%= referral.amount %></td>
+                    </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <% } else { %>
+            <!-- <div style="margin-top: 25px; text-align: center; padding: 30px; background: #f8f9fa; border-radius: 4px;">
+              <p style="color: #999; margin: 0;">No referrals yet. Start sharing your code to earn rewards!</p>
+            </div> -->
+            <% } %>
+          </div>
+          <% } %>
+
 
 
           <div class="form-actions">
@@ -341,6 +400,26 @@
   <%- include('../partials/footer') %>
 
   <script>
+    // Copy referral code function
+    function copyReferralCode(code) {
+      navigator.clipboard.writeText(code).then(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Copied!',
+          text: 'Referral code copied to clipboard',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      }).catch(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: 'Could not copy referral code',
+          timer: 2000
+        });
+      });
+    }
+
     // Logout button with SweetAlert
     document.querySelector('.logout-btn').addEventListener('click', function() {
       Swal.fire({

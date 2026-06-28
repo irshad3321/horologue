@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../../helper/constants.js';
 import Order from '../../models/Order.js';
 import User from '../../models/User.js';
 import Product from '../../models/Product.js';
@@ -54,7 +55,7 @@ export const showOrders = async (req, res) => {
         });
     } catch (error) {
         console.error('Admin orders list error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
@@ -68,7 +69,7 @@ export const showOrderDetail = async (req, res) => {
             .populate('items.product', 'name images variants');
         
         if (!order) {
-            return res.status(404).render('error/404');
+            return res.status(HTTP_STATUS.NOT_FOUND).render('error/404');
         }
         
         res.render('admin/order-detail', {
@@ -77,7 +78,7 @@ export const showOrderDetail = async (req, res) => {
         });
     } catch (error) {
         console.error('Admin order detail error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
@@ -90,7 +91,7 @@ export const updateOrderStatus = async (req, res) => {
         const validStatuses = ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested', 'Returned', 'Return Declined'];
         
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
                 message: 'Invalid order status'
             });
@@ -99,7 +100,7 @@ export const updateOrderStatus = async (req, res) => {
         const order = await Order.findById(orderId);
         
         if (!order) {
-            return res.status(404).json({
+            return res.status(HTTP_STATUS.NOT_FOUND).json({
                 success: false,
                 message: 'Order not found'
             });
@@ -111,14 +112,14 @@ export const updateOrderStatus = async (req, res) => {
         const newStatusIndex = statusOrder.indexOf(status);
         
         if (currentStatusIndex !== -1 && newStatusIndex !== -1 && newStatusIndex < currentStatusIndex) {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
                 message: `Cannot change status from ${order.orderStatus} back to ${status}`
             });
         }
         if (['Delivered', 'Cancelled', 'Returned'].includes(order.orderStatus) && 
             !['Return Requested', 'Returned', 'Return Declined'].includes(status)) {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
                 message: `Cannot change status from ${order.orderStatus}`
             });
@@ -176,7 +177,7 @@ export const updateOrderStatus = async (req, res) => {
         });
     } catch (error) {
         console.error('Update order status error:', error);
-        res.status(500).json({
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Failed to update order status'
         });

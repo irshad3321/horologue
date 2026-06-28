@@ -84,9 +84,7 @@ export async function getProducts(filters = {}) {
         .sort(sortOption)
         .skip(skip)
         .limit(parseInt(limit));
-    
-    // Add brand status to each product
-    const productsWithBrandStatus = await Promise.all(
+        const productsWithBrandStatus = await Promise.all(
         products.map(async (product) => {
             const brandStatus = await getBrandStatus(product.brand);
             return {
@@ -110,7 +108,6 @@ export async function getProductById(productId) {
     const product = await Product.findOne({ _id: productId, isDeleted: false });
     if (!product) return null;
     
-    // Add brand status
     const brandStatus = await getBrandStatus(product.brand);
     return {
         ...product.toObject(),

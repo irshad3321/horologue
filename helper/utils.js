@@ -42,17 +42,14 @@ export const sanitizeInput = (input) => {
   return input.trim().replace(/[<>]/g, '');
 };
 
-// Convert date to IST (Indian Standard Time)
+// Convert date to IS
 export const toIST = (date) => {
   if (!date) return null;
   
   const istDate = new Date(date);
-  // IST is UTC + 5:30
   const istOffset = 5.5 * 60 * 60 * 1000;
   return new Date(istDate.getTime() + istOffset);
-};
-
-// Format date in IST with readable format
+}
 export const formatISTDate = (date) => {
   if (!date) return 'N/A';
   
@@ -67,5 +64,10 @@ export const formatISTDate = (date) => {
   });
   
   return istDate;
+};
+
+// Generate unique referral code
+export const generateReferralCode = () => {
+  return 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
 };
 

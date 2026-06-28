@@ -10,15 +10,11 @@ import {
 export const getAddresses = async (req, res) => {
     try {
         const userId = req.session.userId;
-        
         if (!userId) {
             return res.json({ success: false, message: 'Not authenticated' });
         }
-        
         const addresses = await getUserAddresses(userId);
         const arr=[]
-     
-    
         res.json({ success: true, addresses });
         
     } catch (error) {
@@ -77,8 +73,6 @@ export const editAddress = async (req, res) => {
         }
         
         const addressData = req.body;
-        
-        // Validate address data
         const validation = validateAddressData(addressData);
         if (!validation.isValid) {
             return res.json({ 

@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../../helper/constants.js';
 import User from "../../models/User.js";
 import Order from "../../models/Order.js";
 import Product from "../../models/Product.js";
@@ -413,7 +414,7 @@ export const showDashboard = async (req, res) => {
         });
     } catch (error) {
         console.error('Dashboard error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
@@ -684,7 +685,7 @@ export const showSalesReport = async (req, res) => {
         });
     } catch (error) {
         console.error('Sales report error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
@@ -1087,11 +1088,11 @@ export const downloadSalesReport = async (req, res) => {
             await workbook.xlsx.write(res);
             res.end();
         } else {
-            res.status(400).json({ success: false, message: 'Invalid format' });
+            res.status(HTTP_STATUS.BAD_REQUEST).json({ success: false, message: 'Invalid format' });
         }
     } catch (error) {
         console.error('Download sales report error:', error);
-        res.status(500).json({ success: false, message: 'Failed to download report' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Failed to download report' });
     }
 };
 
@@ -1258,6 +1259,6 @@ export const downloadDashboardPDF = async (req, res) => {
         doc.end();
     } catch (error) {
         console.error('Download dashboard PDF error:', error);
-        res.status(500).json({ success: false, message: 'Failed to download PDF' });
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Failed to download PDF' });
     }
 };

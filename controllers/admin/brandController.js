@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../../helper/constants.js';
 import * as brandService from '../../service/brandService.js';
 
 // Show brands page
@@ -19,7 +20,7 @@ export const showBrands = async (req, res) => {
         });
     } catch (error) {
         console.error('Show brands error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 

@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../../helper/constants.js';
 import * as walletService from '../../service/walletService.js';
 import * as cartService from '../../service/cartService.js';
 import * as wishlistService from '../../service/wishlistService.js';
@@ -54,7 +55,7 @@ export const showWallet = async (req, res) => {
         });
     } catch (error) {
         console.error('Show wallet error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 

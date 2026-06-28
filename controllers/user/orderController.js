@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../../helper/constants.js';
 import * as orderService from '../../service/orderService.js';
 import * as cartService from '../../service/cartService.js';
 import * as addressService from '../../service/addressService.js';
@@ -9,7 +10,7 @@ export const showCheckout = async (req, res) => {
     try {
         const userId = req.session.userId
         const cart = await cartService.getUserCart(userId);
-        
+
         if (!cart || cart.items.length === 0) {
             return res.redirect('/cart');
         }
@@ -23,16 +24,16 @@ export const showCheckout = async (req, res) => {
             }
             subtotal += price * item.quantity;
         });
-        
+
         const discount = 0;
         const total = subtotal - discount;
-        
+
         // Get cart and wishlist counts
         const cartCount = await cartService.getCartCount(userId);
         const wishlistCount = await wishlistService.getWishlistCount(userId);
-        
+
         res.render('user/checkout', {
-            user: req.session.user,
+            user: req.session?.user,
             cart: cart,
             addresses: addresses,
             subtotal: subtotal,
@@ -43,30 +44,30 @@ export const showCheckout = async (req, res) => {
         });
     } catch (error) {
         console.error('Checkout error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 }
 export const placeOrder = async (req, res) => {
     try {
         const userId = req.session.userId;
         const { addressId, paymentMethod, couponCode, couponDiscount, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
-       
+
         if (!addressId) {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
                 message: 'Please select a shipping address'
             })
         }
-        
+
         // Get cart to calculate total
         const cart = await cartService.getUserCart(userId);
         if (!cart || cart.items.length === 0) {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
                 message: 'Your cart is empty'
             });
         }
-        
+
         // Calculate total amount
         let totalAmount = 0;
         cart.items.forEach(item => {
@@ -77,21 +78,21 @@ export const placeOrder = async (req, res) => {
             }
             totalAmount += price * item.quantity;
         });
-        
+
         if (couponDiscount) {
             totalAmount -= couponDiscount;
         }
-        
+
         if (paymentMethod === 'COD' && totalAmount > 2000) {
-            return res.status(400).json({
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
                 message: 'Cash on Delivery is not available for orders above ₹2,000. Please choose another payment method.'
             });
         }
-        
+
         const order = await orderService.placeOrder(
-            userId, 
-            addressId, 
+            userId,
+            addressId,
             paymentMethod || 'COD',
             couponCode || null,
             couponDiscount || 0,
@@ -99,7 +100,7 @@ export const placeOrder = async (req, res) => {
             razorpayPaymentId || null,
             razorpaySignature || null
         );
-        
+
 
         res.json({
             success: true,
@@ -108,7 +109,7 @@ export const placeOrder = async (req, res) => {
         })
     } catch (error) {
         console.error('Place order error:', error);
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         })
@@ -118,16 +119,16 @@ export const placeOrder = async (req, res) => {
 export const showOrderSuccess = async (req, res) => {
     try {
         const orderId = req.query.orderId;
-        
+
         if (!orderId) {
             return res.redirect('/orders');
         }
         const order = await orderService.getOrderById(orderId, req.session.userId);
-        
+
         // Get cart and wishlist counts
         const cartCount = await cartService.getCartCount(req.session.userId);
         const wishlistCount = await wishlistService.getWishlistCount(req.session.userId);
-        
+
         res.render('user/order-success', {
             order: order,
             user: req.session.user,
@@ -145,11 +146,11 @@ export const showOrders = async (req, res) => {
     try {
         const userId = req.session.userId;
         const page = parseInt(req.query.page) || 1
-        
+
         const result = await orderService.getUserOrders(userId, page, 10)
         const cartCount = await cartService.getCartCount(userId)
         const wishlistCount = await wishlistService.getWishlistCount(userId)
-        
+
         res.render('user/orders', {
             user: req.session.user,
             orders: result.orders,
@@ -161,7 +162,7 @@ export const showOrders = async (req, res) => {
         });
     } catch (error) {
         console.error('Orders list error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
@@ -170,13 +171,13 @@ export const showOrderDetail = async (req, res) => {
     try {
         const orderId = req.params.id;
         const userId = req.session.userId;
-        
+
         const order = await orderService.getOrderById(orderId, userId);
-        
+
         // Get cart and wishlist counts
         const cartCount = await cartService.getCartCount(userId);
         const wishlistCount = await wishlistService.getWishlistCount(userId);
-        
+
         res.render('user/order-detail', {
             user: req.session.user,
             order: order,
@@ -185,7 +186,7 @@ export const showOrderDetail = async (req, res) => {
         });
     } catch (error) {
         console.error('Order detail error:', error);
-        res.status(404).render('error/404');
+        res.status(HTTP_STATUS.NOT_FOUND).render('error/404');
     }
 }
 
@@ -196,14 +197,14 @@ export const cancelOrder = async (req, res) => {
         const userId = req.session.userId;
         const { reason } = req.body;
         const order = await orderService.cancelOrder(orderId, userId, reason);
-        
+
         res.json({
             success: true,
             message: 'Order cancelled successfully'
         });
     } catch (error) {
         console.error('Cancel order error:', error);
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         })
@@ -216,7 +217,7 @@ export const cancelOrderItem = async (req, res) => {
         const { orderId, itemId } = req.params
         const userId = req.session.userId
         const { reason } = req.body
-        
+
         const order = await orderService.cancelOrderItem(orderId, itemId, userId, reason)
         res.json({
             success: true,
@@ -224,7 +225,7 @@ export const cancelOrderItem = async (req, res) => {
         })
     } catch (error) {
         console.error('Cancel item error:', error)
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         })
@@ -245,7 +246,7 @@ export const returnOrder = async (req, res) => {
         })
     } catch (error) {
         console.error('Return order error:', error);
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         })
@@ -257,15 +258,15 @@ export const downloadInvoice = async (req, res) => {
     try {
         const orderId = req.params.id
         const userId = req.session.userId
-        
+
         const order = await orderService.getOrderById(orderId, userId)
         res.render('user/invoice', {
             order: order
         });
-        
+
     } catch (error) {
         console.error('Download invoice error:', error);
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         });
@@ -281,16 +282,16 @@ import { validateCoupon, applyCoupon as applyCouponService } from '../../service
 export const createRazorpayOrder = async (req, res) => {
     try {
         const { amount } = req.body;
-        
+
         const options = {
             amount: Math.round(amount * 100), // amount in paise
             currency: 'INR',
             receipt: `receipt_${Date.now()}`,
             payment_capture: 1
         };
-        
+
         const order = await razorpay.orders.create(options);
-        
+
         res.json({
             success: true,
             order: order,
@@ -309,13 +310,13 @@ export const createRazorpayOrder = async (req, res) => {
 export const verifyRazorpayPayment = async (req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-        
+
         const sign = razorpay_order_id + '|' + razorpay_payment_id;
         const expectedSign = crypto
             .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
             .update(sign.toString())
             .digest('hex');
-        
+
         if (razorpay_signature === expectedSign) {
             res.json({
                 success: true,
@@ -343,14 +344,14 @@ export const verifyRazorpayPayment = async (req, res) => {
 export const validateCouponController = async (req, res) => {
     try {
         const { code, amount } = req.body
-        
+
         if (!code || !amount) {
             return res.json({
                 valid: false,
                 message: 'Coupon code and amount are required'
             })
         }
-        
+
         const result = await validateCoupon(code, amount)
         res.json(result);
     } catch (error) {
@@ -366,14 +367,14 @@ export const validateCouponController = async (req, res) => {
 export const getAvailableCoupons = async (req, res) => {
     try {
         const now = new Date();
-        
+
         const coupons = await Coupon.find({
             status: 'active',
             validFrom: { $lte: now },
             validUntil: { $gte: now },
             $expr: { $lt: ['$usedCount', '$usageLimit'] }
         }).select('code discountType discountValue minPurchase maxDiscount validUntil description');
-        
+
         res.json({
             success: true,
             coupons: coupons
@@ -392,18 +393,18 @@ export const validateStock = async (req, res) => {
     try {
         const userId = req.session.userId;
         const cart = await cartService.getUserCart(userId);
-        
+
         if (!cart || cart.items.length === 0) {
             return res.json({
                 success: false,
                 message: 'Your cart is empty'
             });
         }
-        
+
         // Check each item for availability and stock
         for (const item of cart.items) {
             const product = item.product;
-            
+
             // Check if product is active
             if (product.status !== 'active' || product.isDeleted) {
                 return res.json({
@@ -411,17 +412,17 @@ export const validateStock = async (req, res) => {
                     message: `${product.name} is no longer available`
                 });
             }
-            
+
             // Check variant and stock
             const variant = product.variants.id(item.variantId);
-            
+
             if (!variant) {
                 return res.json({
                     success: false,
                     message: `Variant not found for ${product.name}`
                 });
             }
-            
+
             if (variant.stock < item.quantity) {
                 if (variant.stock === 0) {
                     return res.json({
@@ -435,16 +436,16 @@ export const validateStock = async (req, res) => {
                 });
             }
         }
-        
+
         // All items are available
         res.json({
             success: true,
             message: 'All items are available'
         });
-        
+
     } catch (error) {
         console.error('Stock validation error:', error);
-        res.status(500).json({
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Failed to validate stock'
         });

@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../../helper/constants.js';
 import * as productService from '../../service/productService.js';
 import * as categoryService from '../../service/categoryService.js';
 import * as cartService from '../../service/cartService.js';
@@ -80,7 +81,7 @@ export const showProducts = async (req, res) => {
             wishlistCount: wishlistCount
         });
     } catch (error) {
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
@@ -91,7 +92,7 @@ export const showProductDetail = async (req, res) => {
         const product = await productService.getProductById(productId);
         
         if (!product) {
-            return res.status(404).render('error/404');
+            return res.status(HTTP_STATUS.NOT_FOUND).render('error/404');
         }
 
         let isUnavailable = false;
@@ -158,7 +159,7 @@ export const showProductDetail = async (req, res) => {
         });
     } catch (error) {
         console.error('Show product detail error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
@@ -186,7 +187,7 @@ export const showWishlist = async (req, res) => {
             wishlistCount: wishlistCount
         });
     } catch (error) {
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
@@ -224,7 +225,7 @@ export const showCart = async (req, res) => {
         });
     } catch (error) {
         console.error('Show cart error:', error);
-        res.status(500).render('error/500');
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
 };
 
@@ -257,7 +258,7 @@ export const addToCart = async (req, res) => {
         });
     } catch (error) {
         console.error('Add to cart error:', error);
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         })
@@ -285,7 +286,7 @@ export const updateCartQuantity = async (req, res) => {
             message: 'Cart updated'
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         })
@@ -311,7 +312,7 @@ export const removeFromCart = async (req, res) => {
             cartCount: cart.items.length
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         });
@@ -331,7 +332,7 @@ export const clearCart = async (req, res) => {
             message: 'Cart cleared successfully'
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         });
@@ -342,7 +343,7 @@ export const clearCart = async (req, res) => {
 export const addToWishlist = async (req, res) => {
     try {
         if (!req.session.userId) {
-            return res.status(401).json({
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({
                 success: false,
                 message: 'Please login to add items to wishlist'
             });
@@ -361,7 +362,7 @@ export const addToWishlist = async (req, res) => {
             wishlistCount: wishlist.items.length
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         });
@@ -372,7 +373,7 @@ export const addToWishlist = async (req, res) => {
 export const removeFromWishlist = async (req, res) => {
     try {
         if (!req.session.userId) {
-            return res.status(401).json({
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({
                 success: false,
                 message: 'Please login'
             });
@@ -393,7 +394,7 @@ export const removeFromWishlist = async (req, res) => {
             wishlistCount: wishlist ? wishlist.items.length : 0
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         });
@@ -404,7 +405,7 @@ export const removeFromWishlist = async (req, res) => {
 export const clearWishlist = async (req, res) => {
     try {
         if (!req.session.userId) {
-            return res.status(401).json({
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({
                 success: false,
                 message: 'Please login'
             });
@@ -417,7 +418,7 @@ export const clearWishlist = async (req, res) => {
             message: 'Wishlist cleared successfully'
         });
     } catch (error) {
-        res.status(400).json({
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             message: error.message
         });

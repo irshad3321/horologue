@@ -49,14 +49,68 @@ export const findUserByEmail = async (email) => {
 
 // Create new user
 export const createUser = async (userData) => {
+    const { referralCode } = userData;
+    const { generateReferralCode } = await import('../helper/utils.js');
+    
+    let referrerId = null;
+    const referralBonus = 100;
+    
+   
+    if (referralCode && referralCode.trim() !== '') {
+        const referrer = await User.findOne({ referralCode: referralCode.trim() });
+        
+        if (!referrer) {
+            throw new Error('Invalid referral code');
+        }
+        
+        referrerId = referrer._id;
+        
+       
+        referrer.wallet.balance += referralBonus;
+        referrer.referralEarnings = (referrer.referralEarnings || 0) + referralBonus;
+        referrer.wallet.transactions.push({
+            type: 'credit',
+            amount: referralBonus,
+            description: `Referral bonus for inviting ${userData.firstName}`,
+            date: new Date()
+        })
+        
+       
+        if (!referrer.referralHistory) {
+            referrer.referralHistory = [];
+        }
+        referrer.referralHistory.push({
+            referredUserName: `${userData.firstName} ${userData.lastName}`,
+            amount: referralBonus,
+            date: new Date()
+        });
+        
+        await referrer.save();
+    }
+    
     const newUser = new User({
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
         phone: userData.phone,
         password: userData.password,
-        isVerified: true
+        isVerified: true,
+        referralCode: generateReferralCode(),
+        referredBy: referrerId,
+        referralEarnings: 0
     });
+    
+   
+    if (referrerId) {
+        newUser.wallet.balance = referralBonus;
+        newUser.wallet.transactions.push({
+            type: 'credit',
+            amount: referralBonus,
+            description: 'Welcome bonus for using referral code',
+            date: new Date()
+        });
+    }
+    
     return await newUser.save();
 };
 
@@ -79,6 +133,16 @@ export const validateLogin = async (email, password) => {
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
         return { isValid: false, message: 'Invalid email or password' };
+    }
+    
+   
+    if (!user.referralCode) {
+        const { generateReferralCode } = await import('../helper/utils.js');
+        user.referralCode = generateReferralCode();
+        if (user.referralEarnings === undefined) {
+            user.referralEarnings = 0;
+        }
+        await user.save();
     }
 
     return { isValid: true, user };
@@ -127,7 +191,7 @@ export const checkEmailExists=async(email,userId)=>{
     }
 }
 
-// Update user avatar
+
 export const updateUserAvatar = async (userId, avatarUrl) => {
     try {
         const user = await User.findByIdAndUpdate(
@@ -142,7 +206,7 @@ export const updateUserAvatar = async (userId, avatarUrl) => {
     }
 };
 
-// Get user avatar URL
+
 export const getUserAvatar = async (userId) => {
     try {
         const user = await User.findById(userId).select('profileImage');
