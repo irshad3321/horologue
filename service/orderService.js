@@ -1,3 +1,4 @@
+import { ORDER_STATUS, PAYMENT_STATUS, ITEM_STATUS } from '../helper/constants.js';
 import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
@@ -68,7 +69,8 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
         const discount = 0;
         const tax = 0;
         const shippingCharge = 0;
-        const totalAmount = subtotal - discount - couponDiscount + tax + shippingCharge;
+        const totalDiscount = Math.min((discount || 0) + (couponDiscount || 0), subtotal);
+        const totalAmount = Math.max(0, subtotal - totalDiscount + tax + shippingCharge);
         
         if (paymentMethod === 'Wallet') {
             const { hasSufficientBalance, deductMoneyFromWallet } = await import('./walletService.js');
@@ -107,8 +109,8 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
             shippingCharge: shippingCharge,
             totalAmount: totalAmount,
             paymentMethod: paymentMethod,
-            paymentStatus: paymentMethod === 'COD' ? 'Pending' : 'Paid',
-            orderStatus: 'Pending',
+            paymentStatus: paymentMethod === 'COD' ? PAYMENT_STATUS.PENDING : PAYMENT_STATUS.PAID,
+            orderStatus: ORDER_STATUS.PENDING,
             couponCode: couponCode,
             couponDiscount: couponDiscount,
             razorpayOrderId: razorpayOrderId,
@@ -192,7 +194,7 @@ export async function cancelOrder(orderId, userId, reason) {
         }
          
 
-        if (order.orderStatus === 'Delivered' || order.orderStatus === 'Cancelled') {
+        if (order.orderStatus === ORDER_STATUS.DELIVERED || order.orderStatus === ORDER_STATUS.CANCELLED) {
             throw new Error('Cannot cancel this order');
         }
         
@@ -207,12 +209,12 @@ export async function cancelOrder(orderId, userId, reason) {
         }
         
         // Refund to wallet if payment was made
-        if (order.paymentMethod !== 'COD' && order.paymentStatus === 'Paid') {
+        if (order.paymentMethod !== 'COD' && order.paymentStatus === PAYMENT_STATUS.PAID) {
             const { refundToWallet } = await import('./walletService.js');
             await refundToWallet(userId, order.totalAmount, `Refund for cancelled order #${order.orderNumber}`, order._id);
         }
         
-        order.orderStatus = 'Cancelled';
+        order.orderStatus = ORDER_STATUS.CANCELLED;
         order.cancelledDate = new Date();
         order.cancellationReason = reason || '';
         await order.save();
@@ -234,7 +236,7 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
             throw new Error('Order not found');
         }
         
-        if (order.orderStatus === 'Delivered' || order.orderStatus === 'Cancelled') {
+        if (order.orderStatus === ORDER_STATUS.DELIVERED || order.orderStatus === ORDER_STATUS.CANCELLED) {
             throw new Error('Cannot cancel items from this order');
         }
         
@@ -244,7 +246,7 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
             throw new Error('Item not found');
         }
         
-        if (item.itemStatus === 'Cancelled') {
+        if (item.itemStatus === ITEM_STATUS.CANCELLED) {
             throw new Error('Item already cancelled');
         }
         
@@ -257,27 +259,28 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
             variant.stock += item.quantity;
             await product.save();
         }
-        if (order.paymentMethod !== 'COD' && order.paymentStatus === 'Paid') {
+        if (order.paymentMethod !== 'COD' && order.paymentStatus === PAYMENT_STATUS.PAID) {
             const { refundToWallet } = await import('./walletService.js');
             await refundToWallet(userId, itemTotal, `Refund for cancelled item from order #${order.orderNumber}`, order._id);
         }
         
         // Mark item as cancelled instead of removing it
-        item.itemStatus = 'Cancelled';
+        item.itemStatus = ITEM_STATUS.CANCELLED;
         item.cancelledDate = new Date();
         item.cancellationReason = reason || '';
         let subtotal = 0;
         order.items.forEach(item => {
-            if (item.itemStatus === 'Active') {
+            if (item.itemStatus === ITEM_STATUS.ACTIVE) {
                 subtotal += item.itemTotal;
             }
         });
         
         order.subtotal = subtotal;
-        order.totalAmount = subtotal - order.discount + order.tax + order.shippingCharge;
-        const activeItems = order.items.filter(item => item.itemStatus === 'Active');
+        const totalDiscount = Math.min((order.discount || 0) + (order.couponDiscount || 0), subtotal);
+        order.totalAmount = Math.max(0, subtotal - totalDiscount + order.tax + order.shippingCharge);
+        const activeItems = order.items.filter(item => item.itemStatus === ITEM_STATUS.ACTIVE);
         if (activeItems.length === 0) {
-            order.orderStatus = 'Cancelled';
+            order.orderStatus = ORDER_STATUS.CANCELLED;
             order.cancelledDate = new Date();
             order.cancellationReason = reason || 'All items cancelled';
         }
@@ -301,7 +304,7 @@ export async function returnOrder(orderId, userId, reason) {
             throw new Error('Order not found');
         }
         
-        if (order.orderStatus !== 'Delivered') {
+        if (order.orderStatus !== ORDER_STATUS.DELIVERED) {
             throw new Error('Only delivered orders can be returned');
         }
         
@@ -309,7 +312,7 @@ export async function returnOrder(orderId, userId, reason) {
             throw new Error('Return reason is required');
         }
         
-        order.orderStatus = 'Return Requested';
+        order.orderStatus = ORDER_STATUS.RETURN_REQUESTED;
         order.cancellationReason = reason;
         
         await order.save();

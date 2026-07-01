@@ -1,4 +1,4 @@
-import { HTTP_STATUS } from '../../helper/constants.js';
+import { HTTP_STATUS, ORDER_STATUS, PAYMENT_STATUS } from '../../helper/constants.js';
 import Order from '../../models/Order.js';
 import User from '../../models/User.js';
 import Product from '../../models/Product.js';
@@ -88,7 +88,11 @@ export const updateOrderStatus = async (req, res) => {
         const orderId = req.params.id;
         const { status, declineReason } = req.body;
         
-        const validStatuses = ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested', 'Returned', 'Return Declined'];
+        const validStatuses = [
+            ORDER_STATUS.PENDING, ORDER_STATUS.CONFIRMED, ORDER_STATUS.SHIPPED, 
+            ORDER_STATUS.DELIVERED, ORDER_STATUS.CANCELLED, ORDER_STATUS.RETURN_REQUESTED, 
+            ORDER_STATUS.RETURNED, ORDER_STATUS.RETURN_DECLINED
+        ];
         
         if (!validStatuses.includes(status)) {
             return res.status(HTTP_STATUS.BAD_REQUEST).json({
@@ -107,7 +111,7 @@ export const updateOrderStatus = async (req, res) => {
         }
         
         // Define status progression ordere
-        const statusOrder = ['Pending', 'Confirmed', 'Shipped', 'Delivered'];
+        const statusOrder = [ORDER_STATUS.PENDING, ORDER_STATUS.CONFIRMED, ORDER_STATUS.SHIPPED, ORDER_STATUS.DELIVERED];
         const currentStatusIndex = statusOrder.indexOf(order.orderStatus);
         const newStatusIndex = statusOrder.indexOf(status);
         
@@ -117,8 +121,8 @@ export const updateOrderStatus = async (req, res) => {
                 message: `Cannot change status from ${order.orderStatus} back to ${status}`
             });
         }
-        if (['Delivered', 'Cancelled', 'Returned'].includes(order.orderStatus) && 
-            !['Return Requested', 'Returned', 'Return Declined'].includes(status)) {
+        if ([ORDER_STATUS.DELIVERED, ORDER_STATUS.CANCELLED, ORDER_STATUS.RETURNED].includes(order.orderStatus) && 
+            ![ORDER_STATUS.RETURN_REQUESTED, ORDER_STATUS.RETURNED, ORDER_STATUS.RETURN_DECLINED].includes(status)) {
             return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
                 message: `Cannot change status from ${order.orderStatus}`
@@ -129,16 +133,16 @@ export const updateOrderStatus = async (req, res) => {
         const oldStatus = order.orderStatus;
         order.orderStatus = status;
         
-        if (status === 'Delivered') {
+        if (status === ORDER_STATUS.DELIVERED) {
             order.deliveryDate = new Date();
             // Mark COD payment as Paid when delivered
-            if (order.paymentMethod === 'COD' && order.paymentStatus === 'Pending') {
-                order.paymentStatus = 'Paid';
+            if (order.paymentMethod === 'COD' && order.paymentStatus === PAYMENT_STATUS.PENDING) {
+                order.paymentStatus = PAYMENT_STATUS.PAID;
             }
         }
         
         // Restore stock only when approving return from 'Return Requested' status
-        if (status === 'Returned' && oldStatus === 'Return Requested') {
+        if (status === ORDER_STATUS.RETURNED && oldStatus === ORDER_STATUS.RETURN_REQUESTED) {
             // Restore stock when admin approves return
             for (const item of order.items) {
                 const product = await Product.findById(item.product);
@@ -162,8 +166,8 @@ export const updateOrderStatus = async (req, res) => {
         }
         
         // If return is declined, change status back to Delivered and save reason
-        if (status === 'Return Declined') {
-            order.orderStatus = 'Delivered';
+        if (status === ORDER_STATUS.RETURN_DECLINED) {
+            order.orderStatus = ORDER_STATUS.DELIVERED;
             if (declineReason) {
                 order.declineReason = declineReason;
             }

@@ -128,8 +128,7 @@ export const showAddresses = async (req, res) => {
     if (!req.session.userId) {
         return res.redirect('/login');
     }
-    
-    // Get fresh user data
+
     const user = await getUserById(req.session.userId);
     if (user) {
         req.session.user = {
@@ -165,7 +164,7 @@ export const showChangePassword = async (req, res) => {
         return res.redirect('/login');
     }
     
-    // Get fresh user data
+   
     const user = await getUserById(req.session.userId);
     if (user) {
         req.session.user = {
@@ -181,7 +180,6 @@ export const showChangePassword = async (req, res) => {
         };
     }
     
-    // Get cart and wishlist counts
     const cartCount = await getCartCount(req.session.userId);
     const wishlistCount = await getWishlistCount(req.session.userId);
     

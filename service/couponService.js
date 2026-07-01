@@ -37,6 +37,9 @@ export const validateCoupon = async (code, orderAmount) => {
             discount = coupon.discountValue;
         }
         
+        // Ensure discount doesn't exceed order amount
+        discount = Math.min(discount, orderAmount);
+        
         return {
             valid: true,
             coupon: coupon,
