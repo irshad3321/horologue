@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../helper/constants.js';
 // Import cache prevention middleware
 import { preventCache } from './sessionAuth.js';
 import User from '../models/User.js';
@@ -92,7 +93,7 @@ export const adminSessionCheck = async (req, res) => {
                         console.error('Session destroy error:', err);
                     }
                     res.clearCookie('horologue.admin.sid');
-                    res.status(401).json({ authenticated: false, reason: 'admin_access_revoked' });
+                    res.status(HTTP_STATUS.UNAUTHORIZED).json({ authenticated: false, reason: 'admin_access_revoked' });
                 });
                 return;
             }
@@ -100,10 +101,10 @@ export const adminSessionCheck = async (req, res) => {
             res.json({ authenticated: true });
         } catch (error) {
             console.error('Admin session check error:', error);
-            res.status(401).json({ authenticated: false, reason: 'validation_error' });
+            res.status(HTTP_STATUS.UNAUTHORIZED).json({ authenticated: false, reason: 'validation_error' });
         }
     } else {
-        res.status(401).json({ authenticated: false, reason: 'no_admin_session' });
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({ authenticated: false, reason: 'no_admin_session' });
     }
 };
 

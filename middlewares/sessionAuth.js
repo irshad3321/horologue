@@ -1,3 +1,4 @@
+import { HTTP_STATUS } from '../helper/constants.js';
 import User from '../models/User.js';
 
 // Middleware to sync passport user with session
@@ -153,7 +154,7 @@ export const userSessionCheck = async (req, res) => {
                         console.error('Session destroy error:', err);
                     }
                     res.clearCookie('horologue.user.sid');
-                    res.status(401).json({ authenticated: false, reason: 'account_blocked' });
+                    res.status(HTTP_STATUS.UNAUTHORIZED).json({ authenticated: false, reason: 'account_blocked' });
                 });
                 return;
             }
@@ -161,9 +162,9 @@ export const userSessionCheck = async (req, res) => {
             res.json({ authenticated: true });
         } catch (error) {
             console.error('Session check error:', error);
-            res.status(401).json({ authenticated: false, reason: 'validation_error' });
+            res.status(HTTP_STATUS.UNAUTHORIZED).json({ authenticated: false, reason: 'validation_error' });
         }
     } else {
-        res.status(401).json({ authenticated: false, reason: 'no_session' });
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({ authenticated: false, reason: 'no_session' });
     }
 };

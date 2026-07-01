@@ -1,7 +1,9 @@
 import Category from "../models/Category.js";
+import Product from "../models/Product.js";
 //ser pagi fil
 export async function getCategories(filters={}){
     const {search,status,page=1,limit=10,sort='desc'}=filters
+        
 
     const query={isDeleted:false}
     if(search){
@@ -59,7 +61,10 @@ export async function toggleCategoryStatus(categoryId) {
     const category = await Category.findById(categoryId);
     if (!category) return null
     category.status = category.status === 'active' ? 'inactive' : 'active';
+            
+
     return await category.save();
+    
 }
 export async function categoryNameExists(name, excludeId = null) {
     const query = { name: { $regex: new RegExp(`^${name}$`, 'i') }, isDeleted: false };
