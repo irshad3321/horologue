@@ -42,7 +42,7 @@ const createSessionConfig = (sessionName, cookieName) => {
       ttl: 7 * 24 * 60 * 60
     }),
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.USE_HTTPS === 'true',
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 7,
       sameSite: 'lax'
