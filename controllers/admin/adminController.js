@@ -275,7 +275,7 @@ export const adminLogout = (req, res) => {
         if (err) {
             // Session destroy error - ignore
         }
-        res.clearCookie('horologue.admin.sid');
+        res.clearCookie('horologue.sid');
         
         // Set cache control headers
         res.set({

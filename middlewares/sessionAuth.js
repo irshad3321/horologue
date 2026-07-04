@@ -68,7 +68,7 @@ export const isAuthenticated = async (req, res, next) => {
                 if (err) {
                     console.error('Session destroy error:', err);
                 }
-                res.clearCookie('horologue.user.sid');
+                res.clearCookie('horologue.sid');
                 res.redirect('/login?error=account_blocked');
             });
             return;
@@ -84,38 +84,6 @@ export const isAuthenticated = async (req, res, next) => {
     res.redirect('/login');
 };
 
-// // Check if user is not authenticated - with strict session validation
-// export const isNotAuthenticated = async (req, res, next) => {
-//     // Apply cache prevention for login pages
-//     preventCache(req, res, () => {});
-    
-//     // Check for any existing valid user session
-//     if (req.session.userId || req.user) {
-//         const userId = req.session.userId || req.user._id;
-        
-//         // Validate user status first
-//         const isValidUser = await validateUserStatus(userId);
-        
-//         if (!isValidUser) {
-//             // User is blocked, clear user session and allow access to login page
-//             req.session.destroy((err) => {
-//                 if (err) {
-//                     console.error('Session destroy error:', err);
-//                 }
-//                 res.clearCookie('horologue.user.sid');
-//                 next();
-//             });
-//             return;
-//         }
-        
-//         // Valid user session exists, redirect to user home
-//         return res.redirect('/home');
-//     }
-    
-//     // No valid session, allow access to login page
-//     next();
-// };
-
 export const redirectAuthenticatedUsers = async (req, res, next) => {
     preventCache(req, res, () => {})
     if (req.session.userId || req.user) {
@@ -127,7 +95,7 @@ export const redirectAuthenticatedUsers = async (req, res, next) => {
                 if (err){
                  console.error('Session destroy error:', err);
                 }
-                res.clearCookie('horologue.user.sid');
+                res.clearCookie('horologue.sid');
                 next()
             })
             return
@@ -153,7 +121,7 @@ export const userSessionCheck = async (req, res) => {
                     if (err) {
                         console.error('Session destroy error:', err);
                     }
-                    res.clearCookie('horologue.user.sid');
+                    res.clearCookie('horologue.sid');
                     res.status(HTTP_STATUS.UNAUTHORIZED).json({ authenticated: false, reason: 'account_blocked' });
                 });
                 return;

@@ -93,25 +93,37 @@ export const registerUser = async (req, res) => {
       
         req.session.tempUserData = trimmedData;
         req.session.tempEmail = trimmedData.email;
-        req.session.resendTimerStart = Date.now()
+        req.session.resendTimerStart = Date.now();
         
         await generateAndSaveOTP(trimmedData.email, 'signup');
         
         const otpCreatedAt = await getLatestOTPCreationTime(trimmedData.email, 'signup');
         
-        // Prevent caching
-        res.set({
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-        });
-        
-        res.render('user/verify-otp-registration', {
-            error: null,
-            success: 'OTP sent to your email address',
-            email: trimmedData.email,
-            otpCreatedAt,
-            resendTimerStart: req.session.resendTimerStart
+        // Explicitly save session before rendering
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+                return res.render('user/register', {
+                    error: 'Something went wrong. Please try again.',
+                    success: null,
+                    formData: req.body
+                });
+            }
+            
+            // Prevent caching
+            res.set({
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            });
+            
+            res.render('user/verify-otp-registration', {
+                error: null,
+                success: 'OTP sent to your email address',
+                email: trimmedData.email,
+                otpCreatedAt,
+                resendTimerStart: req.session.resendTimerStart
+            });
         });
         
     } catch (error) {
@@ -461,7 +473,7 @@ export const logoutUser = (req, res) => {
                     console.error('User session destroy error:', err);
                 }
                 
-                res.clearCookie('horologue.user.sid');
+                res.clearCookie('horologue.sid');
                 
                 res.set({
                     'Cache-Control': 'no-cache, no-store, must-revalidate, private',
