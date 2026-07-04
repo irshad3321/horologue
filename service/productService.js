@@ -22,6 +22,9 @@ export async function getProducts(filters = {}) {
     
     const query = { isDeleted: false };
 
+
+
+
     if (hideInactiveCategories) {
         const activeCategories = await Category.find({ 
             status: 'active', 
@@ -229,3 +232,4 @@ export async function getRelatedProducts(productId, category, limit = 4) {
     .limit(limit)
     .sort({ createdAt: -1 });
 }
+

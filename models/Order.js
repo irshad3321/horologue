@@ -33,6 +33,11 @@ const orderSchema = new mongoose.Schema({
         cancelledDate: Date,
         cancellationReason: String
     }],
+addressId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Address'
+},
+
     shippingAddress: {
         fullName: String,
         phone: String,
