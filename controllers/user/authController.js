@@ -90,7 +90,7 @@ export const registerUser = async (req, res) => {
             });
             
         }
-
+      
         req.session.tempUserData = trimmedData;
         req.session.tempEmail = trimmedData.email;
         req.session.resendTimerStart = Date.now()

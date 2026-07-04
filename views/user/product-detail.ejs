@@ -510,7 +510,7 @@
                 %>
                 
                 <% if (product.offer > 0) { %>
-                    <div class="product-badge">-<%= product.offer %>% OFF</div>
+                    <div class="product-badge"><%= product.offer %>% OFF</div>
                 <% } else if (product.premium === 'Yes') { %>
                     <div class="product-badge premium">Premium</div>
                 <% } %>

@@ -2,7 +2,8 @@ import { ORDER_STATUS, PAYMENT_STATUS, ITEM_STATUS } from '../helper/constants.j
 import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
-   
+import mongoose from 'mongoose';
+  
 
 function generateOrderNumber(){
     const timestamp = Date.now();
@@ -88,10 +89,12 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
                 await applyCoupon(coupon._id);
             }
         }
-        
+       
+
         const order = new Order({
             userId: userId,
-            orderNumber: generateOrderNumber(),
+            orderNumber: generateOrderNumber(),  
+             addressId: addressId,  
             items: orderItems,
             shippingAddress: {
                 fullName: address.fullName,
@@ -119,7 +122,8 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
         });
         
         await order.save();
-        
+       
+
         // Deduct from wallet if wallet payment
         if (paymentMethod === 'Wallet') {
             const { deductMoneyFromWallet } = await import('./walletService.js');
@@ -183,16 +187,18 @@ export async function getOrderById(orderId, userId) {
 // Cancel order
 export async function cancelOrder(orderId, userId, reason) {
     try {
-
-       
+         
         const order = await Order.findOne({ _id: orderId, userId })
             .populate('items.product');
-        
+         
+
+   
 
         if (!order) {
             throw new Error('Order not found');
         }
          
+     
 
         if (order.orderStatus === ORDER_STATUS.DELIVERED || order.orderStatus === ORDER_STATUS.CANCELLED) {
             throw new Error('Cannot cancel this order');
@@ -207,7 +213,7 @@ export async function cancelOrder(orderId, userId, reason) {
                 await product.save();
             }
         }
-        
+       
         // Refund to wallet if payment was made
         if (order.paymentMethod !== 'COD' && order.paymentStatus === PAYMENT_STATUS.PAID) {
             const { refundToWallet } = await import('./walletService.js');
@@ -228,10 +234,10 @@ export async function cancelOrder(orderId, userId, reason) {
 // Cancel ordered item
 export async function cancelOrderItem(orderId, itemId, userId, reason) {
     try {
-        
+       
         const order = await Order.findOne({ _id: orderId, userId })
             .populate('items.product');
-        
+       
         if (!order) {
             throw new Error('Order not found');
         }
@@ -264,7 +270,6 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
             await refundToWallet(userId, itemTotal, `Refund for cancelled item from order #${order.orderNumber}`, order._id);
         }
         
-        // Mark item as cancelled instead of removing it
         item.itemStatus = ITEM_STATUS.CANCELLED;
         item.cancelledDate = new Date();
         item.cancellationReason = reason || '';

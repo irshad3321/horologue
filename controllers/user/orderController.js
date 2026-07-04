@@ -51,7 +51,6 @@ export const placeOrder = async (req, res) => {
     try {
         const userId = req.session.userId;
         const { addressId, paymentMethod, couponCode, couponDiscount, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
-
         if (!addressId) {
             return res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
@@ -119,12 +118,12 @@ export const placeOrder = async (req, res) => {
 export const showOrderSuccess = async (req, res) => {
     try {
         const orderId = req.query.orderId;
-
+      
         if (!orderId) {
             return res.redirect('/orders');
         }
         const order = await orderService.getOrderById(orderId, req.session.userId);
-
+        
         // Get cart and wishlist counts
         const cartCount = await cartService.getCartCount(req.session.userId);
         const wishlistCount = await wishlistService.getWishlistCount(req.session.userId);

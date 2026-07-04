@@ -120,6 +120,7 @@ export const validateLogin = async (email, password) => {
     if (!emailValidation.isValid) {
         return emailValidation;
     }
+    
 
     const user = await User.findOne({ email });
     if (!user) {

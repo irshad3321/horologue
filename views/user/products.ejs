@@ -737,7 +737,7 @@
                         <% } else if (product.status !== 'active') { %>
                             <div class="product-badge unavailable">Unavailable</div>
                         <% } else if (product.offer > 0) { %>
-                            <div class="product-badge">-<%= product.offer %>%</div>
+                            <div class="product-badge"><%= product.offer %>%</div>
                         <% } else if (product.premium === 'Yes') { %>
                             <div class="product-badge premium">Premium</div>
                         <% } %>

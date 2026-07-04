@@ -320,7 +320,7 @@ export async function deleteVariantImage(req, res) {
 export const showInventory = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 10; 
+        const limit = 5; 
         const search = req.query.search || '';
         const brand = req.query.brand || '';
 
@@ -338,7 +338,6 @@ export const showInventory = async (req, res) => {
         
         const allProducts = await Product.find(query).sort({ name: 1 });
         
-        // Flatten to get all variants
         const allVariants = [];
         allProducts.forEach(product => {
             product.variants.forEach(variant => {
@@ -394,8 +393,8 @@ export const updateStock = async (req, res) => {
                 message: 'Missing required fields'
             });
         }
+        
 
-        // Fetch product as Mongoose document (not lean) to use .id() method
         const product = await Product.findOne({ _id: productId, isDeleted: false });
         if (!product) {
             return res.json({

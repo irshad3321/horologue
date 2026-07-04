@@ -424,3 +424,5 @@ export const clearWishlist = async (req, res) => {
         });
     }
 };
+
+
