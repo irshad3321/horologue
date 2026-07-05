@@ -29,31 +29,31 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Single unified session configuration
-const sessionStore = MongoStore.create({
-  mongoUrl: process.env.MONGODB_URI,
-  touchAfter: 24 * 3600,
-  ttl: 7 * 24 * 60 * 60
-});
+// Create separate session configurations for admin and user
+const createSessionConfig = (sessionName, cookieName) => {
+  return session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,  // Changed to true to save guest sessions
+    rolling: true,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      touchAfter: 24 * 3600,
+      ttl: 7 * 24 * 60 * 60
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+      sameSite: 'lax'
+    },
+    name: cookieName
+  });
+};
 
-sessionStore.on('error', (error) => {
-  console.error('Session store error:', error);
-});
-
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  rolling: true,
-  store: sessionStore,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 7,
-    sameSite: 'lax'
-  },
-  name: 'horologue.sid'
-}));
+// Apply different session middleware based on route
+app.use('/admin', createSessionConfig('admin-session', 'horologue.admin.sid'));
+app.use('/', createSessionConfig('user-session', 'horologue.user.sid'));
 
 // Passport middleware
 app.use(passport.initialize());

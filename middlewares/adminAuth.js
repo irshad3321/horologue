@@ -12,7 +12,7 @@ export const isAdmin = async (req, res, next) => {
             if (err) {
                 console.error('Session destroy error:', err);
             }
-            res.clearCookie('horologue.sid');
+            res.clearCookie('horologue.admin.sid');
             res.redirect('/admin/login');
         });
         return;
@@ -26,7 +26,7 @@ export const isAdmin = async (req, res, next) => {
                 if (err) {
                     console.error('Session destroy error:', err);
                 }
-                res.clearCookie('horologue.sid');
+                res.clearCookie('horologue.admin.sid');
                 res.redirect('/admin/login?error=access_revoked');
             });
             return;
@@ -39,7 +39,7 @@ export const isAdmin = async (req, res, next) => {
             if (err) {
                 console.error('Session destroy error:', err);
             }
-            res.clearCookie('horologue.sid');
+            res.clearCookie('horologue.admin.sid');
             res.redirect('/admin/login?error=validation_error');
         });
     }
@@ -60,7 +60,7 @@ export const isNotAuthenticatedAdmin = async (req, res, next) => {
                     if (err) {
                         console.error('Session destroy error:', err);
                     }
-                    res.clearCookie('horologue.sid');
+                    res.clearCookie('horologue.admin.sid');
                     next();
                 });
             }
@@ -70,7 +70,7 @@ export const isNotAuthenticatedAdmin = async (req, res, next) => {
                 if (err) {
                     console.error('Session destroy error:', err);
                 }
-                res.clearCookie('horologue.sid');
+                res.clearCookie('horologue.admin.sid');
                 next();
             });
         }
@@ -92,7 +92,7 @@ export const adminSessionCheck = async (req, res) => {
                     if (err) {
                         console.error('Session destroy error:', err);
                     }
-                    res.clearCookie('horologue.sid');
+                    res.clearCookie('horologue.admin.sid');
                     res.status(HTTP_STATUS.UNAUTHORIZED).json({ authenticated: false, reason: 'admin_access_revoked' });
                 });
                 return;

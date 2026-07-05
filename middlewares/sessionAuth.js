@@ -68,7 +68,7 @@ export const isAuthenticated = async (req, res, next) => {
                 if (err) {
                     console.error('Session destroy error:', err);
                 }
-                res.clearCookie('horologue.sid');
+                res.clearCookie('horologue.user.sid');
                 res.redirect('/login?error=account_blocked');
             });
             return;
@@ -95,7 +95,7 @@ export const redirectAuthenticatedUsers = async (req, res, next) => {
                 if (err){
                  console.error('Session destroy error:', err);
                 }
-                res.clearCookie('horologue.sid');
+                res.clearCookie('horologue.user.sid');
                 next()
             })
             return
@@ -121,7 +121,7 @@ export const userSessionCheck = async (req, res) => {
                     if (err) {
                         console.error('Session destroy error:', err);
                     }
-                    res.clearCookie('horologue.sid');
+                    res.clearCookie('horologue.user.sid');
                     res.status(HTTP_STATUS.UNAUTHORIZED).json({ authenticated: false, reason: 'account_blocked' });
                 });
                 return;
