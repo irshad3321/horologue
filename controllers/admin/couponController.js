@@ -4,18 +4,31 @@ import Coupon from '../../models/Coupon.js';
 // Show coupons page
 export const showCoupons = async (req, res) => {
     try {
-        const coupons = await Coupon.find().sort({ createdAt: -1 });
+        const page = parseInt(req.query.page) || 1;
+        const limit = 3;
+        const skip = (page - 1) * limit;
+        
+        const totalCoupons = await Coupon.countDocuments();
+        const totalPages = Math.ceil(totalCoupons / limit);
+        
+        const coupons = await Coupon.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
         
         res.render('admin/coupons', {
             admin: req.session.user,
             currentPage: 'coupons',
-            coupons: coupons
+            coupons: coupons,
+            currentPageNum: page,
+            totalPages: totalPages,
+            totalCoupons: totalCoupons
         });
     } catch (error) {
         console.error('Show coupons error:', error);
         res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).render('error/500');
     }
-};
+}
 
 // Get all coupons API
 export const getAllCoupons = async (req, res) => {
@@ -84,6 +97,21 @@ export const createCoupon = async (req, res) => {
             return res.json({
                 success: false,
                 message: 'Fixed discount must be greater than 0'
+            });
+        }
+
+        // Validate minPurchase vs discount amount
+        if (discountType === 'fixed' && parseFloat(minPurchase) <= parseFloat(discountValue)) {
+            return res.json({
+                success: false,
+                message: 'Minimum purchase amount must be greater than the discount amount'
+            });
+        }
+
+        if (discountType === 'percentage' && maxDiscount && parseFloat(minPurchase) <= parseFloat(maxDiscount)) {
+            return res.json({
+                success: false,
+                message: 'Minimum purchase amount must be greater than the maximum discount amount'
             });
         }
         
@@ -180,6 +208,21 @@ export const updateCoupon = async (req, res) => {
             return res.json({
                 success: false,
                 message: 'Fixed discount must be greater than 0'
+            });
+        }
+
+        // Validate minPurchase vs discount amount
+        if (discountType === 'fixed' && parseFloat(minPurchase) <= parseFloat(discountValue)) {
+            return res.json({
+                success: false,
+                message: 'Minimum purchase amount must be greater than the discount amount'
+            });
+        }
+
+        if (discountType === 'percentage' && maxDiscount && parseFloat(minPurchase) <= parseFloat(maxDiscount)) {
+            return res.json({
+                success: false,
+                message: 'Minimum purchase amount must be greater than the maximum discount amount'
             });
         }
         

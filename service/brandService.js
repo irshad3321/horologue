@@ -47,8 +47,10 @@ export async function getBrandById(brandId) {
 
 // Create new brand
 export async function createBrand(name, description) {
+    const cleanName = name.trim().replace(/\s+/g, ' ');
+    const escapedName = cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const existingBrand = await Brand.findOne({ 
-        name: { $regex: new RegExp(`^${name}$`, 'i') },
+        name: { $regex: new RegExp(`^${escapedName}$`, 'i') },
         isDeleted: false 
     });
     
@@ -57,7 +59,7 @@ export async function createBrand(name, description) {
     }
     
     const brand = new Brand({
-        name: name.trim(),
+        name: cleanName,
         description: description?.trim() || ''
     });
     
@@ -72,10 +74,12 @@ export async function updateBrand(brandId, name, description, status) {
     if (!brand) {
         throw new Error('Brand not found');
     }
-    if (name !== brand.name) {
+    const cleanName = name.trim().replace(/\s+/g, ' ');
+    if (cleanName !== brand.name) {
+        const escapedName = cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const existingBrand = await Brand.findOne({
             _id: { $ne: brandId },
-            name: { $regex: new RegExp(`^${name}$`, 'i') },
+            name: { $regex: new RegExp(`^${escapedName}$`, 'i') },
             isDeleted: false
         });
         
@@ -84,7 +88,7 @@ export async function updateBrand(brandId, name, description, status) {
         }
     }
     
-    brand.name = name.trim();
+    brand.name = cleanName;
     brand.description = description?.trim() || '';
     brand.status = status;
     
@@ -101,6 +105,7 @@ export async function deleteBrand(brandId) {
     }
     
     brand.isDeleted = true;
+    brand.name = `${brand.name}_deleted_${Date.now()}`;
     await brand.save();
     
     return brand;

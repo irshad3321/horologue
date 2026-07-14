@@ -427,15 +427,22 @@
         let customEndDate = null;
 
         // Load dashboard stats
-        async function loadStats() {
+        async function loadStats(filter = 'all', startDate = null, endDate = null) {
             try {
-                const response = await fetch('/admin/api/dashboard/stats');
+                let url = `/admin/api/dashboard/stats?filter=${filter}`;
+                if (filter === 'custom' && startDate && endDate) {
+                    url += `&startDate=${startDate}&endDate=${endDate}`;
+                }
+                const response = await fetch(url);
                 const data = await response.json();
                 
                 if (data.success) {
                     document.getElementById('totalUsers').textContent = data.stats.totalUsers.toLocaleString('en-IN');
                     document.getElementById('totalOrders').textContent = data.stats.totalOrders.toLocaleString('en-IN');
-                    document.getElementById('totalRevenue').textContent = '₹' + (data.stats.totalRevenue / 100000).toFixed(1) + 'L';
+                    const rev = data.stats.totalRevenue;
+                    document.getElementById('totalRevenue').textContent = rev >= 100000 
+                        ? '₹' + (rev / 100000).toFixed(1) + 'L' 
+                        : '₹' + rev.toLocaleString('en-IN');
                     document.getElementById('totalProducts').textContent = data.stats.totalProducts.toLocaleString('en-IN');
                 }
             } catch (error) {
@@ -472,7 +479,9 @@
             customEndDate = endDate;
             currentFilter = 'custom';
             
+            // Update both chart AND stats
             await createChart('custom');
+            await loadStats('custom', startDate, endDate);
         }
 
         // Create chart
@@ -574,8 +583,9 @@
             });
             event.target.classList.add('active');
             
-            // Update chart
+            // Update both chart AND stats
             createChart(filter);
+            loadStats(filter);
         }
 
         async function downloadDashboardPDF() {
@@ -657,72 +667,72 @@
                         return `
                             <div class="item">
                                 <div class="item-info">
-                                    <div class="item-rank ${rankClass}">${index + 1}</div>
-                                    <div class="item-details">
-                                        <div class="item-name">${category.name}</div>
-                                        <div class="item-meta">Category</div>
+                                        <div class="item-rank ${rankClass}">${index + 1}</div>
+                                        <div class="item-details">
+                                            <div class="item-name">${category.name}</div>
+                                            <div class="item-meta">Category</div>
+                                        </div>
+                                    </div>
+                                    <div class="item-stats">
+                                        <div class="item-value">₹${(category.totalRevenue / 100000).toFixed(1)}L</div>
+                                        <div class="item-count">${category.totalSold} sold</div>
                                     </div>
                                 </div>
-                                <div class="item-stats">
-                                    <div class="item-value">₹${(category.totalRevenue / 100000).toFixed(1)}L</div>
-                                    <div class="item-count">${category.totalSold} sold</div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                } else {
-                    container.innerHTML = '<div class="no-data">No data available</div>';
+                            `;
+                        }).join('');
+                    } else {
+                        container.innerHTML = '<div class="no-data">No data available</div>';
+                    }
+                } catch (error) {
+                    console.error('Failed to load top categories:', error);
+                    document.getElementById('topCategories').innerHTML = '<div class="no-data">Failed to load data</div>';
                 }
-            } catch (error) {
-                console.error('Failed to load top categories:', error);
-                document.getElementById('topCategories').innerHTML = '<div class="no-data">Failed to load data</div>';
             }
-        }
 
-        // Load top brands
-        async function loadTopBrands() {
-            try {
-                const response = await fetch('/admin/api/dashboard/top-brands');
-                const data = await response.json();
-                
-                const container = document.getElementById('topBrands');
-                
-                if (data.success && data.brands.length > 0) {
-                    container.innerHTML = data.brands.map((brand, index) => {
-                        const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
-                        return `
-                            <div class="item">
-                                <div class="item-info">
-                                    <div class="item-rank ${rankClass}">${index + 1}</div>
-                                    <div class="item-details">
-                                        <div class="item-name">${brand.name}</div>
-                                        <div class="item-meta">Brand</div>
+            // Load top brands
+            async function loadTopBrands() {
+                try {
+                    const response = await fetch('/admin/api/dashboard/top-brands');
+                    const data = await response.json();
+                    
+                    const container = document.getElementById('topBrands');
+                    
+                    if (data.success && data.brands.length > 0) {
+                        container.innerHTML = data.brands.map((brand, index) => {
+                            const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+                            return `
+                                <div class="item">
+                                    <div class="item-info">
+                                        <div class="item-rank ${rankClass}">${index + 1}</div>
+                                        <div class="item-details">
+                                            <div class="item-name">${brand.name}</div>
+                                            <div class="item-meta">Brand</div>
+                                        </div>
+                                    </div>
+                                    <div class="item-stats">
+                                        <div class="item-value">₹${(brand.totalRevenue / 100000).toFixed(1)}L</div>
+                                        <div class="item-count">${brand.totalSold} sold</div>
                                     </div>
                                 </div>
-                                <div class="item-stats">
-                                    <div class="item-value">₹${(brand.totalRevenue / 100000).toFixed(1)}L</div>
-                                    <div class="item-count">${brand.totalSold} sold</div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                } else {
-                    container.innerHTML = '<div class="no-data">No data available</div>';
+                            `;
+                        }).join('');
+                    } else {
+                        container.innerHTML = '<div class="no-data">No data available</div>';
+                    }
+                } catch (error) {
+                    console.error('Failed to load top brands:', error);
+                    document.getElementById('topBrands').innerHTML = '<div class="no-data">Failed to load data</div>';
                 }
-            } catch (error) {
-                console.error('Failed to load top brands:', error);
-                document.getElementById('topBrands').innerHTML = '<div class="no-data">Failed to load data</div>';
             }
-        }
 
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            loadStats();
-            createChart('monthly');
-            loadTopProducts();
-            loadTopCategories();
-            loadTopBrands();
-        });
+            // Initialize dashboard
+            document.addEventListener('DOMContentLoaded', function() {
+                loadStats('monthly');
+                createChart('monthly');
+                loadTopProducts();
+                loadTopCategories();
+                loadTopBrands();
+            });
     </script>
 </body>
 </html>

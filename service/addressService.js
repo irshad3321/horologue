@@ -1,6 +1,6 @@
 import Address from '../models/Address.js';
 
-// Get all addresses for a user
+// Get all addressdes for a user
 export const getUserAddresses = async (userId) => {
     try {   
         const addresses = await Address.find({ userId }).sort({ isDefault: -1, createdAt: -1 });
@@ -14,6 +14,7 @@ export const getUserAddresses = async (userId) => {
 // Create new address
 export const createAddress = async (userId, addressData) => {
     try {
+        
         const address = new Address({
             userId,
             ...addressData
@@ -88,12 +89,14 @@ export const setDefaultAddress = async (userId, addressId) => {
 export const validateAddressData = (addressData) => {
     const errors = [];
     
-    if (!addressData.fullName || addressData.fullName.trim().length < 2) {
-        errors.push('Full name must be at least 2 characters long');
+    if (!addressData.fullName || addressData.fullName.trim().length < 3 || addressData.fullName.trim().length > 50) {
+        errors.push('Full name must be between 3 and 50 characters long');
+    } else if (!/^[a-zA-Z\s]+$/.test(addressData.fullName.trim())) {
+        errors.push('Full name can only contain alphabets and spaces');
     }
     
-    if (!addressData.phoneNumber || !/^\d{10}$/.test(addressData.phoneNumber)) {
-        errors.push('Phone number must be exactly 10 digits');
+    if (!addressData.phoneNumber || !/^\d{10}$/.test(addressData.phoneNumber) || /^0{10}$/.test(addressData.phoneNumber)) {
+        errors.push('Please enter a valid 10-digit phone number');
     }
     
     if (!addressData.addressLine1 || addressData.addressLine1.trim().length < 5) {
@@ -102,14 +105,18 @@ export const validateAddressData = (addressData) => {
     
     if (!addressData.city || addressData.city.trim().length < 2) {
         errors.push('City must be at least 2 characters long');
+    } else if (!/^[a-zA-Z\s]+$/.test(addressData.city.trim())) {
+        errors.push('City can only contain alphabets and spaces');
     }
     
     if (!addressData.state || addressData.state.trim().length < 2) {
         errors.push('State must be at least 2 characters long');
+    } else if (!/^[a-zA-Z\s]+$/.test(addressData.state.trim())) {
+        errors.push('State can only contain alphabets and spaces');
     }
     
-    if (!addressData.pincode || !/^\d{6}$/.test(addressData.pincode)) {
-        errors.push('Pincode must be exactly 6 digits');
+    if (!addressData.pincode || !/^\d{6}$/.test(addressData.pincode) || /^0{6}$/.test(addressData.pincode)) {
+        errors.push('Please enter a valid 6-digit pincode');
     }
     
     if (addressData.addressType && !['home', 'work', 'other'].includes(addressData.addressType)) {

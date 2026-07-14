@@ -1053,15 +1053,22 @@
       const phone = document.getElementById('phone').value.trim();
       
       let hasErrors = false;
+      const nameRegex = /^[a-zA-Z\s]{2,50}$/;
       
       // Validate required fields
       if (!firstName) {
         showFieldError('firstName', 'First name is required');
         hasErrors = true;
+      } else if (!nameRegex.test(firstName)) {
+        showFieldError('firstName', 'First name must be 2-50 characters and contain only letters');
+        hasErrors = true;
       }
       
       if (!lastName) {
         showFieldError('lastName', 'Last name is required');
+        hasErrors = true;
+      } else if (!nameRegex.test(lastName)) {
+        showFieldError('lastName', 'Last name must be 2-50 characters and contain only letters');
         hasErrors = true;
       }
       

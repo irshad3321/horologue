@@ -65,6 +65,7 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
                 itemTotal: itemTotal
             });
             variant.stock -= item.quantity;
+            
             await product.save();
         }
         const discount = 0;

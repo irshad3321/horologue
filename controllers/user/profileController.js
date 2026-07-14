@@ -4,6 +4,7 @@ import { sendOTPEmail } from "../../service/emailService.js";
 import { generateOTP } from "../../helper/utils.js";
 import { deleteFromCloudinary } from "../../config/cloudinary.js";
 import OTP from "../../models/OTP.js";
+import { validateName, validatePhone } from "../../helper/validators.js";
 
 // Update profile
 export const updateProfile = async (req, res) => {
@@ -15,7 +16,25 @@ export const updateProfile = async (req, res) => {
             return res.json({ success: false, message: 'Name fields are required' });
         }
 
-        const updatedUser = await updateUser(userId, firstName, lastName, phone);
+        const firstNameValidation = validateName(firstName);
+        if (!firstNameValidation.isValid) {
+            return res.json({ success: false, message: 'First ' + firstNameValidation.message.toLowerCase() });
+        }
+
+        const lastNameValidation = validateName(lastName);
+        if (!lastNameValidation.isValid) {
+            return res.json({ success: false, message: 'Last ' + lastNameValidation.message.toLowerCase() });
+        }
+
+        if (phone && phone.trim() !== '') {
+            const phoneValidation = validatePhone(phone);
+            if (!phoneValidation.isValid) {
+                return res.json({ success: false, message: phoneValidation.message });
+            }
+        }
+
+        const updatedUser = await updateUser(userId, firstName.trim(), lastName.trim(), phone ? phone.trim() : '');
+
         
         if (updatedUser) {
             req.session.user = {

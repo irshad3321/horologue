@@ -661,10 +661,10 @@
                 <form method="GET" action="/admin/category">
                     <div class="search-row">
                         <div class="filter-dropdown">
-                            <select class="filter-select">
-                                <option value="all">All Categories</option>
-                                <option value="listed">Listed</option>
-                                <option value="unlisted">Unlisted</option>
+                            <select name="status" class="filter-select" onchange="this.form.submit()">
+                                <option value="all" <%= typeof status !== 'undefined' && status === 'all' ? 'selected' : '' %>>All Categories</option>
+                                <option value="active" <%= typeof status !== 'undefined' && status === 'active' ? 'selected' : '' %>>Active</option>
+                                <option value="inactive" <%= typeof status !== 'undefined' && status === 'inactive' ? 'selected' : '' %>>Inactive</option>
                             </select>
                         </div>
                         <div class="search-group">
@@ -980,7 +980,7 @@
         }
 
         // Toggle Category Status
-        function toggleCategory(categoryId, currentStatus) {
+        async function toggleCategory(categoryId, currentStatus) {
             const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
             const action = newStatus === 'active' ? 'enable' : 'disable';
             
@@ -993,9 +993,8 @@
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: `Yes, ${action.charAt(0).toUpperCase() + action.slice(1)}`,
                 cancelButtonText: 'Cancel'
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.isConfirmed) {
-                    // Show loading
                     Swal.fire({
                         title: 'Updating...',
                         text: 'Please wait while we update the category status',
@@ -1005,25 +1004,44 @@
                         }
                     });
 
-                    // Simulate API call - replace with actual backend call
-                    setTimeout(() => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Status Updated!',
-                            text: `Category has been ${action}d successfully`,
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            // Reload page to show updated data
-                            window.location.reload();
+                    try {
+                        const response = await fetch(`/admin/category/${categoryId}/toggle-status`, {
+                            method: 'PATCH'
                         });
-                    }, 1000);
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Status Updated!',
+                                text: result.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: result.message || 'Failed to toggle category status'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error toggling category status:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while updating the category status'
+                        });
+                    }
                 }
             });
         }
 
         // Delete Category (Soft Delete)
-        function deleteCategory(categoryId) {
+        async function deleteCategory(categoryId) {
             Swal.fire({
                 title: 'Delete Category?',
                 text: 'This category will be moved to trash. You can restore it later if needed.',
@@ -1033,9 +1051,8 @@
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Yes, Delete',
                 cancelButtonText: 'Cancel'
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.isConfirmed) {
-                    // Show loading
                     Swal.fire({
                         title: 'Deleting...',
                         text: 'Please wait while we delete the category',
@@ -1045,19 +1062,38 @@
                         }
                     });
 
-                    // Simulate API call - replace with actual backend call
-                    setTimeout(() => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Deleted!',
-                            text: 'Category has been deleted successfully',
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            // Reload page to show updated data
-                            window.location.reload();
+                    try {
+                        const response = await fetch(`/admin/category/${categoryId}`, {
+                            method: 'DELETE'
                         });
-                    }, 1000);
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: result.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: result.message || 'Failed to delete category'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error deleting category:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while deleting the category'
+                        });
+                    }
                 }
             });
         }

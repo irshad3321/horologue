@@ -39,7 +39,9 @@ export async function createCategory(req, res) {
                 message: 'Category name is required' 
             });
         }
-        const exists = await categoryService.categoryNameExists(name);
+        
+        const cleanedName = name.trim().replace(/\s+/g, ' ');
+        const exists = await categoryService.categoryNameExists(cleanedName);
         if (exists) {
             return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
@@ -47,7 +49,7 @@ export async function createCategory(req, res) {
             });
         }
         const category = await categoryService.createCategory({
-            name: name.trim(),
+            name: cleanedName,
             description: description?.trim() || '',
             offer: offer || 0,
             status: status || 'active'
@@ -87,7 +89,9 @@ export async function updateCategory(req, res) {
                 message: 'Category not found' 
             });
         }
-        const exists = await categoryService.categoryNameExists(name, categoryId);
+        
+        const cleanedName = name.trim().replace(/\s+/g, ' ');
+        const exists = await categoryService.categoryNameExists(cleanedName, categoryId);
         if (exists) {
             return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
@@ -95,7 +99,7 @@ export async function updateCategory(req, res) {
             });
         }
         const updatedCategory = await categoryService.updateCategory(categoryId, {
-            name: name.trim(),
+            name: cleanedName,
             description: description?.trim() || '',
             offer: offer || 0,
             status: status || 'active'

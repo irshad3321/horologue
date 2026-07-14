@@ -835,13 +835,16 @@
                 
                 if (data.valid) {
                     appliedCoupon = data.coupon;
-                    const discount = data.discount;
+                    let discount = data.discount;
+                    
+                    // Ensure discount doesn't exceed current total
+                    discount = Math.min(discount, currentTotal);
                     
                     document.getElementById('couponDiscountRow').style.display = 'flex';
                     document.getElementById('couponCodeDisplay').textContent = code;
                     document.getElementById('couponDiscount').textContent = `-₹${discount.toLocaleString('en-IN')}`;
                     
-                    const newTotal = currentTotal - discount;
+                    const newTotal = Math.max(0, currentTotal - discount);
                     document.getElementById('total').textContent = `₹${newTotal.toLocaleString('en-IN')}`;
                     
                     document.getElementById('applyCouponBtn').style.display = 'none';

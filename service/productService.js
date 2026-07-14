@@ -39,7 +39,8 @@ export async function getProducts(filters = {}) {
     if (search) {
         query.$or = [
             { name: { $regex: search, $options: 'i' } },
-            { brand: { $regex: search, $options: 'i' } }
+            { brand: { $regex: search, $options: 'i' } },
+            { category: { $regex: search, $options: 'i' } }
         ];
     }
     if (status) {

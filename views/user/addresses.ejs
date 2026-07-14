@@ -641,20 +641,23 @@
         <h2 class="modal-title">Add New Address</h2>
       </div>
 
-      <form id="addAddressForm" onsubmit="submitAddress(event)">
+      <form id="addAddressForm" novalidate onsubmit="submitAddress(event)">
         <div class="form-group">
           <label for="fullName">Full Name <span class="required">*</span></label>
-          <input type="text" id="fullName" name="fullName" required>
+          <input type="text" id="fullName" name="fullName">
+          <div class="error-msg" id="add-fullName-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
         </div>
 
         <div class="form-group">
           <label for="phoneNumber">Phone Number <span class="required">*</span> (10 digits)</label>
-          <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="Enter 10-digit phone number" maxlength="10" required>
+          <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="Enter 10-digit phone number" maxlength="10">
+          <div class="error-msg" id="add-phoneNumber-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
         </div>
 
         <div class="form-group">
           <label for="addressLine1">Address Line 1 <span class="required">*</span></label>
-          <input type="text" id="addressLine1" name="addressLine1" required>
+          <input type="text" id="addressLine1" name="addressLine1">
+          <div class="error-msg" id="add-addressLine1-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
         </div>
 
         <div class="form-group">
@@ -665,17 +668,20 @@
         <div class="form-row">
           <div class="form-group">
             <label for="city">City <span class="required">*</span></label>
-            <input type="text" id="city" name="city" required>
+            <input type="text" id="city" name="city">
+            <div class="error-msg" id="add-city-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
           </div>
           <div class="form-group">
             <label for="state">State <span class="required">*</span></label>
-            <input type="text" id="state" name="state" required>
+            <input type="text" id="state" name="state">
+            <div class="error-msg" id="add-state-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
           </div>
         </div>
 
         <div class="form-group">
           <label for="pincode">Pincode <span class="required">*</span> (6 digits)</label>
-          <input type="text" id="pincode" name="pincode" placeholder="Enter 6-digit pincode" maxlength="6" required>
+          <input type="text" id="pincode" name="pincode" placeholder="Enter 6-digit pincode" maxlength="6">
+          <div class="error-msg" id="add-pincode-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
         </div>
 
         <div class="form-group">
@@ -704,22 +710,25 @@
         <h2 class="modal-title">Edit Address</h2>
       </div>
 
-      <form id="editAddressForm" onsubmit="submitEditAddress(event)">
+      <form id="editAddressForm" novalidate onsubmit="submitEditAddress(event)">
         <input type="hidden" id="editAddressId" name="addressId">
         
         <div class="form-group">
           <label for="editFullName">Full Name <span class="required">*</span></label>
-          <input type="text" id="editFullName" name="fullName" required>
+          <input type="text" id="editFullName" name="fullName">
+          <div class="error-msg" id="edit-fullName-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
         </div>
 
         <div class="form-group">
           <label for="editPhoneNumber">Phone Number <span class="required">*</span> (10 digits)</label>
-          <input type="tel" id="editPhoneNumber" name="phoneNumber" placeholder="Enter 10-digit phone number" maxlength="10" required>
+          <input type="tel" id="editPhoneNumber" name="phoneNumber" placeholder="Enter 10-digit phone number" maxlength="10">
+          <div class="error-msg" id="edit-phoneNumber-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
         </div>
 
         <div class="form-group">
           <label for="editAddressLine1">Address Line 1 <span class="required">*</span></label>
-          <input type="text" id="editAddressLine1" name="addressLine1" required>
+          <input type="text" id="editAddressLine1" name="addressLine1">
+          <div class="error-msg" id="edit-addressLine1-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
         </div>
 
         <div class="form-group">
@@ -730,17 +739,20 @@
         <div class="form-row">
           <div class="form-group">
             <label for="editCity">City <span class="required">*</span></label>
-            <input type="text" id="editCity" name="city" required>
+            <input type="text" id="editCity" name="city">
+            <div class="error-msg" id="edit-city-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
           </div>
           <div class="form-group">
             <label for="editState">State <span class="required">*</span></label>
-            <input type="text" id="editState" name="state" required>
+            <input type="text" id="editState" name="state">
+            <div class="error-msg" id="edit-state-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
           </div>
         </div>
 
         <div class="form-group">
           <label for="editPincode">Pincode <span class="required">*</span> (6 digits)</label>
-          <input type="text" id="editPincode" name="pincode" placeholder="Enter 6-digit pincode" maxlength="6" required>
+          <input type="text" id="editPincode" name="pincode" placeholder="Enter 6-digit pincode" maxlength="6">
+          <div class="error-msg" id="edit-pincode-error" style="color: #dc3545; font-size: 12px; margin-top: 4px;"></div>
         </div>
 
         <div class="form-group">
@@ -771,6 +783,7 @@
       document.getElementById('addAddressModal').classList.remove('show');
       document.body.style.overflow = 'auto';
       document.getElementById('addAddressForm').reset();
+      if(typeof clearErrors === 'function') clearErrors('add');
     }
 
     // Edit Address Modal functions
@@ -793,6 +806,7 @@
       document.getElementById('editAddressModal').classList.remove('show');
       document.body.style.overflow = 'auto';
       document.getElementById('editAddressForm').reset();
+      if(typeof clearErrors === 'function') clearErrors('edit');
     }
 
     // Close modals when clicking outside
@@ -826,6 +840,70 @@
       this.value = this.value.replace(/[^0-9]/g, '');
     });
 
+    function clearErrors(prefix) {
+      document.querySelectorAll(`[id^="${prefix}-"][id$="-error"]`).forEach(el => el.textContent = '');
+    }
+
+    function displayErrors(prefix, errors) {
+      let hasError = false;
+      for (const [field, msg] of Object.entries(errors)) {
+        if (msg) {
+          const el = document.getElementById(`${prefix}-${field}-error`);
+          if (el) el.textContent = msg;
+          hasError = true;
+        }
+      }
+      return hasError;
+    }
+
+    function validateAddressFields(data) {
+      const errors = {};
+      
+      if (!data.fullName || data.fullName.trim().length === 0) {
+        errors.fullName = 'Full name is required';
+      } else if (data.fullName.trim().length < 3 || data.fullName.trim().length > 50) {
+        errors.fullName = 'Full name must be between 3 and 50 characters';
+      } else if (!/^[a-zA-Z\s]+$/.test(data.fullName.trim())) {
+        errors.fullName = 'Full name can only contain alphabets and spaces';
+      }
+
+      if (!data.phoneNumber || data.phoneNumber.trim().length === 0) {
+        errors.phoneNumber = 'Phone number is required';
+      } else if (!/^\d{10}$/.test(data.phoneNumber) || /^0{10}$/.test(data.phoneNumber)) {
+        errors.phoneNumber = 'Please enter a valid 10-digit phone number';
+      }
+
+      if (!data.addressLine1 || data.addressLine1.trim().length === 0) {
+        errors.addressLine1 = 'Address line 1 is required';
+      } else if (data.addressLine1.trim().length < 5) {
+        errors.addressLine1 = 'Address line 1 must be at least 5 characters';
+      }
+
+      if (!data.city || data.city.trim().length === 0) {
+        errors.city = 'City is required';
+      } else if (data.city.trim().length < 2) {
+        errors.city = 'City must be at least 2 characters';
+      } else if (!/^[a-zA-Z\s]+$/.test(data.city.trim())) {
+        errors.city = 'City can only contain alphabets and spaces';
+      }
+
+      if (!data.state || data.state.trim().length === 0) {
+        errors.state = 'State is required';
+      } else if (data.state.trim().length < 2) {
+        errors.state = 'State must be at least 2 characters';
+      } else if (!/^[a-zA-Z\s]+$/.test(data.state.trim())) {
+        errors.state = 'State can only contain alphabets and spaces';
+      }
+
+      if (!data.pincode || data.pincode.trim().length === 0) {
+        errors.pincode = 'Pincode is required';
+      } else if (!/^\d{6}$/.test(data.pincode) || /^0{6}$/.test(data.pincode)) {
+        errors.pincode = 'Please enter a valid 6-digit pincode';
+      }
+
+      return errors;
+    }
+
     // Submit address form
     async function submitAddress(event) {
       event.preventDefault();
@@ -833,23 +911,9 @@
       const formData = new FormData(event.target);
       const addressData = Object.fromEntries(formData);
       
-      // Validate phone number
-      if (addressData.phoneNumber.length !== 10) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid Phone Number',
-          text: 'Please enter a valid 10-digit phone number'
-        });
-        return;
-      }
-      
-      // Validate pincode
-      if (addressData.pincode.length !== 6) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid Pincode',
-          text: 'Please enter a valid 6-digit pincode'
-        });
+      clearErrors('add');
+      const errors = validateAddressFields(addressData);
+      if (displayErrors('add', errors)) {
         return;
       }
       
@@ -911,23 +975,9 @@
       // Remove addressId from the data object
       delete addressData.addressId;
       
-      // Validate phone number
-      if (addressData.phoneNumber.length !== 10) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid Phone Number',
-          text: 'Please enter a valid 10-digit phone number'
-        });
-        return;
-      }
-      
-      // Validate pincode
-      if (addressData.pincode.length !== 6) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid Pincode',
-          text: 'Please enter a valid 6-digit pincode'
-        });
+      clearErrors('edit');
+      const errors = validateAddressFields(addressData);
+      if (displayErrors('edit', errors)) {
         return;
       }
       
