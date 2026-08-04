@@ -1,6 +1,7 @@
 import { HTTP_STATUS } from '../../helper/constants.js';
 import Coupon from '../../models/Coupon.js';
-
+import User from '../../models/User.js';
+import Order from '../../models/Order.js';
 // Show coupons page
 export const showCoupons = async (req, res) => {
     try {
@@ -15,7 +16,7 @@ export const showCoupons = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
-        
+        // const check= await Order.find({couponCode:code}).populate('userId','firstName')
         res.render('admin/coupons', {
             admin: req.session.user,
             currentPage: 'coupons',
@@ -60,7 +61,8 @@ export const createCoupon = async (req, res) => {
             validUntil,
             usageLimit,
             status,
-            description
+            description,
+            userId
         } = req.body;
         
         const existingCoupon = await Coupon.findOne({ 
@@ -100,7 +102,6 @@ export const createCoupon = async (req, res) => {
             });
         }
 
-        // Validate minPurchase vs discount amount
         if (discountType === 'fixed' && parseFloat(minPurchase) <= parseFloat(discountValue)) {
             return res.json({
                 success: false,
@@ -225,6 +226,7 @@ export const updateCoupon = async (req, res) => {
                 message: 'Minimum purchase amount must be greater than the maximum discount amount'
             });
         }
+
         
         coupon.code = code.toUpperCase();
         coupon.discountType = discountType;
@@ -266,7 +268,7 @@ export const toggleCouponStatus = async (req, res) => {
                 message: 'Coupon not found'
             });
         }
-        
+       
         coupon.status = coupon.status === 'active' ? 'inactive' : 'active';
         await coupon.save();
         
@@ -290,7 +292,7 @@ export const deleteCoupon = async (req, res) => {
         const { id } = req.params;
         
         const coupon = await Coupon.findByIdAndDelete(id);
-        
+       
         if (!coupon) {
             return res.json({
                 success: false,

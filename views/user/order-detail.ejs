@@ -331,6 +331,16 @@
             background: #f8f9ff;
         }
 
+        .btn-warning {
+            background: white;
+            color: #ff8c00;
+            border: 2px solid #ff8c00;
+        }
+
+        .btn-warning:hover {
+            background: #fff7e6;
+        }
+
         @media (max-width: 968px) {
             .detail-layout {
                 grid-template-columns: 1fr;
@@ -624,6 +634,12 @@
                     </div>
 
                     <div class="action-buttons">
+                        <% if (order.paymentStatus === 'Failed') { %>
+                            <a href="/checkout?orderId=<%= order._id %>" class="btn btn-warning">
+                                <i class="fas fa-redo"></i>
+                                Retry Payment
+                            </a>
+                        <% } %>
                         <% if (order.orderStatus === 'Pending' || order.orderStatus === 'Confirmed') { %>
                             <button class="btn btn-danger" onclick="cancelOrder('<%= order._id %>')">
                                 <i class="fas fa-times"></i>
@@ -882,6 +898,117 @@
                 } catch (error) {
                     Swal.fire('Error', 'Failed to submit return request', 'error');
                 }
+            }
+        }
+
+        // Retry Payment Function
+        async function retryPayment(orderId, totalAmount) {
+            Swal.fire({
+                title: 'Initializing Payment...',
+                text: 'Please wait',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                // Create Razorpay order
+                const response = await fetch('/api/payment/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: totalAmount })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    Swal.fire('Error', data.message || 'Failed to initialize payment', 'error');
+                    return;
+                }
+
+                // Configure Razorpay options
+                const options = {
+                    key: data.key,
+                    amount: data.order.amount,
+                    currency: 'INR',
+                    name: 'Horologue',
+                    description: 'Retry Order Payment',
+                    order_id: data.order.id,
+                    handler: async function(response) {
+                        try {
+                            // Verify payment
+                            const verifyResponse = await fetch('/api/payment/verify', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(response)
+                            });
+
+                            const verifyData = await verifyResponse.json();
+
+                            if (verifyData.success) {
+                                // Update the existing order's payment status
+                                const updateResponse = await fetch(`/api/orders/${orderId}/update-payment`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        razorpayOrderId: response.razorpay_order_id,
+                                        razorpayPaymentId: response.razorpay_payment_id,
+                                        razorpaySignature: response.razorpay_signature
+                                    })
+                                });
+
+                                const updateData = await updateResponse.json();
+
+                                if (updateData.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Payment Successful!',
+                                        text: 'Your order has been confirmed.',
+                                        confirmButtonText: 'View Order'
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire('Error', updateData.message || 'Failed to update order', 'error');
+                                }
+                            } else {
+                                Swal.fire('Error', 'Payment verification failed', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Payment verification error:', error);
+                            Swal.fire('Error', 'Payment verification failed', 'error');
+                        }
+                    },
+                    prefill: {
+                        name: '<%= user.firstName %> <%= user.lastName %>',
+                        email: '<%= user.email %>',
+                        contact: '<%= user.phone || "" %>'
+                    },
+                    theme: {
+                        color: '#667eea'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            Swal.fire('Payment Cancelled', 'Payment was cancelled by user', 'info');
+                        }
+                    }
+                };
+
+                Swal.close();
+                const rzp = new Razorpay(options);
+
+                rzp.on('payment.failed', function(response) {
+                    console.error('Payment failed:', response.error);
+                    Swal.fire('Payment Failed', response.error.description || 'Payment failed', 'error');
+                });
+
+                rzp.open();
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                Swal.close();
+                Swal.fire('Error', 'Failed to initialize payment', 'error');
             }
         }
 

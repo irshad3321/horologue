@@ -447,6 +447,58 @@
         let currentPage = 1;
         let totalPages = 1;
 
+        // Set date input constraints
+        function initializeDateConstraints() {
+            const today = new Date().toISOString().split('T')[0];
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            
+            // Set max date to today
+            startDateInput.max = today;
+            endDateInput.max = today;
+            
+            // Set default dates (last 30 days)
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            const defaultStartDate = thirtyDaysAgo.toISOString().split('T')[0];
+            
+            // Add event listeners for real-time validation
+            startDateInput.addEventListener('change', validateStartDate);
+            endDateInput.addEventListener('change', validateEndDate);
+        }
+        
+        function validateStartDate() {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+            
+            if (startDateInput.value && endDateInput.value) {
+                if (startDate > endDate) {
+                    startDateInput.style.borderColor = '#dc3545';
+                    Swal.fire('Warning', 'Start date must be before end date', 'warning');
+                } else {
+                    startDateInput.style.borderColor = '#e9ecef';
+                }
+            }
+        }
+        
+        function validateEndDate() {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+            
+            if (startDateInput.value && endDateInput.value) {
+                if (endDate < startDate) {
+                    endDateInput.style.borderColor = '#dc3545';
+                    Swal.fire('Warning', 'End date must be after start date', 'warning');
+                } else {
+                    endDateInput.style.borderColor = '#e9ecef';
+                }
+            }
+        }
+
         function toggleCustomDates() {
             const filterType = document.getElementById('filterType').value;
             const startDateGroup = document.getElementById('startDateGroup');
@@ -468,13 +520,47 @@
             
             // Validate custom date range
             if (filterType === 'custom') {
+                // Check if both dates are provided
                 if (!startDate || !endDate) {
                     Swal.fire('Error', 'Please select both start and end dates', 'error');
                     return;
                 }
                 
-                if (new Date(startDate) > new Date(endDate)) {
+                // Parse dates
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const today = new Date();
+                today.setHours(23, 59, 59, 999);
+                
+                // Validate start date is not in future
+                if (start > today) {
+                    Swal.fire('Error', 'Start date cannot be in the future', 'error');
+                    return;
+                }
+                
+                // Validate end date is not in future
+                if (end > today) {
+                    Swal.fire('Error', 'End date cannot be in the future', 'error');
+                    return;
+                }
+                
+                // Validate start date is before end date
+                if (start > end) {
                     Swal.fire('Error', 'Start date must be before end date', 'error');
+                    return;
+                }
+                
+                // Validate date range is not more than 365 days
+                const timeDiff = Math.abs(end - start);
+                const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                if (daysDiff > 365) {
+                    Swal.fire('Error', 'Date range cannot exceed 365 days', 'error');
+                    return;
+                }
+                
+                // Validate dates are valid date objects
+                if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                    Swal.fire('Error', 'Invalid date format', 'error');
                     return;
                 }
             }
@@ -523,9 +609,9 @@
 
         function updateSummary(summary) {
             document.getElementById('totalSalesCount').textContent = summary.totalSalesCount.toLocaleString('en-IN');
-            document.getElementById('totalOrderAmount').textContent = '₹' + summary.totalOrderAmount.toLocaleString('en-IN');
-            document.getElementById('totalDiscount').textContent = '₹' + summary.totalDiscount.toLocaleString('en-IN');
-            document.getElementById('totalCouponDeduction').textContent = '₹' + summary.totalCouponDeduction.toLocaleString('en-IN');
+            document.getElementById('totalOrderAmount').textContent = '₹' + summary.totalOrderAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('totalDiscount').textContent = '₹' + summary.totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('totalCouponDeduction').textContent = '₹' + summary.totalCouponDeduction.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         function updateTable(orders) {
@@ -546,10 +632,10 @@
                         <td>${date}</td>
                         <td>${order.customerName}</td>
                         <td>${order.itemsCount}</td>
-                        <td>₹${order.subtotal.toLocaleString('en-IN')}</td>
-                        <td>₹${order.discount.toLocaleString('en-IN')}</td>
-                        <td>₹${order.couponDiscount.toLocaleString('en-IN')}</td>
-                        <td><strong>₹${order.totalAmount.toLocaleString('en-IN')}</strong></td>
+                        <td>₹${order.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td>₹${order.discount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td>₹${order.couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td><strong>₹${order.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></td>
                         <td>${order.paymentMethod}</td>
                         <td><span class="status-badge ${statusClass}">${order.orderStatus}</span></td>
                     </tr>
@@ -649,6 +735,7 @@
 
         // Generate monthly report on page load
         document.addEventListener('DOMContentLoaded', function() {
+            initializeDateConstraints();
             generateReport();
         });
     </script>

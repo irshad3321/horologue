@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import { validateEmail, validatePassword, validateName, validatePhone } from "../helper/validators.js";
+import Order from "../models/Order.js";
 // import User from '../models/User.js';
 export { validatePassword };
 

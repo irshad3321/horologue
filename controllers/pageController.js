@@ -144,14 +144,16 @@ export const showAddresses = async (req, res) => {
         };
     }
     
-    // Get user addresses
-    const addresses = await getUserAddresses(req.session.userId);
+    // Get user addresses with pagination
+    const page = parseInt(req.query.page) || 1;
+    const result = await getUserAddresses(req.session.userId, page, 5);
     const cartCount = await getCartCount(req.session.userId);
     const wishlistCount = await getWishlistCount(req.session.userId);
     
     res.render('user/addresses', {
         user: req.session.user,
-        addresses: addresses,
+        addresses: result.addresses,
+        pagination: result.pagination,
         currentPage: 'addresses',
         cartCount: cartCount,
         wishlistCount: wishlistCount

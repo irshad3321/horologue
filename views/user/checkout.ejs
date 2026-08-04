@@ -456,10 +456,19 @@
                     </h2>
                     
                     <div class="address-list">
+                        <input type="hidden" id="orderId" value="<%= typeof orderId !== 'undefined' ? orderId : '' %>">
                         <% if (addresses && addresses.length > 0) { %>
                             <% addresses.forEach((address, index) => { %>
-                                <label class="address-card <%= address.isDefault ? 'selected' : '' %>" style="position: relative;">
-                                    <input type="radio" name="address" value="<%= address._id %>" <%= address.isDefault ? 'checked' : '' %>>
+                                <% 
+                                let isSelected = false;
+                                if (typeof order !== 'undefined' && order) {
+                                    isSelected = address._id.toString() === order.addressId.toString();
+                                } else {
+                                    isSelected = address.isDefault;
+                                }
+                                %>
+                                <label class="address-card <%= isSelected ? 'selected' : '' %>" style="position: relative;">
+                                    <input type="radio" name="address" value="<%= address._id %>" <%= isSelected ? 'checked' : '' %>>
                                     <button onclick="event.preventDefault(); event.stopPropagation(); openEditAddressModal('<%= address._id %>', '<%= address.fullName %>', '<%= address.phoneNumber %>', '<%= address.addressLine1 %>', '<%= address.addressLine2 || '' %>', '<%= address.city %>', '<%= address.state %>', '<%= address.pincode %>', '<%= address.addressType %>', <%= address.isDefault %>)" style="position: absolute; top: 16px; right: 50px; background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">
                                         <i class="fas fa-edit"></i> Edit
                                     </button>
@@ -518,8 +527,8 @@
                                 <p>Color: <%= variant.color %> | Qty: <%= item.quantity %></p>
                             </div>
                             <div class="item-price">
-                                <div class="price">₹<%= itemTotal.toLocaleString('en-IN') %></div>
-                                <div class="qty">₹<%= itemPrice.toLocaleString('en-IN') %> × <%= item.quantity %></div>
+                                <div class="price">₹<%= itemTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 }) %></div>
+                                <div class="qty">₹<%= itemPrice.toLocaleString('en-IN', { maximumFractionDigits: 2 }) %> × <%= item.quantity %></div>
                             </div>
                         </div>
                     <% }); %>
@@ -531,8 +540,10 @@
                 <h3 class="summary-title">Order Summary</h3>
                 
                 <!-- Coupon Section -->
+                <% if (!(typeof orderId !== 'undefined' && orderId)) { %>
                 <div class="coupon-section">
                     <h4>Have a Coupon?</h4>
+
                     
                     <!-- Available Coupons Dropdown -->
                     <div style="margin-bottom: 12px;">
@@ -543,25 +554,27 @@
                     
                     <div class="coupon-input-group">
                         <input type="text" id="couponCode" placeholder="Or enter coupon code manually" />
-                        <button onclick="applyCoupon()" id="applyCouponBtn" class="btn-apply">Apply</button>
+                        
+                        <button onclick="applyCoupon()" id="applyCouponBtn" class="btn-apply"  >Apply </button>
                         <button onclick="removeCoupon()" id="removeCouponBtn" class="btn-remove" style="display: none;">Remove</button>
                     </div>
                     <div id="couponMessage" class="coupon-message"></div>
                 </div>
+                <% } %>
                 
                 <div class="summary-row">
                     <span class="summary-label">Subtotal</span>
-                    <span class="summary-value" id="subtotal">₹<%= subtotal.toLocaleString('en-IN') %></span>
+                    <span class="summary-value" id="subtotal">₹<%= subtotal.toLocaleString('en-IN', { maximumFractionDigits: 2 }) %></span>
                 </div>
                 
                 <div class="summary-row">
                     <span class="summary-label">Product Discount</span>
-                    <span class="summary-value" style="color: #28a745;">-₹<%= discount.toLocaleString('en-IN') %></span>
+                    <span class="summary-value" style="color: #28a745;">-₹<%= discount.toLocaleString('en-IN', { maximumFractionDigits: 2 }) %></span>
                 </div>
                 
-                <div class="summary-row" id="couponDiscountRow" style="display: none;">
-                    <span class="summary-label">Coupon Discount (<span id="couponCodeDisplay"></span>)</span>
-                    <span class="summary-value" id="couponDiscount" style="color: #28a745;">-₹0</span>
+                <div class="summary-row" id="couponDiscountRow" style="<%= (typeof order !== 'undefined' && order && order.couponDiscount > 0) ? 'display: flex;' : 'display: none;' %>">
+                    <span class="summary-label">Coupon Discount (<span id="couponCodeDisplay"><%= (typeof order !== 'undefined' && order) ? order.couponCode : '' %></span>)</span>
+                    <span class="summary-value" id="couponDiscount" style="color: #28a745;">-₹<%= (typeof order !== 'undefined' && order) ? order.couponDiscount.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : '0' %></span>
                 </div>
                 
                 <div class="summary-row">
@@ -573,7 +586,7 @@
                 
                 <div class="summary-total">
                     <span>Total</span>
-                    <span id="total">₹<%= total.toLocaleString('en-IN') %></span>
+                    <span id="total">₹<%= total.toLocaleString('en-IN', { maximumFractionDigits: 2 }) %></span>
                 </div>
                 
                 <!-- Payment Methods -->
@@ -606,9 +619,9 @@
                     </label>
                 </div>
                 
-                <button class="place-order-btn" onclick="placeOrder()" <%= addresses.length === 0 ? 'disabled' : '' %>>
+                <button class="place-order-btn" onclick="placeOrder()" <%= (typeof orderId !== 'undefined' && orderId) ? '' : (addresses.length === 0 ? 'disabled' : '') %>>
                     <i class="fas fa-check-circle"></i>
-                    Place Order
+                    <%= (typeof orderId !== 'undefined' && orderId) ? 'Complete Payment' : 'Place Order' %>
                 </button>
             </div>
         </div>
@@ -759,15 +772,20 @@
         let appliedCoupon = null;
         const originalSubtotal = <%= subtotal %>;
         const productDiscount = <%= discount %>;
+        // IS_RETRY_MODE: true when retrying payment for an existing failed order
+        const IS_RETRY_MODE = '<%= typeof orderId !== "undefined" && orderId ? orderId : "" %>' !== '';
+        const RETRY_ORDER_ID = '<%= typeof orderId !== "undefined" && orderId ? orderId : "" %>';
         
-        // Load available coupons
+        // Load available coupons (only in normal checkout mode)
         async function loadAvailableCoupons() {
+            if (IS_RETRY_MODE) return; // skip in retry mode - coupon section is hidden
             try {
                 const response = await fetch('/api/coupons/available');
                 const data = await response.json();
                 
                 if (data.success && data.coupons.length > 0) {
                     const dropdown = document.getElementById('couponDropdown');
+                    if (!dropdown) return;
                     
                     data.coupons.forEach(coupon => {
                         const discountText = coupon.discountType === 'percentage' 
@@ -776,7 +794,7 @@
                         
                         const option = document.createElement('option');
                         option.value = coupon.code;
-                        option.textContent = `${coupon.code} - ${discountText} (Min: ₹${coupon.minPurchase.toLocaleString('en-IN')})`;
+                        option.textContent = `${coupon.code} - ${discountText} (Min: ₹${coupon.minPurchase.toLocaleString('en-IN', { maximumFractionDigits: 2 })})`;
                         dropdown.appendChild(option);
                     });
                 }
@@ -787,7 +805,10 @@
         
         function selectCouponFromDropdown() {
             const dropdown = document.getElementById('couponDropdown');
+            if (!dropdown) return;
             const selectedCode = dropdown.value;
+
+            
             
             if (selectedCode) {
                 document.getElementById('couponCode').value = selectedCode;
@@ -795,7 +816,7 @@
             }
         }
         
-        // Load coupons on page load
+        // Load coupons on page load (skipped in retry mode)
         loadAvailableCoupons();
         
         // Check COD availability on page load
@@ -811,6 +832,7 @@
 
         // Apply Coupon
         async function applyCoupon() {
+    
             const code = document.getElementById('couponCode').value.trim();
             const currentTotal = parseFloat(document.getElementById('total').textContent.replace('₹', '').replace(/,/g, ''));
             
@@ -842,10 +864,10 @@
                     
                     document.getElementById('couponDiscountRow').style.display = 'flex';
                     document.getElementById('couponCodeDisplay').textContent = code;
-                    document.getElementById('couponDiscount').textContent = `-₹${discount.toLocaleString('en-IN')}`;
+                    document.getElementById('couponDiscount').textContent = `-₹${discount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
                     
                     const newTotal = Math.max(0, currentTotal - discount);
-                    document.getElementById('total').textContent = `₹${newTotal.toLocaleString('en-IN')}`;
+                    document.getElementById('total').textContent = `₹${newTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
                     
                     document.getElementById('applyCouponBtn').style.display = 'none';
                     document.getElementById('removeCouponBtn').style.display = 'inline-block';
@@ -871,10 +893,10 @@
             appliedCoupon = null;
             
             document.getElementById('couponDiscountRow').style.display = 'none';
-            document.getElementById('couponDiscount').textContent = '-₹0';
+            document.getElementById('couponDiscount').textContent = '-₹0.00';
             
             const newTotal = currentTotal + couponDiscountValue;
-            document.getElementById('total').textContent = `₹${newTotal.toLocaleString('en-IN')}`;
+            document.getElementById('total').textContent = `₹${newTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
             
             document.getElementById('applyCouponBtn').style.display = 'inline-block';
             document.getElementById('removeCouponBtn').style.display = 'none';
@@ -913,6 +935,7 @@
         // Show Coupon Message
         function showCouponMessage(message, type) {
             const messageDiv = document.getElementById('couponMessage');
+            if (!messageDiv) return; // coupon section hidden in retry mode
             messageDiv.textContent = message;
             messageDiv.className = `coupon-message ${type}`;
             messageDiv.style.display = 'block';
@@ -924,6 +947,9 @@
 
         // Razorpay Payment
         async function initiateRazorpayPayment(orderData) {
+            let isFailureRecorded = false;
+            // Use module-level IS_RETRY_MODE and RETRY_ORDER_ID for reliability
+            const existingOrderId = RETRY_ORDER_ID;
             try {
                 const response = await fetch('/api/payment/create-order', {
                     method: 'POST',
@@ -935,7 +961,14 @@
                 
                 if (!data.success) {
                     Swal.close();
-                    window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=Failed to create payment order`;
+                    if (isFailureRecorded) return;
+                    isFailureRecorded = true;
+                    let orderId = existingOrderId;
+                    if (!orderId) {
+                        orderId = await recordPaymentFailure(orderData, null, 'Failed to create payment order');
+                    }
+                    const orderParam = orderId ? `&orderId=${orderId}` : '';
+                    window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=Failed to create payment order${orderParam}`;
                     return;
                 }
                 
@@ -944,7 +977,7 @@
                     amount: data.order.amount,
                     currency: 'INR',
                     name: 'Horologue',
-                    description: 'Order Payment',
+                    description: existingOrderId ? 'Retry Order Payment' : 'Order Payment',
                     order_id: data.order.id,
                     handler: async function(response) {
                         try {
@@ -957,18 +990,41 @@
                             const verifyData = await verifyResponse.json();
                             
                             if (verifyData.success) {
-                                orderData.paymentMethod = 'Online';
-                                orderData.razorpayOrderId = response.razorpay_order_id;
-                                orderData.razorpayPaymentId = response.razorpay_payment_id;
-                                orderData.razorpaySignature = response.razorpay_signature;
-                                
-                                placeOrderAfterPayment(orderData);
+                                if (existingOrderId) {
+                                    await updateExistingOrderPayment(existingOrderId, {
+                                        paymentMethod: 'Online',
+                                        razorpayOrderId: response.razorpay_order_id,
+                                        razorpayPaymentId: response.razorpay_payment_id,
+                                        razorpaySignature: response.razorpay_signature
+                                    });
+                                } else {
+                                    orderData.paymentMethod = 'Online';
+                                    orderData.razorpayOrderId = response.razorpay_order_id;
+                                    orderData.razorpayPaymentId = response.razorpay_payment_id;
+                                    orderData.razorpaySignature = response.razorpay_signature;
+                                    
+                                    placeOrderAfterPayment(orderData);
+                                }
                             } else {
-                                window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=Payment verification failed`;
+                                if (isFailureRecorded) return;
+                                isFailureRecorded = true;
+                                let orderId = existingOrderId;
+                                if (!orderId) {
+                                    orderId = await recordPaymentFailure(orderData, data.order.id, 'Payment verification failed');
+                                }
+                                const orderParam = orderId ? `&orderId=${orderId}` : '';
+                                window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=Payment verification failed${orderParam}`;
                             }
                         } catch (error) {
                             console.error('Payment verification error:', error);
-                            window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=Payment verification error`;
+                            if (isFailureRecorded) return;
+                            isFailureRecorded = true;
+                            let orderId = existingOrderId;
+                            if (!orderId) {
+                                orderId = await recordPaymentFailure(orderData, data.order.id, 'Payment verification error');
+                            }
+                            const orderParam = orderId ? `&orderId=${orderId}` : '';
+                            window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=Payment verification error${orderParam}`;
                         }
                     },
                     prefill: {
@@ -980,9 +1036,16 @@
                         color: '#667eea'
                     },
                     modal: {
-                        ondismiss: function() {
+                        ondismiss: async function() {
                             Swal.close();
-                            window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=Payment cancelled by user`;
+                            if (isFailureRecorded) return;
+                            isFailureRecorded = true;
+                            let orderId = existingOrderId;
+                            if (!orderId) {
+                                orderId = await recordPaymentFailure(orderData, data.order.id, 'Payment cancelled by user');
+                            }
+                            const orderParam = orderId ? `&orderId=${orderId}` : '';
+                            window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=Payment cancelled by user${orderParam}`;
                         }
                     }
                 };
@@ -990,9 +1053,17 @@
                 Swal.close();
                 const rzp = new Razorpay(options);
                 
-                rzp.on('payment.failed', function(response) {
+                rzp.on('payment.failed', async function(response) {
                     console.error('Payment failed:', response.error);
-                    window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=${encodeURIComponent(response.error.description || 'Payment failed')}`;
+                    if (isFailureRecorded) return;
+                    isFailureRecorded = true;
+                    const reason = response.error.description || 'Payment failed';
+                    let orderId = existingOrderId;
+                    if (!orderId) {
+                        orderId = await recordPaymentFailure(orderData, data.order.id, reason);
+                    }
+                    const orderParam = orderId ? `&orderId=${orderId}` : '';
+                    window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=${encodeURIComponent(reason)}${orderParam}`;
                 });
                 
                 rzp.open();
@@ -1000,7 +1071,37 @@
             } catch (error) {
                 console.error('Payment error:', error);
                 Swal.close();
-                window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=Failed to initialize payment`;
+                if (isFailureRecorded) return;
+                isFailureRecorded = true;
+                let orderId = existingOrderId;
+                if (!orderId) {
+                    orderId = await recordPaymentFailure(orderData, null, 'Failed to initialize payment');
+                }
+                const orderParam = orderId ? `&orderId=${orderId}` : '';
+                window.location.href = `/payment-failure?amount=${orderData.totalAmount}&reason=Failed to initialize payment${orderParam}`;
+            }
+        }
+
+        // Record payment failure
+        async function recordPaymentFailure(orderData, razorpayOrderId, reason) {
+            try {
+                const response = await fetch('/api/payment/failure', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        addressId: orderData.addressId,
+                        couponCode: orderData.couponCode,
+                        couponDiscount: orderData.couponDiscount,
+                        razorpayOrderId: razorpayOrderId,
+                        amount: orderData.totalAmount,
+                        reason: reason
+                    })
+                });
+                const data = await response.json();
+                return data.success ? data.orderId : null;
+            } catch (error) {
+                console.error('Failed to record payment failure:', error);
+                return null;
             }
         }
 
@@ -1034,14 +1135,50 @@
             }
         }
 
+        // Update payment for existing order
+        async function updateExistingOrderPayment(orderId, paymentDetails) {
+            try {
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Please wait while we confirm your payment',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                const response = await fetch(`/api/orders/${orderId}/update-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(paymentDetails)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = '/order-success?orderId=' + orderId;
+                } else {
+                    Swal.fire('Error', data.message || 'Failed to update payment status', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to update payment status:', error);
+                Swal.fire('Error', 'Failed to update payment status', 'error');
+            }
+        }
+
         // Main Place Order Function
+        let isPlacingOrder = false;
         async function placeOrder() {
+            if (isPlacingOrder) return;
+            
             const selectedAddress = document.querySelector('input[name="address"]:checked');
             
             if (!selectedAddress) {
                 toastManager.error('Please select a shipping address');
                 return;
             }
+            
+            isPlacingOrder = true;
             
             const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             const totalAmount = parseFloat(document.getElementById('total').textContent.replace('₹', '').replace(/,/g, ''));
@@ -1060,10 +1197,12 @@
                             icon: 'error',
                             confirmButtonText: 'OK'
                         });
+                        isPlacingOrder = false;
                         return;
                     }
                 } catch (error) {
                     Swal.fire('Error', 'Failed to check wallet balance', 'error');
+                    isPlacingOrder = false;
                     return;
                 }
             }
@@ -1088,36 +1227,40 @@
                 couponDiscount: couponDiscountValue
             };
             
-            // Validate stock before payment
-            Swal.fire({
-                title: 'Validating Order...',
-                text: 'Checking product availability',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-            
-            try {
-                const stockCheckResponse = await fetch('/api/orders/validate-stock', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+            // Validate stock before payment (skip in retry mode - order already exists)
+            if (!IS_RETRY_MODE) {
+                Swal.fire({
+                    title: 'Validating Order...',
+                    text: 'Checking product availability',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
                 });
                 
-                const stockCheckData = await stockCheckResponse.json();
-                
-                if (!stockCheckData.success) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Stock Unavailable',
-                        text: stockCheckData.message || 'Some items in your cart are out of stock',
-                        confirmButtonText: 'OK'
+                try {
+                    const stockCheckResponse = await fetch('/api/orders/validate-stock', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
                     });
+                    
+                    const stockCheckData = await stockCheckResponse.json();
+                    
+                    if (!stockCheckData.success) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Stock Unavailable',
+                            text: stockCheckData.message || 'Some items in your cart are out of stock',
+                            confirmButtonText: 'OK'
+                        });
+                        isPlacingOrder = false;
+                        return;
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'Failed to validate stock availability', 'error');
+                    isPlacingOrder = false;
                     return;
                 }
-            } catch (error) {
-                Swal.fire('Error', 'Failed to validate stock availability', 'error');
-                return;
             }
             
             if (paymentMethod === 'razorpay') {
@@ -1140,7 +1283,13 @@
                     cancelButtonText: 'Cancel'
                 }).then(async (result) => {
                     if (result.isConfirmed) {
-                        placeOrderAfterPayment(orderData);
+                        if (IS_RETRY_MODE) {
+                            await updateExistingOrderPayment(RETRY_ORDER_ID, { paymentMethod: mappedPaymentMethod, addressId: selectedAddress.value });
+                        } else {
+                            placeOrderAfterPayment(orderData);
+                        }
+                    } else {
+                        isPlacingOrder = false;
                     }
                 });
             }

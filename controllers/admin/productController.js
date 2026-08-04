@@ -3,6 +3,7 @@ import * as productService from '../../service/productService.js';
 import * as categoryService from '../../service/categoryService.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../../config/cloudinary.js';
 import Product from '../../models/Product.js';
+import Order from '../../models/Order.js';
 export async function getProductsPage(req, res) {
     try {
         const { search, status, category, page = 1, sort = 'newest' } = req.query
@@ -17,6 +18,7 @@ export async function getProductsPage(req, res) {
         }
         const result = await productService.getProducts(filters)
         const categories = await categoryService.getCategories({ limit: 100 })
+        
         res.render('admin/products', {
             admin: req.session.user,
             currentPage: 'products',
@@ -105,7 +107,7 @@ export async function getProductById(req, res) {
 
 export async function createProduct(req, res) {
     try {
-        const { name, brand, category, description, offer, status, premium, variants } = req.body;
+        const { name, brand, category, description, offer, status, premium, variants} = req.body;
         if (!name || !brand || !category) {
             return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
                 success: false, 
@@ -138,7 +140,8 @@ export async function createProduct(req, res) {
             offer: offer || 0,
             status: status || 'active',
             premium: premium || 'No',
-            variants: parsedVariants
+            variants: parsedVariants,
+            onee:onee?.trim()||''
         })
         res.status(HTTP_STATUS.CREATED).json({ 
             success: true, 
@@ -225,6 +228,7 @@ export async function deleteProduct(req, res) {
                 message: 'Product not found' 
             });
         }
+        
         await productService.deleteProduct(productId);
         
         res.json({ 

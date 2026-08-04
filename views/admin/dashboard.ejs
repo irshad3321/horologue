@@ -155,6 +155,11 @@
             border-color: #667eea;
         }
 
+        .date-input.error {
+            border-color: #dc3545;
+            background-color: #fff5f5;
+        }
+
         .btn-download {
             padding: 8px 16px;
             background: #28a745;
@@ -371,9 +376,10 @@
                     <button class="filter-btn" onclick="filterChart('yearly')">Yearly</button>
                     <button class="filter-btn" onclick="showCustomDateFilter()">Custom</button>
                     <div id="customDateInputs" style="display: none; gap: 0.5rem;">
-                        <input type="date" id="customStartDate" class="date-input" placeholder="Start Date">
-                        <input type="date" id="customEndDate" class="date-input" placeholder="End Date">
+                        <input type="date" id="customStartDate" class="date-input" placeholder="Start Date" max="<%= new Date().toISOString().split('T')[0] %>">
+                        <input type="date" id="customEndDate" class="date-input" placeholder="End Date" max="<%= new Date().toISOString().split('T')[0] %>">
                         <button class="filter-btn" onclick="applyCustomFilter()">Apply</button>
+                        <div id="customDateError" style="display: none; color: #dc3545; font-size: 12px; padding: 4px 8px; background: #f8d7da; border-radius: 4px; margin-top: 4px;"></div>
                     </div>
                     <button class="btn-download" onclick="downloadDashboardPDF()">
                         <i class="fas fa-download"></i> Download PDF
@@ -462,19 +468,69 @@
         }
 
         async function applyCustomFilter() {
-            const startDate = document.getElementById('customStartDate').value;
-            const endDate = document.getElementById('customEndDate').value;
+            const startDateInput = document.getElementById('customStartDate');
+            const endDateInput = document.getElementById('customEndDate');
+            const errorDiv = document.getElementById('customDateError');
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
             
+            // Clear previous errors
+            startDateInput.classList.remove('error');
+            endDateInput.classList.remove('error');
+            errorDiv.style.display = 'none';
+            
+            // Helper function to show error
+            function showError(message, highlightStart = false, highlightEnd = false) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                if (highlightStart) startDateInput.classList.add('error');
+                if (highlightEnd) endDateInput.classList.add('error');
+            }
+            
+            // Validation 1: Both dates required
             if (!startDate || !endDate) {
-                Swal.fire('Error', 'Please select both start and end dates', 'error');
+                showError('Both start and end dates are required', !startDate, !endDate);
                 return;
             }
             
-            if (new Date(startDate) > new Date(endDate)) {
-                Swal.fire('Error', 'Start date must be before end date', 'error');
+            // Parse dates
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Validation 2: Invalid date format
+            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                showError('Invalid date format', true, true);
                 return;
             }
             
+            // Validation 3: Start date cannot be in future
+            if (start > today) {
+                showError('Start date cannot be in the future', true, false);
+                return;
+            }
+            
+            // Validation 4: End date cannot be in future
+            if (end > today) {
+                showError('End date cannot be in the future', false, true);
+                return;
+            }
+            
+            // Validation 5: Start date must be before end date
+            if (start > end) {
+                showError('Start date must be before or equal to end date', true, true);
+                return;
+            }
+            
+            // Validation 6: Maximum date range (365 days)
+            const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            if (daysDiff > 365) {
+                showError('Date range cannot exceed 365 days', true, true);
+                return;
+            }
+            
+            // All validations passed
             customStartDate = startDate;
             customEndDate = endDate;
             currentFilter = 'custom';
@@ -732,6 +788,66 @@
                 loadTopProducts();
                 loadTopCategories();
                 loadTopBrands();
+                
+                // Add real-time validation for date inputs
+                const startDateInput = document.getElementById('customStartDate');
+                const endDateInput = document.getElementById('customEndDate');
+                
+                startDateInput.addEventListener('change', validateDates);
+                endDateInput.addEventListener('change', validateDates);
+                
+                function validateDates() {
+                    const errorDiv = document.getElementById('customDateError');
+                    const startDate = startDateInput.value;
+                    const endDate = endDateInput.value;
+                    
+                    // Clear previous errors
+                    startDateInput.classList.remove('error');
+                    endDateInput.classList.remove('error');
+                    errorDiv.style.display = 'none';
+                    
+                    if (!startDate && !endDate) return; // Don't validate if both empty
+                    
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    // Check for future dates
+                    if (startDate && start > today) {
+                        startDateInput.classList.add('error');
+                        errorDiv.textContent = 'Start date cannot be in the future';
+                        errorDiv.style.display = 'block';
+                        return;
+                    }
+                    
+                    if (endDate && end > today) {
+                        endDateInput.classList.add('error');
+                        errorDiv.textContent = 'End date cannot be in the future';
+                        errorDiv.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Check date order if both dates are set
+                    if (startDate && endDate && start > end) {
+                        startDateInput.classList.add('error');
+                        endDateInput.classList.add('error');
+                        errorDiv.textContent = 'Start date must be before end date';
+                        errorDiv.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Check date range if both dates are set
+                    if (startDate && endDate) {
+                        const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                        if (daysDiff > 365) {
+                            startDateInput.classList.add('error');
+                            endDateInput.classList.add('error');
+                            errorDiv.textContent = 'Date range cannot exceed 365 days';
+                            errorDiv.style.display = 'block';
+                        }
+                    }
+                }
             });
     </script>
 </body>

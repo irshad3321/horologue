@@ -1,5 +1,6 @@
 import Brand from '../models/Brand.js';
-
+import Order from '../models/Order.js';
+import Product from '../models/Product.js';
 // Get all brands with pagination and search
 export async function getAllBrands(page = 1, limit = 5, search = '', status = '') {
     const skip = (page - 1) * limit;
@@ -15,13 +16,14 @@ export async function getAllBrands(page = 1, limit = 5, search = '', status = ''
         ];
     }
     
+   
     const brands = await Brand.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
-    
+       
     const total = await Brand.countDocuments(query);
-    
+   
     return {
         brands,
         currentPage: page,
@@ -113,10 +115,11 @@ export async function deleteBrand(brandId) {
 
 export async function toggleBrandStatus(brandId) {
     const brand = await Brand.findOne({ _id: brandId, isDeleted: false });
-    
+   
     if (!brand) {
         throw new Error('Brand not found');
     }
+    
     
     brand.status = brand.status === 'active' ? 'inactive' : 'active';
     await brand.save();

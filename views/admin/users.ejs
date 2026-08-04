@@ -601,7 +601,7 @@
                                                     <%= user.firstName.charAt(0).toUpperCase() %><%= user.lastName.charAt(0).toUpperCase() %>
                                                 </div>
                                                 <div class="user-details">
-                                                    <h4><%= user.firstName %> <%= user.lastName %></h4>
+                                                    <h4><%= user.firstName %> <%= user.lastName %><%=user.count%></h4>
                                                 </div>
                                             </div>
                                         </td>
@@ -645,7 +645,7 @@
                 <% if (typeof totalUsers !== 'undefined' && totalUsers > 0) { %>
                     <div class="pagination-container">
                         <div class="pagination-info">
-                            Showing <%= startUser %> to <%= endUser %> of <%= totalUsers %> users
+                            Showing <%= startUser %> to <%= endUser %> of <%= totalUsers %> users  
                         </div>
                         
                         <% if (totalPages > 1) { %>

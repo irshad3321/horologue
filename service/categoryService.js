@@ -1,6 +1,9 @@
+import { query } from "express-validator";
 import Category from "../models/Category.js";
-
+import Product from "../models/Product.js";
+import Order from "../models/Order.js";
 export async function getCategories(filters={}){
+    
     const {search,status,page=1,limit=10,sort='desc'}=filters
 
     const query={isDeleted:false}
@@ -19,11 +22,12 @@ export async function getCategories(filters={}){
     const sortOrder = sort === 'asc' ? 1 : -1;
 
     const categories = await Category.find(query)
+        
         .sort({ createdAt: sortOrder })
         .skip(skip)
         .limit(parseInt(limit));
     const total = await Category.countDocuments(query);
-
+ 
     return {
         categories,
         total,
@@ -34,6 +38,7 @@ export async function getCategories(filters={}){
 
 export async function getCategoryById(categoryId) {
     return await Category.findOne({ _id: categoryId, isDeleted: false });
+
 }
 
 export async function createCategory(categoryData) {
@@ -42,9 +47,11 @@ export async function createCategory(categoryData) {
 }
 
 export async function updateCategory(categoryId, updateData) {
+   
     return await Category.findByIdAndUpdate(
         categoryId,
         updateData,
+
         { new: true, runValidators: true }
     );
 }

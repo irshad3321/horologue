@@ -1,20 +1,47 @@
 import Address from '../models/Address.js';
 
 // Get all addressdes for a user
-export const getUserAddresses = async (userId) => {
-    try {   
-        const addresses = await Address.find({ userId }).sort({ isDefault: -1, createdAt: -1 });
-        return addresses;
+export const getUserAddresses = async (userId, page = 1, limit = 5) => {
+    try {
+        const skip = (page - 1) * limit;
+        
+        const addresses = await Address.find({ userId })
+            .sort({ isDefault: -1, createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+        
+        const total = await Address.countDocuments({ userId });
+        
+        return {
+            addresses,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
+                total,
+                hasNextPage: page < Math.ceil(total / limit),
+                hasPrevPage: page > 1
+            }
+        };
     } catch (error) {
         console.error('Error fetching user addresses:', error);
-        return [];
+        return {
+            addresses: [],
+            pagination: {
+                currentPage: 1,
+                totalPages: 0,
+                total: 0,
+                hasNextPage: false,
+                hasPrevPage: false
+            }
+        };
     }
 };
 
 // Create new address
 export const createAddress = async (userId, addressData) => {
+
     try {
-        
+      
         const address = new Address({
             userId,
             ...addressData

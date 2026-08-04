@@ -1,11 +1,12 @@
 import Coupon from '../models/Coupon.js';
-
+import User from '../models/User.js'
 export const validateCoupon = async (code, orderAmount) => {
     try {
         const coupon = await Coupon.findOne({ 
             code: code.toUpperCase(),
             status: 'active'
         });
+        
         
         if (!coupon) {
             return { valid: false, message: 'Invalid coupon code' };
@@ -54,6 +55,7 @@ export const validateCoupon = async (code, orderAmount) => {
 
 export const applyCoupon = async (couponId) => {
     try {
+       
         await Coupon.findByIdAndUpdate(couponId, {
             $inc: { usedCount: 1 }
         });

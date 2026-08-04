@@ -43,6 +43,7 @@ const productSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+   
     offer: {
         type: Number,
         min: 0,

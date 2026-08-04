@@ -1,7 +1,7 @@
 import { HTTP_STATUS } from '../../helper/constants.js';
 import * as brandService from '../../service/brandService.js';
 import { findUserByEmail } from '../../service/userService.js';
-
+// import Product from '../../models/Product.js';
 // Show brands page
 export const showBrands = async (req, res) => {
     try {
@@ -9,7 +9,7 @@ export const showBrands = async (req, res) => {
         const search = req.query.search || '';
         const status = req.query.status || '';
         const result = await brandService.getAllBrands(page, 5, search, status);
-        
+       
         res.render('admin/brands', {
             admin: req.session.user,
             brands: result.brands,

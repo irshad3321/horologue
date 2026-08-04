@@ -1,6 +1,7 @@
 import { HTTP_STATUS } from '../../helper/constants.js';
 import Product from '../../models/Product.js';
 import * as categoryService from '../../service/categoryService.js'
+import Order from '../../models/Order.js';
 export async function getCategoriesPage(req, res) {
     try {
         const { search, status, page = 1 } = req.query;
@@ -14,6 +15,7 @@ export async function getCategoriesPage(req, res) {
         };
         
         const result = await categoryService.getCategories(filters);
+        
         res.render('admin/category', {
             admin: req.session.user,
             currentPage: 'category',
@@ -74,7 +76,7 @@ export async function updateCategory(req, res) {
     try {
         const { categoryId } = req.params;
         const { name, description, offer, status } = req.body;
-        
+      
         // Validation
         if (!name || name.trim() === '') {
             return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
@@ -89,7 +91,7 @@ export async function updateCategory(req, res) {
                 message: 'Category not found' 
             });
         }
-        
+      
         const cleanedName = name.trim().replace(/\s+/g, ' ');
         const exists = await categoryService.categoryNameExists(cleanedName, categoryId);
         if (exists) {
@@ -98,12 +100,15 @@ export async function updateCategory(req, res) {
                 message: 'Category name already exists' 
             });
         }
+        
+       
         const updatedCategory = await categoryService.updateCategory(categoryId, {
             name: cleanedName,
             description: description?.trim() || '',
             offer: offer || 0,
             status: status || 'active'
         });
+       
         
         res.json({ 
             success: true, 
@@ -146,6 +151,7 @@ export async function deleteCategory(req, res) {
 export async function toggleCategoryStatus(req, res) {
     try {
         const { categoryId } = req.params;
+       
         const category = await categoryService.toggleCategoryStatus(categoryId);
         if (!category) {
             return res.status(HTTP_STATUS.NOT_FOUND).json({ 

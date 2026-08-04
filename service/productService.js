@@ -3,6 +3,7 @@ import Category from '../models/Category.js';
 import Brand from '../models/Brand.js';
 import { deleteFromCloudinary } from '../config/cloudinary.js';
 
+
 async function getBrandStatus(brandName) {
     const brand = await Brand.findOne({ name: brandName, isDeleted: false });
     return brand ? brand.status : 'active'; 
@@ -55,12 +56,16 @@ export async function getProducts(filters = {}) {
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {
-        query['variants.price'] = {};
-        if (minPrice !== undefined) {
-            query['variants.price'].$gte = minPrice;
-        }
-        if (maxPrice !== undefined) {
-            query['variants.price'].$lte = maxPrice;
+        // Don't apply price filter in query for price sorting
+        // We'll filter after calculating min prices
+        if (sort !== 'price-asc' && sort !== 'price-desc') {
+            query['variants.price'] = {};
+            if (minPrice !== undefined) {
+                query['variants.price'].$gte = minPrice;
+            }
+            if (maxPrice !== undefined) {
+                query['variants.price'].$lte = maxPrice;
+            }
         }
     }
     
@@ -68,27 +73,109 @@ export async function getProducts(filters = {}) {
     
     // Sort options
     let sortOption = {};
+    let useCollation = false;
     if (sort === 'newest') {
         sortOption = { createdAt: -1 };
     } else if (sort === 'oldest') {
         sortOption = { createdAt: 1 };
     } else if (sort === 'name-asc') {
         sortOption = { name: 1 };
+        useCollation = true; // Case-insensitive sorting
     } else if (sort === 'name-desc') {
         sortOption = { name: -1 };
-    } else if (sort === 'price-asc') {
-        sortOption = { 'variants.price': 1 };
-    } else if (sort === 'price-desc') {
-        sortOption = { 'variants.price': -1 };
+        useCollation = true; // Case-insensitive sorting
+    } else if (sort === 'price-asc' || sort === 'price-desc') {
+        // For price sorting, we'll fetch all products first and sort in memory
+        // because MongoDB can't reliably sort by min/max of variant array
+        sortOption = null;
     } else {
         sortOption = { createdAt: -1 };
     }
     
-    const products = await Product.find(query)
-        .sort(sortOption)
-        .skip(skip)
-        .limit(parseInt(limit));
-        const productsWithBrandStatus = await Promise.all(
+    let products;
+    let total;
+    
+    if (sort === 'price-asc' || sort === 'price-desc') {
+        // Fetch all matching products (without limit for sorting)
+        let allProducts = await Product.find(query);
+        
+        // Filter out products with inactive/blocked brands
+        const productsWithBrands = await Promise.all(
+            allProducts.map(async (product) => {
+                const brandStatus = await getBrandStatus(product.brand);
+                return { product, brandStatus };
+            })
+        );
+        
+        // Keep only products with active brands
+        allProducts = productsWithBrands
+            .filter(item => item.brandStatus === 'active')
+            .map(item => item.product);
+        
+        // Calculate min price for each product and sort
+        let productsWithMinPrice = allProducts.map(product => {
+            const productMinPrice = Math.min(...product.variants.map(v => v.price));
+            // Apply offer discount to get final price
+            let finalPrice = productMinPrice;
+            if (product.offer > 0) {
+                finalPrice = productMinPrice - (productMinPrice * product.offer / 100);
+            }
+            return { product, productMinPrice: finalPrice };
+        });
+        
+        // Apply price range filter based on min price
+        if (minPrice !== undefined || maxPrice !== undefined) {
+            productsWithMinPrice = productsWithMinPrice.filter(item => {
+                let matches = true;
+                if (minPrice !== undefined && item.productMinPrice < minPrice) {
+                    matches = false;
+                }
+                if (maxPrice !== undefined && item.productMinPrice > maxPrice) {
+                    matches = false;
+                }
+                return matches;
+            });
+        }
+        
+        // Sort by min price
+        productsWithMinPrice.sort((a, b) => {
+            return sort === 'price-asc' ? a.productMinPrice - b.productMinPrice : b.productMinPrice - a.productMinPrice;
+        });
+        
+        // Apply pagination after sorting
+        total = productsWithMinPrice.length;
+        const paginatedProductsWithPrice = productsWithMinPrice.slice(skip, skip + limit);
+        
+        // Add brand status back to paginated products
+        products = paginatedProductsWithPrice.map(item => ({
+            ...item.product.toObject(),
+            brandStatus: 'active'
+        }));
+        
+        // Return early to avoid duplicate brand status check
+        return {
+            products: products,
+            total: total,
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit)
+        };
+    } else {
+        // Normal sorting with pagination
+        const queryBuilder = Product.find(query)
+            .sort(sortOption)
+            .skip(skip)
+            .limit(parseInt(limit));
+        
+        // Apply case-insensitive collation for name sorting
+        if (useCollation) {
+            queryBuilder.collation({ locale: 'en', strength: 2 });
+        }
+        
+        products = await queryBuilder;
+        
+        total = await Product.countDocuments(query);
+    }
+    const productsWithBrandStatus = await Promise.all(
         products.map(async (product) => {
             const brandStatus = await getBrandStatus(product.brand);
             return {
@@ -97,8 +184,6 @@ export async function getProducts(filters = {}) {
             };
         })
     );
-        
-    const total = await Product.countDocuments(query);
     
     return {
         products: productsWithBrandStatus,
@@ -108,7 +193,7 @@ export async function getProducts(filters = {}) {
     };
 }
 
-export async function getProductById(productId) {
+export async function   getProductById(productId) {
     const product = await Product.findOne({ _id: productId, isDeleted: false });
     if (!product) return null;
     
@@ -216,7 +301,7 @@ export async function getAllBrands() {
         isDeleted: false, 
         status: 'active' 
     });
-    
+        
     return brands.sort();
 }
 

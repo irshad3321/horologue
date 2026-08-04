@@ -103,10 +103,10 @@ addressId: {
         enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested', 'Returned', 'Return Declined'],
         default: 'Pending'
     },
-  cancel:{
-    type:Number,
-    default:0
-  },
+//   cancel:{
+//     type:Number,
+//     default:0
+//   },
     orderDate: {
         type: Date,
         default: Date.now

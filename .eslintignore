@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.*
+
+# Build outputs
+dist/
+build/
+
+# Static assets
+public/css/
+public/images/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+
+# View templates (EJS - already handled in config but added here for completeness)
+views/**/*.ejs
+
+# Package files
+package-lock.json

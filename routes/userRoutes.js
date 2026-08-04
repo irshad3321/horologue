@@ -83,9 +83,11 @@ import {
     downloadInvoice,
     createRazorpayOrder,
     verifyRazorpayPayment,
+    handlePaymentFailure,
     validateCouponController,
     getAvailableCoupons,
-    validateStock
+    validateStock,
+    updatePaymentStatus
 } from '../controllers/user/orderController.js';
 
 import { syncUserSession, isAuthenticated, preventCache, redirectAuthenticatedUsers, userSessionCheck } from '../middlewares/sessionAuth.js';
@@ -133,6 +135,7 @@ router.get('/payment-failure', isAuthenticated, (req, res) => {
 // Payment routes
 router.post('/api/payment/create-order', isAuthenticated, createRazorpayOrder);
 router.post('/api/payment/verify', isAuthenticated, verifyRazorpayPayment);
+router.post('/api/payment/failure', isAuthenticated, handlePaymentFailure);
 
 // Coupon routes
 router.post('/api/coupon/validate', isAuthenticated, validateCouponController);
@@ -147,6 +150,7 @@ router.post('/api/orders/validate-stock', isAuthenticated, validateStock);
 router.post('/api/orders/:id/cancel', isAuthenticated, cancelOrder);
 router.post('/api/orders/:orderId/items/:itemId/cancel', isAuthenticated, cancelOrderItem);
 router.post('/api/orders/:id/return', isAuthenticated, returnOrder);
+router.post('/api/orders/:id/update-payment', isAuthenticated, updatePaymentStatus);
 router.get('/api/orders/:id/invoice', isAuthenticated, downloadInvoice);
 
 // Cart API routes

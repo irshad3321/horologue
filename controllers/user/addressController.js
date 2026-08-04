@@ -13,9 +13,15 @@ export const getAddresses = async (req, res) => {
         if (!userId) {
             return res.json({ success: false, message: 'Not authenticated' });
         }
-        const addresses = await getUserAddresses(userId);
-        const arr=[]
-        res.json({ success: true, addresses });
+        
+        const page = parseInt(req.query.page) || 1;
+        const result = await getUserAddresses(userId, page, 5);
+        
+        res.json({ 
+            success: true, 
+            addresses: result.addresses,
+            pagination: result.pagination
+        });
         
     } catch (error) {
         console.error('Get addresses error:', error);

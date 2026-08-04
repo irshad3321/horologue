@@ -62,6 +62,7 @@ export async function removeFromWishlist(userId, productId) {
     if (!wishlist) {
         return null;
     }
+   
     
     // Convert productId to string for comparison
     const productIdStr = productId.toString();

@@ -3,7 +3,7 @@ import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
 import mongoose from 'mongoose';
-  
+import User from '../models/User.js';
 
 function generateOrderNumber(){
     const timestamp = Date.now();
@@ -25,10 +25,9 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
         if (!address) {
             throw new Error('Address not found');
         }
-        
+
         let subtotal = 0;
         const orderItems = [];
-        
         for (const item of cart.items) {
             const product = item.product;
             if (product.status !== 'active' || product.isDeleted) {
@@ -50,10 +49,10 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
             
             let price = variant.price;
             if (product.offer > 0) {
-                price = price - (price * product.offer / 100);
+                price = Math.round(price - (price * product.offer / 100));
             }
             
-            const itemTotal = price * item.quantity;
+            const itemTotal = Math.round(price * item.quantity);
             subtotal += itemTotal;
             
             orderItems.push({
@@ -65,6 +64,7 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
                 itemTotal: itemTotal
             });
             variant.stock -= item.quantity;
+
             
             await product.save();
         }
@@ -82,6 +82,9 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
                 throw new Error('Insufficient wallet balance');
             }
         }
+         
+      
+        
         if (couponCode) {
             const { applyCoupon } = await import('./couponService.js');
             const Coupon = (await import('../models/Coupon.js')).default;
@@ -90,8 +93,8 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
                 await applyCoupon(coupon._id);
             }
         }
-       
-
+    
+        
         const order = new Order({
             userId: userId,
             orderNumber: generateOrderNumber(),  
@@ -121,7 +124,10 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
             razorpayPaymentId: razorpayPaymentId,
             razorpaySignature: razorpaySignature
         });
-        
+      
+
+
+
         await order.save();
        
 
@@ -134,6 +140,97 @@ export async function placeOrder(userId, addressId, paymentMethod, couponCode = 
         cart.items = [];
         await cart.save();
         
+        return order;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Create order with failed payment status (for tracking failed payments)
+export async function createFailedOrder(userId, addressId, couponCode = null, couponDiscount = 0, razorpayOrderId = null, failureReason = 'Payment failed') {
+    try {
+        const cart = await Cart.findOne({ user: userId }).populate('items.product');
+        
+        if (!cart || cart.items.length === 0) {
+            throw new Error('Cart is empty');
+        }
+
+        const Address = (await import('../models/Address.js')).default;
+        const address = await Address.findById(addressId);
+        
+        if (!address) {
+            throw new Error('Address not found');
+        }
+        
+        let subtotal = 0;
+        const orderItems = [];
+        
+        // Calculate order items without reducing stock
+        for (const item of cart.items) {
+            const product = item.product;
+            const variant = product.variants.id(item.variantId);
+            
+            if (!variant) {
+                continue; // Skip invalid variants
+            }
+            
+            let price = variant.price;
+            if (product.offer > 0) {
+                price = Math.round(price - (price * product.offer / 100));
+            }
+            
+            const itemTotal = Math.round(price * item.quantity);
+            subtotal += itemTotal;
+            
+            orderItems.push({
+                product: product._id,
+                variantId: variant._id,
+                color: variant.color,
+                price: price,
+                quantity: item.quantity,
+                itemTotal: itemTotal
+            });
+        }
+
+        const discount = 0;
+        const tax = 0;
+        const shippingCharge = 0;
+        const totalDiscount = Math.min((discount || 0) + (couponDiscount || 0), subtotal);
+        const totalAmount = Math.max(0, subtotal - totalDiscount + tax + shippingCharge);
+
+        const order = new Order({
+            userId: userId,
+            orderNumber: generateOrderNumber(),
+            addressId: addressId,
+            items: orderItems,
+            shippingAddress: {
+                fullName: address.fullName,
+                phone: address.phoneNumber,
+                addressLine1: address.addressLine1,
+                addressLine2: address.addressLine2,
+                city: address.city,
+                state: address.state,
+                pincode: address.pincode,
+                addressType: address.addressType
+            },
+            subtotal: subtotal,
+            discount: discount,
+            tax: tax,
+            shippingCharge: shippingCharge,
+            totalAmount: totalAmount,
+            paymentMethod: 'Online',
+            paymentStatus: PAYMENT_STATUS.FAILED,
+            orderStatus: ORDER_STATUS.CANCELLED,
+            couponCode: couponCode,
+            couponDiscount: couponDiscount,
+            razorpayOrderId: razorpayOrderId,
+            cancelledDate: new Date(),
+            cancellationReason: failureReason
+        });
+        
+        await order.save();
+        
+        // Don't clear cart for failed orders so user can retry
         return order;
     } catch (error) {
         throw error;
@@ -153,7 +250,8 @@ export async function getUserOrders(userId, page = 1, limit = 10) {
             .limit(limit);
         
         const total = await Order.countDocuments({ userId });
-         
+          
+       
    
        
         return {
@@ -193,8 +291,6 @@ export async function cancelOrder(orderId, userId, reason) {
             .populate('items.product');
          
 
-   
-
         if (!order) {
             throw new Error('Order not found');
         }
@@ -215,7 +311,7 @@ export async function cancelOrder(orderId, userId, reason) {
             }
         }
        
-        // Refund to wallet if payment was made
+        // Refund to wallet 
         if (order.paymentMethod !== 'COD' && order.paymentStatus === PAYMENT_STATUS.PAID) {
             const { refundToWallet } = await import('./walletService.js');
             await refundToWallet(userId, order.totalAmount, `Refund for cancelled order #${order.orderNumber}`, order._id);
@@ -266,24 +362,45 @@ export async function cancelOrderItem(orderId, itemId, userId, reason) {
             variant.stock += item.quantity;
             await product.save();
         }
+        
+        // Calculate proportional refund based on actual paid amount
         if (order.paymentMethod !== 'COD' && order.paymentStatus === PAYMENT_STATUS.PAID) {
             const { refundToWallet } = await import('./walletService.js');
-            await refundToWallet(userId, itemTotal, `Refund for cancelled item from order #${order.orderNumber}`, order._id);
+            
+            // Calculate what portion of total this item represents
+            const itemPercentage = order.subtotal > 0 ? itemTotal / order.subtotal : 0;
+            // Apply same percentage to actual paid amount (after all discounts)
+            const refundAmount = order.totalAmount * itemPercentage;
+            
+            await refundToWallet(userId, refundAmount, `Refund for cancelled item from order #${order.orderNumber}`, order._id);
         }
         
         item.itemStatus = ITEM_STATUS.CANCELLED;
         item.cancelledDate = new Date();
         item.cancellationReason = reason || '';
-        let subtotal = 0;
+        
+        // Recalculate order totals after item cancellation
+        let newSubtotal = 0;
         order.items.forEach(item => {
             if (item.itemStatus === ITEM_STATUS.ACTIVE) {
-                subtotal += item.itemTotal;
+                newSubtotal += item.itemTotal;
             }
         });
         
-        order.subtotal = subtotal;
-        const totalDiscount = Math.min((order.discount || 0) + (order.couponDiscount || 0), subtotal);
-        order.totalAmount = Math.max(0, subtotal - totalDiscount + order.tax + order.shippingCharge);
+        // Calculate proportional coupon discount for remaining items
+        let newCouponDiscount = 0;
+        if (order.couponDiscount > 0 && order.subtotal > 0) {
+            // Apply same coupon discount percentage to new subtotal
+            const couponPercentage = order.couponDiscount / order.subtotal;
+            newCouponDiscount = newSubtotal * couponPercentage;
+        }
+        
+        order.subtotal = newSubtotal;
+        order.couponDiscount = newCouponDiscount;
+        const totalDiscount = Math.min((order.discount || 0) + newCouponDiscount, newSubtotal);
+        order.totalAmount = Math.max(0, newSubtotal - totalDiscount + order.tax + order.shippingCharge);
+        
+        // If all items are cancelled, mark order as cancelled
         const activeItems = order.items.filter(item => item.itemStatus === ITEM_STATUS.ACTIVE);
         if (activeItems.length === 0) {
             order.orderStatus = ORDER_STATUS.CANCELLED;
@@ -348,4 +465,4 @@ export async function searchOrders(userId, searchTerm) {
     }
 }
 
-
+ 

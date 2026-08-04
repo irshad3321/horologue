@@ -3,7 +3,6 @@ import Product from '../models/Product.js';
 
 // Get user cart with product details and pagination
 export async function getUserCart(identifier, page = 1, limit = 5) {
-    // Determine if identifier is userId (ObjectId) or guestId (session string)
     const isUserId = identifier && identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier);
     
     const query = isUserId ? { user: identifier } : { guestId: identifier };
@@ -19,17 +18,14 @@ export async function getUserCart(identifier, page = 1, limit = 5) {
         };
     }
     
-    // Fix cart items with invalid variant IDs by matching color
     let cartUpdated = false;
     
     for (const item of cart.items) {
         const product = item.product;
-        
-        // Check if variant exists
+
         const variant = product.variants.id(item.variantId);
         
         if (!variant && item.variantColor) {
-            // Variant not found - try to find matching variant by color
             const matchingVariant = product.variants.find(v => v.color === item.variantColor);
             
             if (matchingVariant) {
@@ -37,7 +33,6 @@ export async function getUserCart(identifier, page = 1, limit = 5) {
                 cartUpdated = true;
             }
         } else if (!variant && product.variants && product.variants.length > 0) {
-            // No color stored, use first variant
             const firstVariant = product.variants[0];
             item.variantId = firstVariant._id;
             item.variantColor = firstVariant.color;
@@ -50,7 +45,6 @@ export async function getUserCart(identifier, page = 1, limit = 5) {
         await cart.save();
     }
     
-    // Add brand status to each cart item's product
     const Brand = (await import('../models/Brand.js')).default;
     
     for (const item of cart.items) {
@@ -77,7 +71,6 @@ export async function getUserCart(identifier, page = 1, limit = 5) {
 
 // Add product to cart
 export async function addToCart(identifier, productId, variantId, quantity = 1) {
-    // Check if product exists and is active
     const product = await Product.findById(productId);
     
     if (!product) {
@@ -88,6 +81,7 @@ export async function addToCart(identifier, productId, variantId, quantity = 1) 
         throw new Error('Product is not available');
     }
     
+       
     // Check brand status
     const Brand = (await import('../models/Brand.js')).default;
     const brand = await Brand.findOne({ name: product.brand, isDeleted: false });
@@ -107,33 +101,28 @@ export async function addToCart(identifier, productId, variantId, quantity = 1) 
         throw new Error('Insufficient stock');
     }
     
-    // Determine if identifier is userId or guestId
     const isUserId = identifier && identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier);
     const query = isUserId ? { user: identifier } : { guestId: identifier };
     
-    // Find or create cart
     let cart = await Cart.findOne(query);
     
     if (!cart) {
         cart = new Cart(isUserId ? { user: identifier, items: [] } : { guestId: identifier, items: [] });
     }
     
-    // Check if product variant already in cart
     const existingItem = cart.items.find(
         item => item.product.toString() === productId && 
                 item.variantId.toString() === variantId
     );
     
     if (existingItem) {
-        // Increase quantity of existing variant
         const newQuantity = existingItem.quantity + quantity;
-        
-        // Check maximum quantity limit (5 per variant)
+       
         if (newQuantity > 5) {
             throw new Error('Maximum 5 quantities allowed per variant');
         }
-        
-        // Check stock for new quantity
+      
+            
         if (variant.stock < newQuantity) {
             throw new Error('Insufficient stock');
         }
@@ -141,7 +130,6 @@ export async function addToCart(identifier, productId, variantId, quantity = 1) 
         existingItem.quantity = newQuantity;
         existingItem.variantColor = variant.color;
     } else {
-        // Adding new variant - check if quantity exceeds limit
         if (quantity > 5) {
             throw new Error('Maximum 5 quantities allowed per variant');
         }
@@ -173,7 +161,6 @@ export async function addToCart(identifier, productId, variantId, quantity = 1) 
             }
         }
     } catch (error) {
-        // Ignore wishlist errors, cart operation succeeded
     }
     
     return cart;
@@ -190,7 +177,6 @@ export async function updateCartQuantity(identifier, productId, variantId, quant
         throw new Error('Cart not found');
     }
     
-    // Find the item
     const item = cart.items.find(
         item => item.product.toString() === productId && 
                 item.variantId.toString() === variantId
@@ -199,13 +185,7 @@ export async function updateCartQuantity(identifier, productId, variantId, quant
     if (!item) {
         throw new Error('Item not found in cart');
     }
-    
-    // Check maximum quantity limit (5 per product)
-    if (quantity > 5) {
-        throw new Error('Maximum 5 quantities allowed per product');
-    }
-    
-    // Check product status and stock
+   
     const product = await Product.findById(productId);
     
     if (!product) {
@@ -215,6 +195,11 @@ export async function updateCartQuantity(identifier, productId, variantId, quant
     if (product.status !== 'active' || product.isDeleted) {
         throw new Error('Product is not available');
     }
+    
+    if (quantity > 5) {
+        throw new Error('Maximum 5 quantities allowed per product');
+    }
+
     
     const variant = product.variants.id(variantId);
     

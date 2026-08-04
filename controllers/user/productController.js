@@ -13,6 +13,7 @@ export const showProducts = async (req, res) => {
         const priceRange = req.query.priceRange;
         const sort = req.query.sort;
         const page = req.query.page || 1;
+        // console.log(brand)
         const filters = {
             search: search,
             category: category,

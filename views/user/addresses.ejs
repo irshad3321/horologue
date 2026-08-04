@@ -539,6 +539,53 @@
         flex-direction: column;
       }
     }
+
+    /* Pagination Styles */
+    .pagination-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 30px;
+      gap: 10px;
+    }
+
+    .pagination-btn {
+      padding: 10px 16px;
+      border: 1px solid #dee2e6;
+      background: #fff;
+      color: #495057;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: #e9ecef;
+      border-color: #adb5bd;
+    }
+
+    .pagination-btn.active {
+      background: #4285f4;
+      border-color: #4285f4;
+      color: #fff;
+    }
+
+    .pagination-btn:disabled {
+      background: #f8f9fa;
+      border-color: #dee2e6;
+      color: #6c757d;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .pagination-info {
+      font-size: 14px;
+      color: #6c757d;
+      margin: 0 10px;
+    }
   </style>
 </head>
 <body>
@@ -628,6 +675,25 @@
             </div>
           <% } %>
         </div>
+
+        <!-- Pagination -->
+        <% if (typeof pagination !== 'undefined' && pagination && pagination.totalPages > 1) { %>
+          <div class="pagination-container">
+            <% if (pagination.hasPrevPage) { %>
+              <a href="/addresses?page=<%= pagination.currentPage - 1 %>" class="pagination-btn">Previous</a>
+            <% } else { %>
+              <button class="pagination-btn" disabled>Previous</button>
+            <% } %>
+            
+            <span class="pagination-info">Page <%= pagination.currentPage %> of <%= pagination.totalPages %></span>
+            
+            <% if (pagination.hasNextPage) { %>
+              <a href="/addresses?page=<%= pagination.currentPage + 1 %>" class="pagination-btn">Next</a>
+            <% } else { %>
+              <button class="pagination-btn" disabled>Next</button>
+            <% } %>
+          </div>
+        <% } %>
       </div>
     </div>
   </div>

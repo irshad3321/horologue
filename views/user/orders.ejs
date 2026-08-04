@@ -283,6 +283,16 @@
             background: #fff5f5;
         }
 
+        .btn-warning {
+            background: white;
+            color: #ff8c00;
+            border: 2px solid #ff8c00;
+        }
+
+        .btn-warning:hover {
+            background: #fff7e6;
+        }
+
         .empty-orders {
             text-align: center;
             padding: 80px 40px;
@@ -446,6 +456,12 @@
                                         <i class="fas fa-times"></i>
                                         Cancel Order
                                     </button>
+                                <% } %>
+                                <% if (order.paymentStatus === 'Failed') { %>
+                                    <a href="/checkout?orderId=<%= order._id %>" class="btn btn-warning">
+                                        <i class="fas fa-redo"></i>
+                                        Retry Payment
+                                    </a>
                                 <% } %>
                                 <% if (order.orderStatus === 'Delivered') { %>
                                     <!-- <button class="btn btn-secondary" onclick="returnOrder('<%= order._id %>')">

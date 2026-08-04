@@ -315,6 +315,8 @@ export const getUsers = async (req, res) => {
             searchQuery.isAdmin = true;
         }
         
+
+
         // Get total count for pagination
         const totalUsers = await User.countDocuments(searchQuery);
         const totalPages = Math.ceil(totalUsers / limit);
@@ -328,7 +330,8 @@ export const getUsers = async (req, res) => {
         // Calculate pagination info
         const startUser = skip + 1;
         const endUser = Math.min(skip + limit, totalUsers);
-        
+       
+       
         res.render('admin/users', {
             admin: req.session.user,
             currentPage: 'users',
@@ -369,15 +372,15 @@ export const getUsers = async (req, res) => {
 export const toggleUserStatus = async (req, res) => {
     try {
         const { userId } = req.params;
-        const user = await User.findById(userId);
-        
+       
+        const user = await User.findById(userId)
         if (!user) {
             return res.json({
                 success: false,
                 message: 'User not found'
             });
         }
-        
+
         const wasBlocked = user.isBlocked;
         user.isBlocked = !user.isBlocked;
         await user.save();
@@ -408,9 +411,11 @@ export const toggleUserStatus = async (req, res) => {
 // Show Dashboard
 export const showDashboard = async (req, res) => {
     try {
+        
         res.render('admin/dashboard', {
             admin: req.session.user,
             currentPage: 'dashboard'
+           
         });
     } catch (error) {
         console.error('Dashboard error:', error);
@@ -648,7 +653,7 @@ export const getTopProducts = async (req, res) => {
         console.error('Get top products error:', error);
         res.json({ success: false, message: 'Failed to fetch top products' });
     }
-};
+}
 
 // Get Top 10 Categories
 export const getTopCategories = async (req, res) => {
@@ -728,7 +733,7 @@ export const getTopBrands = async (req, res) => {
         console.error('Get top brands error:', error);
         res.json({ success: false, message: 'Failed to fetch top brands' });
     }
-};
+}
 
 
 // Show Sales Report Page
